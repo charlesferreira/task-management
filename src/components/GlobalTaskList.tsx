@@ -15,7 +15,11 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useMemo } from 'react'
-import type { Project, Task } from '../models/types'
+import {
+  UNASSIGNED_PROJECT,
+  type Project,
+  type Task,
+} from '../models/types'
 import TaskItem from './TaskItem'
 
 type GlobalTaskListProps = {
@@ -30,8 +34,15 @@ type SortableTaskItemProps = {
 }
 
 const SortableTaskItem = ({ task, project }: SortableTaskItemProps) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id })
+  const {
+    attributes,
+    listeners,
+    setActivatorNodeRef,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,10 +54,25 @@ const SortableTaskItem = ({ task, project }: SortableTaskItemProps) => {
       ref={setNodeRef}
       style={style}
       className={`transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
-      {...attributes}
-      {...listeners}
     >
-      <TaskItem task={task} project={project} />
+      <TaskItem
+        task={task}
+        project={project}
+        dragHandle={
+          <button
+            type="button"
+            ref={setActivatorNodeRef}
+            className={`flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:text-slate-700 ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            aria-label="Drag task"
+            {...attributes}
+            {...listeners}
+          >
+            ::
+          </button>
+        }
+      />
     </div>
   )
 }
@@ -88,8 +114,10 @@ const GlobalTaskList = ({ tasks, projects, onReorder }: GlobalTaskListProps) => 
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
           <div className="mt-5 flex flex-col gap-3">
             {tasks.map((task) => {
-              const project = projectMap.get(task.projectId)
-              if (!project) return null
+              const project =
+                task.projectId === null
+                  ? UNASSIGNED_PROJECT
+                  : projectMap.get(task.projectId) ?? UNASSIGNED_PROJECT
               return (
                 <SortableTaskItem key={task.id} task={task} project={project} />
               )

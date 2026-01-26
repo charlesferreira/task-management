@@ -6,8 +6,25 @@ import ListView from './pages/ListView'
 
 function App() {
   const [activeView, setActiveView] = useState<'board' | 'list'>('board')
-  const { projects } = useProjects()
-  const { tasks, reorderTasks } = useTasks()
+  const { projects, createProject, reorderProjects } = useProjects()
+  const {
+    tasks,
+    reorderTasks,
+    addTaskAfterProject,
+    addTaskAtTop,
+    reorderWithinProject,
+    setTasks,
+  } = useTasks()
+
+  const handleDeleteProject = (projectId: string) => {
+    const updatedProjects = reorderProjects(
+      projects.filter((project) => project.id !== projectId),
+    )
+    const updatedTasks = tasks.map((task) =>
+      task.projectId === projectId ? { ...task, projectId: null } : task,
+    )
+    setTasks(updatedTasks)
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -48,9 +65,22 @@ function App() {
         </header>
 
         {activeView === 'board' ? (
-          <BoardView projects={projects} tasks={tasks} />
+          <BoardView
+            projects={projects}
+            tasks={tasks}
+            onAddTask={addTaskAfterProject}
+            onCreateProject={createProject}
+            onDeleteProject={handleDeleteProject}
+            onReorderProjects={reorderProjects}
+            onReorderProjectTasks={reorderWithinProject}
+          />
         ) : (
-          <ListView projects={projects} tasks={tasks} onReorder={reorderTasks} />
+          <ListView
+            projects={projects}
+            tasks={tasks}
+            onReorder={reorderTasks}
+            onAddTask={addTaskAtTop}
+          />
         )}
       </div>
     </div>
