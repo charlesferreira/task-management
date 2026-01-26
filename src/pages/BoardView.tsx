@@ -44,9 +44,9 @@ const BoardView = ({
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <header className="flex flex-col gap-4 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-lg font-semibold text-slate-900">
             Project Board
           </h1>
           <p className="text-sm text-slate-500">
@@ -61,10 +61,10 @@ const BoardView = ({
               if (event.key === "Enter") handleCreate();
             }}
             placeholder="New project name"
-            className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
+            className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
           />
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+            <div className="h-9 w-9 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm">
               <input
                 type="color"
                 value={color}
@@ -76,7 +76,7 @@ const BoardView = ({
             <button
               type="button"
               onClick={handleCreate}
-              className="min-w-max rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              className="min-w-max rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
             >
               Add project
             </button>

@@ -9,12 +9,12 @@ import {
 } from '@dnd-kit/core'
 import {
   SortableContext,
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT } from '../models/types'
 import ProjectColumn from './ProjectColumn'
@@ -62,6 +62,7 @@ const SortableProjectColumn = ({
   onDeleteTask,
   onUpdateProject,
 }: SortableProjectColumnProps) => {
+  const measureRef = useRef<HTMLDivElement | null>(null)
   const {
     attributes,
     listeners,
@@ -81,7 +82,7 @@ const SortableProjectColumn = ({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={isDragging ? 'z-10' : ''}>
+    <div ref={setNodeRef} style={style} className={isDragging ? 'opacity-0' : ''}>
       <ProjectColumn
         project={project}
         tasks={tasks}
@@ -94,7 +95,7 @@ const SortableProjectColumn = ({
           <button
             type="button"
             ref={setActivatorNodeRef}
-            className={`flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-[10px] text-slate-400 transition hover:text-slate-700 ${
+            className={`flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200/70 text-[10px] text-slate-400 transition hover:text-slate-700 ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
             aria-label="Drag project"
@@ -121,6 +122,7 @@ const ProjectBoard = ({
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -143,6 +145,9 @@ const ProjectBoard = ({
       : activeTask
         ? projectMap.get(activeTask.projectId) ?? UNASSIGNED_PROJECT
         : null
+  const activeColumnProject = activeProjectId
+    ? projectMap.get(activeProjectId) ?? null
+    : null
 
   return (
     <DndContext
@@ -152,21 +157,29 @@ const ProjectBoard = ({
         if (active.data.current?.type === 'task') {
           setActiveTaskId(String(active.id))
         }
+        if (active.data.current?.type === 'column') {
+          setActiveProjectId(String(active.id))
+        }
       }}
       onDragEnd={({ active, over }) => {
         if (!over || active.id === over.id) {
           setActiveTaskId(null)
+          setActiveProjectId(null)
           return
         }
         const activeType = active.data.current?.type
         const overType = over.data.current?.type
 
         if (activeType === 'column') {
+          const targetProjectId =
+            overType === 'column-drop'
+              ? over.data.current?.projectId
+              : String(over.id)
           const oldIndex = orderedProjects.findIndex(
             (project) => project.id === active.id,
           )
           const newIndex = orderedProjects.findIndex(
-            (project) => project.id === over.id,
+            (project) => project.id === targetProjectId,
           )
           if (oldIndex === -1 || newIndex === -1) return
           const updated = [...orderedProjects]
@@ -174,11 +187,12 @@ const ProjectBoard = ({
           updated.splice(newIndex, 0, moved)
           onReorderProjects(updated)
           setActiveTaskId(null)
+          setActiveProjectId(null)
           return
         }
 
         if (activeType === 'task') {
-          const isOverColumn = overType === 'column'
+          const isOverColumn = overType === 'column-drop'
           const targetProjectId = isOverColumn
             ? over.data.current?.projectId ?? null
             : over.data.current?.projectId ?? null
@@ -191,16 +205,18 @@ const ProjectBoard = ({
           )
         }
         setActiveTaskId(null)
+        setActiveProjectId(null)
       }}
       onDragCancel={() => {
         setActiveTaskId(null)
+        setActiveProjectId(null)
       }}
     >
-      <SortableContext
-        items={orderedProjects.map((project) => project.id)}
-        strategy={horizontalListSortingStrategy}
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <SortableContext
+          items={orderedProjects.map((project) => project.id)}
+          strategy={rectSortingStrategy}
+        >
           {orderedProjects.map((project) => {
             const projectTasks = tasks.filter(
               (task) => task.projectId === project.id,
@@ -218,25 +234,37 @@ const ProjectBoard = ({
               />
             )
           })}
-          <ProjectColumn
-            project={UNASSIGNED_PROJECT}
-            tasks={tasks.filter((task) => task.projectId === null)}
-            isUnassigned
-            onAddTask={onAddTask}
-            onToggleComplete={onToggleComplete}
-            onDeleteTask={onDeleteTask}
-          />
-        </div>
-      </SortableContext>
-      <DragOverlay>
+        </SortableContext>
+        <ProjectColumn
+          project={UNASSIGNED_PROJECT}
+          tasks={tasks.filter((task) => task.projectId === null)}
+          isUnassigned
+          onAddTask={onAddTask}
+          onToggleComplete={onToggleComplete}
+          onDeleteTask={onDeleteTask}
+        />
+      </div>
+      <DragOverlay adjustScale={false}>
         {activeTask && activeProject ? (
-          <div className="w-[280px]">
+          <div className="w-[280px] rounded-lg bg-white shadow-md">
             <TaskItem
               task={activeTask}
               project={activeProject}
               showProjectBadge={false}
               isDragging
             />
+          </div>
+        ) : activeColumnProject ? (
+          <div className="w-[320px] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: activeColumnProject.color }}
+              />
+              <p className="text-sm font-semibold text-slate-900">
+                {activeColumnProject.name}
+              </p>
+            </div>
           </div>
         ) : null}
       </DragOverlay>

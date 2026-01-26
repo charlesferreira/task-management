@@ -43,14 +43,14 @@ const ListView = ({
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-lg font-semibold text-slate-900">
           Global Task List
         </h1>
         <p className="text-sm text-slate-500">
           Reordering here updates every project view instantly.
         </p>
       </header>
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-700">
           Create a new task
         </h2>
@@ -62,13 +62,13 @@ const ListView = ({
               if (event.key === "Enter") handleSubmit();
             }}
             placeholder="Task title"
-            className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
+            className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
           />
           <div className="flex flex-1 items-center gap-2">
             <select
               value={selectedProject}
               onChange={(event) => setSelectedProject(event.target.value)}
-              className="w-full min-w-max rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+              className="w-full min-w-max rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
             >
               <option value={UNASSIGNED_PROJECT_ID}>
                 {UNASSIGNED_PROJECT.name}
@@ -82,7 +82,7 @@ const ListView = ({
             <button
               type="button"
               onClick={handleSubmit}
-              className="min-w-max rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              className="min-w-max rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
             >
               Add task
             </button>

@@ -34,8 +34,8 @@ const TaskItem = ({
   return (
     <div
       ref={(element) => dragHandleProps?.setActivatorNodeRef(element)}
-      className={`group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm ${
-        dragHandleProps ? 'cursor-move' : ''
+      className={`group flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition ${
+        dragHandleProps ? 'cursor-move hover:bg-slate-50' : ''
       }`}
       {...dragHandleProps?.attributes}
       {...dragHandleProps?.listeners}
@@ -49,7 +49,7 @@ const TaskItem = ({
               <button
                 type="button"
                 onClick={() => onToggleComplete?.(task.id)}
-                className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs transition ${
+                className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none transition ${
                   task.completedAt
                     ? 'border-emerald-500 bg-emerald-500 text-white'
                     : 'border-slate-300 text-transparent hover:text-slate-300'
@@ -78,14 +78,14 @@ const TaskItem = ({
                 <button
                   type="button"
                   onClick={() => onDelete?.(task.id)}
-                  className="rounded-full border border-rose-200 px-2 py-1 font-semibold text-rose-500"
+                  className="rounded-lg border border-rose-200 px-2 py-1 font-semibold text-rose-500"
                 >
                   Confirm
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="rounded-full border border-slate-200 px-2 py-1 font-semibold text-slate-400"
+                  className="rounded-lg border border-slate-200/70 px-2 py-1 font-semibold text-slate-400"
                 >
                   Cancel
                 </button>
@@ -95,7 +95,7 @@ const TaskItem = ({
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-400 hover:text-rose-500"
+                  className="rounded-lg border border-slate-200/70 px-2 py-1 text-xs font-semibold text-slate-400 hover:text-rose-500"
                 >
                   Delete
                 </button>

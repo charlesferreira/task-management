@@ -62,7 +62,7 @@ const SortableTaskItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
+      className={`transition-shadow ${isDragging ? 'shadow-md' : ''}`}
     >
       <TaskItem
         task={task}
@@ -105,27 +105,28 @@ const GlobalTaskList = ({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Global Task List</h2>
+    <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
+      <h2 className="text-base font-semibold text-slate-900">Global Task List</h2>
       <p className="mt-1 text-sm text-slate-500">
         Drag tasks to reorder across all projects.
       </p>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
-          <div className="mt-4 flex flex-col gap-2.5">
+          <div className="mt-4 flex flex-col divide-y divide-slate-200/70">
             {tasks.map((task) => {
               const project =
                 task.projectId === null
                   ? UNASSIGNED_PROJECT
                   : projectMap.get(task.projectId) ?? UNASSIGNED_PROJECT
               return (
-                <SortableTaskItem
-                  key={task.id}
-                  task={task}
-                  project={project}
-                  onToggleComplete={onToggleComplete}
-                  onDeleteTask={onDeleteTask}
-                />
+                <div key={task.id} className="py-1">
+                  <SortableTaskItem
+                    task={task}
+                    project={project}
+                    onToggleComplete={onToggleComplete}
+                    onDeleteTask={onDeleteTask}
+                  />
+                </div>
               )
             })}
           </div>

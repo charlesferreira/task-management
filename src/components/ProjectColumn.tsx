@@ -95,10 +95,10 @@ const ProjectColumn = ({
     setDraftColor(project.color);
   }, [project.color, project.name]);
 
-  const droppableId = isUnassigned ? "column:unassigned" : `column:${project.id}`;
+  const droppableId = isUnassigned ? "drop:unassigned" : `drop:${project.id}`;
   const { setNodeRef, isOver } = useDroppable({
     id: droppableId,
-    data: { type: "column", projectId: isUnassigned ? null : project.id },
+    data: { type: "column-drop", projectId: isUnassigned ? null : project.id },
   });
 
   const handleSubmit = () => {
@@ -122,7 +122,7 @@ const ProjectColumn = ({
   return (
     <div
       ref={setNodeRef}
-      className={`group flex min-h-[220px] flex-col gap-3 rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm ${
+      className={`group flex min-h-[220px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm ${
         isOver ? "border-slate-300" : ""
       }`}
     >
@@ -145,7 +145,7 @@ const ProjectColumn = ({
                 if (event.key === "Enter") handleSaveProject();
                 if (event.key === "Escape") setIsEditing(false);
               }}
-              className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400"
+              className="w-full min-w-0 rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400"
             />
           ) : (
             <h3 className="truncate text-sm font-semibold text-slate-900">
@@ -161,7 +161,7 @@ const ProjectColumn = ({
             <div className="flex items-center gap-1">
               {isEditing ? (
                 <>
-                  <div className="h-7 w-7 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+                  <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm">
                     <input
                       type="color"
                       value={draftColor}
@@ -173,7 +173,7 @@ const ProjectColumn = ({
                   <button
                     type="button"
                     onClick={handleSaveProject}
-                    className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
                   >
                     Save
                   </button>
@@ -184,7 +184,7 @@ const ProjectColumn = ({
                       setDraftColor(project.color);
                       setIsEditing(false);
                     }}
-                    className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400"
                   >
                     Cancel
                   </button>
@@ -193,7 +193,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-slate-700"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-slate-700"
                 >
                   Edit
                 </button>
@@ -204,7 +204,7 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-rose-500"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-rose-500"
             >
               Delete
             </button>
@@ -213,7 +213,7 @@ const ProjectColumn = ({
       </div>
       <div className="flex flex-col gap-2.5">
         {tasks.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-5 text-center text-xs text-slate-500">
+          <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500">
             No tasks to show
           </p>
         ) : (
@@ -251,13 +251,13 @@ const ProjectColumn = ({
                 }
               }}
               placeholder="Task title"
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
+              className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
             />
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="min-w-max rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
+                className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
               >
                 Add task
               </button>
@@ -267,7 +267,7 @@ const ProjectColumn = ({
                   setIsAdding(false);
                   setTitle("");
                 }}
-                className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-500"
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500"
               >
                 Cancel
               </button>
@@ -277,7 +277,7 @@ const ProjectColumn = ({
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="min-w-max rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900"
+            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900"
           >
             Add task
           </button>
