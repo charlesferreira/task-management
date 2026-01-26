@@ -6,9 +6,9 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -25,15 +25,24 @@ import TaskItem from './TaskItem'
 type GlobalTaskListProps = {
   tasks: Task[]
   projects: Project[]
-  onReorder: (tasks: Task[]) => void
+  onReorder: (activeId: string, overId: string, visibleIds: string[]) => void
+  onToggleComplete: (taskId: string) => void
+  onDeleteTask: (taskId: string) => void
 }
 
 type SortableTaskItemProps = {
   task: Task
   project: Project
+  onToggleComplete: (taskId: string) => void
+  onDeleteTask: (taskId: string) => void
 }
 
-const SortableTaskItem = ({ task, project }: SortableTaskItemProps) => {
+const SortableTaskItem = ({
+  task,
+  project,
+  onToggleComplete,
+  onDeleteTask,
+}: SortableTaskItemProps) => {
   const {
     attributes,
     listeners,
@@ -58,26 +67,26 @@ const SortableTaskItem = ({ task, project }: SortableTaskItemProps) => {
       <TaskItem
         task={task}
         project={project}
-        dragHandle={
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:text-slate-700 ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-            aria-label="Drag task"
-            {...attributes}
-            {...listeners}
-          >
-            ::
-          </button>
-        }
+        isDragging={isDragging}
+        dragHandleProps={{
+          attributes,
+          listeners,
+          setActivatorNodeRef,
+        }}
+        onToggleComplete={onToggleComplete}
+        onDelete={onDeleteTask}
       />
     </div>
   )
 }
 
-const GlobalTaskList = ({ tasks, projects, onReorder }: GlobalTaskListProps) => {
+const GlobalTaskList = ({
+  tasks,
+  projects,
+  onReorder,
+  onToggleComplete,
+  onDeleteTask,
+}: GlobalTaskListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -89,37 +98,34 @@ const GlobalTaskList = ({ tasks, projects, onReorder }: GlobalTaskListProps) => 
     return new Map(projects.map((project) => [project.id, project]))
   }, [projects])
 
-  const handleDragEnd = ({
-    active,
-    over,
-  }: {
-    active: { id: string }
-    over: { id: string } | null
-  }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
     if (!over || active.id === over.id) return
-    const oldIndex = tasks.findIndex((task) => task.id === active.id)
-    const newIndex = tasks.findIndex((task) => task.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
-    const next = arrayMove(tasks, oldIndex, newIndex)
-    onReorder(next)
+    onReorder(String(active.id), String(over.id), tasks.map((task) => task.id))
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h2 className="text-lg font-semibold text-slate-900">Global Task List</h2>
       <p className="mt-1 text-sm text-slate-500">
         Drag tasks to reorder across all projects.
       </p>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
-          <div className="mt-5 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-2.5">
             {tasks.map((task) => {
               const project =
                 task.projectId === null
                   ? UNASSIGNED_PROJECT
                   : projectMap.get(task.projectId) ?? UNASSIGNED_PROJECT
               return (
-                <SortableTaskItem key={task.id} task={task} project={project} />
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  project={project}
+                  onToggleComplete={onToggleComplete}
+                  onDeleteTask={onDeleteTask}
+                />
               )
             })}
           </div>

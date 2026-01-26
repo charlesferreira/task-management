@@ -3,6 +3,7 @@ export type Task = {
   title: string
   projectId: string | null
   order: number
+  completedAt: string | null
 }
 
 export type Project = {

@@ -1,5 +1,6 @@
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
@@ -13,20 +14,29 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useMemo, useState } from 'react'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT } from '../models/types'
 import ProjectColumn from './ProjectColumn'
+import TaskItem from './TaskItem'
 
 type ProjectBoardProps = {
   projects: Project[]
   tasks: Task[]
   onAddTask: (title: string, projectId: string | null) => void
   onDeleteProject: (projectId: string) => void
+  onToggleComplete: (taskId: string) => void
+  onDeleteTask: (taskId: string) => void
+  onUpdateProject: (
+    projectId: string,
+    updates: { name: string; color: string },
+  ) => void
   onReorderProjects: (projects: Project[]) => void
   onReorderProjectTasks: (
-    projectId: string | null,
     activeId: string,
-    overId: string,
+    overId: string | null,
+    targetProjectId: string | null,
+    visibleTaskIds: string[],
   ) => void
 }
 
@@ -35,10 +45,11 @@ type SortableProjectColumnProps = {
   tasks: Task[]
   onAddTask: (title: string, projectId: string | null) => void
   onDeleteProject: (projectId: string) => void
-  onReorderProjectTasks: (
-    projectId: string | null,
-    activeId: string,
-    overId: string,
+  onToggleComplete: (taskId: string) => void
+  onDeleteTask: (taskId: string) => void
+  onUpdateProject: (
+    projectId: string,
+    updates: { name: string; color: string },
   ) => void
 }
 
@@ -47,7 +58,9 @@ const SortableProjectColumn = ({
   tasks,
   onAddTask,
   onDeleteProject,
-  onReorderProjectTasks,
+  onToggleComplete,
+  onDeleteTask,
+  onUpdateProject,
 }: SortableProjectColumnProps) => {
   const {
     attributes,
@@ -57,7 +70,10 @@ const SortableProjectColumn = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: project.id })
+  } = useSortable({
+    id: project.id,
+    data: { type: 'column', projectId: project.id },
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -71,7 +87,9 @@ const SortableProjectColumn = ({
         tasks={tasks}
         onAddTask={onAddTask}
         onDeleteProject={onDeleteProject}
-        onReorderProjectTasks={onReorderProjectTasks}
+        onUpdateProject={onUpdateProject}
+        onToggleComplete={onToggleComplete}
+        onDeleteTask={onDeleteTask}
         dragHandle={
           <button
             type="button"
@@ -96,9 +114,13 @@ const ProjectBoard = ({
   tasks,
   onAddTask,
   onDeleteProject,
+  onToggleComplete,
+  onDeleteTask,
+  onUpdateProject,
   onReorderProjects,
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
@@ -107,31 +129,78 @@ const ProjectBoard = ({
   )
 
   const orderedProjects = [...projects].sort((a, b) => a.order - b.order)
+  const visibleTaskIds = tasks.map((task) => task.id)
+  const projectMap = useMemo(
+    () => new Map(projects.map((project) => [project.id, project])),
+    [projects],
+  )
+  const activeTask = activeTaskId
+    ? tasks.find((task) => task.id === activeTaskId) ?? null
+    : null
+  const activeProject =
+    activeTask?.projectId === null
+      ? UNASSIGNED_PROJECT
+      : activeTask
+        ? projectMap.get(activeTask.projectId) ?? UNASSIGNED_PROJECT
+        : null
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={({ active }) => {
+        if (active.data.current?.type === 'task') {
+          setActiveTaskId(String(active.id))
+        }
+      }}
       onDragEnd={({ active, over }) => {
-        if (!over || active.id === over.id) return
-        const oldIndex = orderedProjects.findIndex(
-          (project) => project.id === active.id,
-        )
-        const newIndex = orderedProjects.findIndex(
-          (project) => project.id === over.id,
-        )
-        if (oldIndex === -1 || newIndex === -1) return
-        const updated = [...orderedProjects]
-        const [moved] = updated.splice(oldIndex, 1)
-        updated.splice(newIndex, 0, moved)
-        onReorderProjects(updated)
+        if (!over || active.id === over.id) {
+          setActiveTaskId(null)
+          return
+        }
+        const activeType = active.data.current?.type
+        const overType = over.data.current?.type
+
+        if (activeType === 'column') {
+          const oldIndex = orderedProjects.findIndex(
+            (project) => project.id === active.id,
+          )
+          const newIndex = orderedProjects.findIndex(
+            (project) => project.id === over.id,
+          )
+          if (oldIndex === -1 || newIndex === -1) return
+          const updated = [...orderedProjects]
+          const [moved] = updated.splice(oldIndex, 1)
+          updated.splice(newIndex, 0, moved)
+          onReorderProjects(updated)
+          setActiveTaskId(null)
+          return
+        }
+
+        if (activeType === 'task') {
+          const isOverColumn = overType === 'column'
+          const targetProjectId = isOverColumn
+            ? over.data.current?.projectId ?? null
+            : over.data.current?.projectId ?? null
+          const overTaskId = isOverColumn ? null : String(over.id)
+          onReorderProjectTasks(
+            String(active.id),
+            overTaskId,
+            targetProjectId ?? null,
+            visibleTaskIds,
+          )
+        }
+        setActiveTaskId(null)
+      }}
+      onDragCancel={() => {
+        setActiveTaskId(null)
       }}
     >
       <SortableContext
         items={orderedProjects.map((project) => project.id)}
         strategy={horizontalListSortingStrategy}
       >
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {orderedProjects.map((project) => {
             const projectTasks = tasks.filter(
               (task) => task.projectId === project.id,
@@ -143,7 +212,9 @@ const ProjectBoard = ({
                 tasks={projectTasks}
                 onAddTask={onAddTask}
                 onDeleteProject={onDeleteProject}
-                onReorderProjectTasks={onReorderProjectTasks}
+                onToggleComplete={onToggleComplete}
+                onDeleteTask={onDeleteTask}
+                onUpdateProject={onUpdateProject}
               />
             )
           })}
@@ -152,10 +223,23 @@ const ProjectBoard = ({
             tasks={tasks.filter((task) => task.projectId === null)}
             isUnassigned
             onAddTask={onAddTask}
-            onReorderProjectTasks={onReorderProjectTasks}
+            onToggleComplete={onToggleComplete}
+            onDeleteTask={onDeleteTask}
           />
         </div>
       </SortableContext>
+      <DragOverlay>
+        {activeTask && activeProject ? (
+          <div className="w-[280px]">
+            <TaskItem
+              task={activeTask}
+              project={activeProject}
+              showProjectBadge={false}
+              isDragging
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }

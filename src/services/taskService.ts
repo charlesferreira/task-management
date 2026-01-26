@@ -8,30 +8,35 @@ const sampleTasks: Task[] = [
     title: 'Plan weekly goals',
     projectId: 'project-1',
     order: 0,
+    completedAt: null,
   },
   {
     id: 'task-2',
     title: 'Review pull requests',
     projectId: 'project-2',
     order: 1,
+    completedAt: null,
   },
   {
     id: 'task-3',
     title: 'Draft new app concept',
     projectId: 'project-3',
     order: 2,
+    completedAt: null,
   },
   {
     id: 'task-4',
     title: 'Schedule gym sessions',
     projectId: 'project-1',
     order: 3,
+    completedAt: null,
   },
   {
     id: 'task-5',
     title: 'Prepare project brief',
     projectId: 'project-2',
     order: 4,
+    completedAt: null,
   },
 ]
 
@@ -41,8 +46,16 @@ const normalizeTasks = (tasks: Task[]) => {
     const order = typeof task.order === 'number' ? task.order : index
     const projectId =
       typeof task.projectId === 'string' ? task.projectId : null
-    if (order !== task.order || projectId !== task.projectId) changed = true
-    return { ...task, order, projectId }
+    const completedAt =
+      typeof task.completedAt === 'string' ? task.completedAt : null
+    if (
+      order !== task.order ||
+      projectId !== task.projectId ||
+      completedAt !== task.completedAt
+    ) {
+      changed = true
+    }
+    return { ...task, order, projectId, completedAt }
   })
   return { normalized, changed }
 }

@@ -10,11 +10,20 @@ import {
 type ListViewProps = {
   projects: Project[];
   tasks: Task[];
-  onReorder: (tasks: Task[]) => void;
+  onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onAddTask: (title: string, projectId: string | null) => void;
+  onToggleComplete: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void;
 };
 
-const ListView = ({ projects, tasks, onReorder, onAddTask }: ListViewProps) => {
+const ListView = ({
+  projects,
+  tasks,
+  onReorder,
+  onAddTask,
+  onToggleComplete,
+  onDeleteTask,
+}: ListViewProps) => {
   const [title, setTitle] = useState("");
   const [selectedProject, setSelectedProject] = useState(UNASSIGNED_PROJECT_ID);
 
@@ -41,7 +50,7 @@ const ListView = ({ projects, tasks, onReorder, onAddTask }: ListViewProps) => {
           Reordering here updates every project view instantly.
         </p>
       </header>
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-700">
           Create a new task
         </h2>
@@ -80,7 +89,13 @@ const ListView = ({ projects, tasks, onReorder, onAddTask }: ListViewProps) => {
           </div>
         </div>
       </div>
-      <GlobalTaskList projects={projects} tasks={tasks} onReorder={onReorder} />
+      <GlobalTaskList
+        projects={projects}
+        tasks={tasks}
+        onReorder={onReorder}
+        onToggleComplete={onToggleComplete}
+        onDeleteTask={onDeleteTask}
+      />
     </section>
   );
 };

@@ -10,10 +10,14 @@ type BoardViewProps = {
   onCreateProject: (name: string, color: string) => void;
   onReorderProjects: (projects: Project[]) => void;
   onReorderProjectTasks: (
-    projectId: string | null,
     activeId: string,
-    overId: string,
+    overId: string | null,
+    targetProjectId: string | null,
+    visibleTaskIds: string[],
   ) => void;
+  onToggleComplete: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onUpdateProject: (projectId: string, updates: { name: string; color: string }) => void;
 };
 
 const BoardView = ({
@@ -24,6 +28,9 @@ const BoardView = ({
   onCreateProject,
   onReorderProjects,
   onReorderProjectTasks,
+  onToggleComplete,
+  onDeleteTask,
+  onUpdateProject,
 }: BoardViewProps) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#38bdf8");
@@ -37,7 +44,7 @@ const BoardView = ({
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <header className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
             Project Board
@@ -57,13 +64,15 @@ const BoardView = ({
             className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
           />
           <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={color}
-              onChange={(event) => setColor(event.target.value)}
-              className="h-10 w-12 cursor-pointer rounded-xl border border-slate-200 bg-white p-1"
-              aria-label="Project color"
-            />
+            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+              <input
+                type="color"
+                value={color}
+                onChange={(event) => setColor(event.target.value)}
+                className="h-full w-full cursor-pointer appearance-none overflow-hidden rounded-full border-0 p-0"
+                aria-label="Project color"
+              />
+            </div>
             <button
               type="button"
               onClick={handleCreate}
@@ -81,6 +90,9 @@ const BoardView = ({
         onDeleteProject={onDeleteProject}
         onReorderProjects={onReorderProjects}
         onReorderProjectTasks={onReorderProjectTasks}
+        onToggleComplete={onToggleComplete}
+        onDeleteTask={onDeleteTask}
+        onUpdateProject={onUpdateProject}
       />
     </section>
   );
