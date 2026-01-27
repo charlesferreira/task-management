@@ -135,7 +135,7 @@ const ProjectColumn = ({
   return (
     <div
       ref={setNodeRef}
-      className={`group flex min-h-[220px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm ${
+      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm ${
         isOver ? "border-slate-300" : ""
       }`}
     >
@@ -223,7 +223,7 @@ const ProjectColumn = ({
           ) : null}
         </div>
       </div>
-      <div className="max-h-[360px] flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {tasks.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500">
             No tasks to show
@@ -233,7 +233,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex max-h-[360px] flex-col gap-2.5 overflow-y-auto pr-1">
+            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}

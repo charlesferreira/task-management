@@ -19,7 +19,10 @@ type BoardViewProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
-  onUpdateProject: (projectId: string, updates: { name: string; color: string }) => void;
+  onUpdateProject: (
+    projectId: string,
+    updates: { name: string; color: string },
+  ) => void;
 };
 
 const BoardView = ({
@@ -49,17 +52,7 @@ const BoardView = ({
   };
 
   return (
-    <section className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900">
-            Project Board
-          </h1>
-          <p className="text-sm text-slate-500">
-            Tasks are grouped by project using the global order.
-          </p>
-        </div>
-      </header>
+    <section className="space-y-6 pb-24">
       <ProjectBoard
         projects={projects}
         tasks={tasks}
@@ -74,7 +67,7 @@ const BoardView = ({
         onUpdateProject={onUpdateProject}
       />
       {showProjectForm ? (
-        <div className="fixed bottom-24 right-6 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+        <div className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
           <div className="flex flex-col gap-3">
             <input
               value={name}
@@ -111,10 +104,25 @@ const BoardView = ({
       <button
         type="button"
         onClick={() => setShowProjectForm((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl font-semibold text-white shadow-md transition hover:translate-y-[-1px]"
+        className="group fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4"
         aria-label="Add project"
       >
-        +
+        <span
+          className="flex h-6 w-6 items-center justify-center transition-transform duration-300"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24" className="h-6 w-6">
+            <path
+              d="M12 5v14M5 12h14"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+        <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover:max-w-40 group-hover:opacity-100">
+          Add project
+        </span>
       </button>
     </section>
   );

@@ -64,7 +64,7 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8">
-        <header className="flex flex-col gap-4 rounded-xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
               Task Organizer
