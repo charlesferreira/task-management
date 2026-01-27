@@ -54,28 +54,30 @@ const ListView = ({
           Reordering here updates every project view instantly.
         </p>
       </header>
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => setShowCreate((prev) => !prev)}
-          className="rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:text-slate-900"
-        >
-          {showCreate ? "Close" : "Add task"}
-        </button>
-      </div>
+      <GlobalTaskList
+        projects={projects}
+        tasks={tasks}
+        hideHeader
+        onReorder={onReorder}
+        onToggleComplete={onToggleComplete}
+        onDeleteTask={onDeleteTask}
+        onUpdateTaskTitle={onUpdateTaskTitle}
+      />
       {showCreate ? (
-        <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="fixed bottom-24 right-6 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+          <div className="flex flex-col gap-3">
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") handleSubmit();
+                if (event.key === "Escape") setShowCreate(false);
               }}
               placeholder="Task title"
               className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
+              autoFocus
             />
-            <div className="flex flex-1 items-center gap-2">
+            <div className="flex items-center gap-2">
               <select
                 value={selectedProject}
                 onChange={(event) => setSelectedProject(event.target.value)}
@@ -95,21 +97,20 @@ const ListView = ({
                 onClick={handleSubmit}
                 className="min-w-max rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
               >
-                Add task
+                Add
               </button>
             </div>
           </div>
         </div>
       ) : null}
-      <GlobalTaskList
-        projects={projects}
-        tasks={tasks}
-        hideHeader
-        onReorder={onReorder}
-        onToggleComplete={onToggleComplete}
-        onDeleteTask={onDeleteTask}
-        onUpdateTaskTitle={onUpdateTaskTitle}
-      />
+      <button
+        type="button"
+        onClick={() => setShowCreate((prev) => !prev)}
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-2xl font-semibold text-white shadow-md transition hover:translate-y-[-1px]"
+        aria-label="Add task"
+      >
+        +
+      </button>
     </section>
   );
 };
