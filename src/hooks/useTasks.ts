@@ -42,6 +42,15 @@ export const useTasks = () => {
     setTasks(taskService.reorderTasks(updated))
   }
 
+  const updateTaskTitle = (taskId: string, title: string) => {
+    const trimmed = title.trim()
+    if (!trimmed) return
+    const updated = tasks.map((task) =>
+      task.id === taskId ? { ...task, title: trimmed } : task,
+    )
+    setTasks(taskService.reorderTasks(updated))
+  }
+
   const deleteCompleted = () => {
     const updated = tasks.filter((task) => !task.completedAt)
     setTasks(taskService.reorderTasks(updated))
@@ -200,5 +209,6 @@ export const useTasks = () => {
     toggleComplete,
     deleteTask,
     deleteCompleted,
+    updateTaskTitle,
   }
 }

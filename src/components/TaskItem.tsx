@@ -6,6 +6,7 @@ type TaskItemProps = {
   task: Task
   project: Project
   isDragging?: boolean
+  actionsVariant?: 'floating' | 'inline'
   dragHandleProps?: {
     attributes: Record<string, unknown>
     listeners: Record<string, unknown>
@@ -14,31 +15,40 @@ type TaskItemProps = {
   showProjectBadge?: boolean
   onToggleComplete?: (taskId: string) => void
   onDelete?: (taskId: string) => void
+  onUpdateTitle?: (taskId: string, title: string) => void
 }
 
 const TaskItem = ({
   task,
   project,
   isDragging = false,
+  actionsVariant = 'floating',
   dragHandleProps,
   showProjectBadge = true,
   onToggleComplete,
   onDelete,
+  onUpdateTitle,
 }: TaskItemProps) => {
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [draftTitle, setDraftTitle] = useState(task.title)
 
   useEffect(() => {
     setConfirmDelete(false)
+    setIsEditing(false)
+    setDraftTitle(task.title)
   }, [task.id])
 
   return (
     <div
-      ref={(element) => dragHandleProps?.setActivatorNodeRef(element)}
-      className={`group flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition ${
+      ref={(element) =>
+        isEditing ? null : dragHandleProps?.setActivatorNodeRef(element)
+      }
+      className={`group/task relative flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition ${
         dragHandleProps ? 'cursor-move hover:bg-slate-50' : ''
       }`}
-      {...dragHandleProps?.attributes}
-      {...dragHandleProps?.listeners}
+      {...(!isEditing ? dragHandleProps?.attributes : {})}
+      {...(!isEditing ? dragHandleProps?.listeners : {})}
     >
       {isDragging ? (
         <p className="text-sm font-medium text-slate-900">{task.title}</p>
@@ -60,47 +70,104 @@ const TaskItem = ({
               >
                 ✓
               </button>
-              <p
-                className={`text-sm font-medium ${
-                  task.completedAt
-                    ? 'text-slate-400 line-through'
-                    : 'text-slate-900'
-                }`}
-              >
-                {task.title}
-              </p>
+              {isEditing ? (
+                <input
+                  value={draftTitle}
+                  onChange={(event) => setDraftTitle(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      onUpdateTitle?.(task.id, draftTitle)
+                      setIsEditing(false)
+                    }
+                    if (event.key === 'Escape') {
+                      setDraftTitle(task.title)
+                      setIsEditing(false)
+                    }
+                  }}
+                  onBlur={() => {
+                    if (draftTitle.trim()) {
+                      onUpdateTitle?.(task.id, draftTitle)
+                    } else {
+                      setDraftTitle(task.title)
+                    }
+                    setIsEditing(false)
+                  }}
+                  className="w-full rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400"
+                  autoFocus
+                />
+              ) : (
+                <p
+                  className={`text-sm font-medium ${
+                    task.completedAt
+                      ? 'text-slate-400 line-through'
+                      : 'text-slate-900'
+                  }`}
+                >
+                  {task.title}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
             {showProjectBadge ? <ProjectBadge project={project} /> : null}
-            {confirmDelete ? (
-              <div className="flex items-center gap-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => onDelete?.(task.id)}
-                  className="rounded-lg border border-rose-200 px-2 py-1 font-semibold text-rose-500"
-                >
-                  Confirm
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(false)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-1 font-semibold text-slate-400"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex w-0 items-center justify-end overflow-hidden opacity-0 transition-[width,opacity] group-hover:w-16 group-hover:opacity-100 group-focus-within:w-16 group-focus-within:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-1 text-xs font-semibold text-slate-400 hover:text-rose-500"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
+            <div className="relative">
+              {confirmDelete ? (
+                <div className="flex items-center gap-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => onDelete?.(task.id)}
+                    className="rounded-lg border border-rose-200 px-2 py-1 font-semibold text-rose-500"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    className="rounded-lg border border-slate-200/70 px-2 py-1 font-semibold text-slate-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : isEditing ? null : (
+                actionsVariant === 'floating' ? (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none transition-opacity group-hover/task:opacity-100 group-hover/task:pointer-events-auto">
+                    <div className="flex items-center gap-1 rounded-lg bg-white/95 px-0.5 py-0.5 shadow-sm backdrop-blur">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(true)}
+                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex w-0 items-center gap-1 overflow-hidden opacity-0 transition-[width,opacity] group-hover/task:w-[116px] group-hover/task:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(true)}
+                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         </>
       )}

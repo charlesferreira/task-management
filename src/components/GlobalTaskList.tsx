@@ -25,9 +25,11 @@ import TaskItem from './TaskItem'
 type GlobalTaskListProps = {
   tasks: Task[]
   projects: Project[]
+  hideHeader?: boolean
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onUpdateTaskTitle: (taskId: string, title: string) => void
 }
 
 type SortableTaskItemProps = {
@@ -35,6 +37,7 @@ type SortableTaskItemProps = {
   project: Project
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onUpdateTaskTitle: (taskId: string, title: string) => void
 }
 
 const SortableTaskItem = ({
@@ -42,6 +45,7 @@ const SortableTaskItem = ({
   project,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
 }: SortableTaskItemProps) => {
   const {
     attributes,
@@ -68,6 +72,7 @@ const SortableTaskItem = ({
         task={task}
         project={project}
         isDragging={isDragging}
+        actionsVariant="inline"
         dragHandleProps={{
           attributes,
           listeners,
@@ -75,6 +80,7 @@ const SortableTaskItem = ({
         }}
         onToggleComplete={onToggleComplete}
         onDelete={onDeleteTask}
+        onUpdateTitle={onUpdateTaskTitle}
       />
     </div>
   )
@@ -83,9 +89,11 @@ const SortableTaskItem = ({
 const GlobalTaskList = ({
   tasks,
   projects,
+  hideHeader = false,
   onReorder,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
 }: GlobalTaskListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -106,13 +114,17 @@ const GlobalTaskList = ({
 
   return (
     <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">Global Task List</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Drag tasks to reorder across all projects.
-      </p>
+      {hideHeader ? null : (
+        <>
+          <h2 className="text-base font-semibold text-slate-900">Global Task List</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Drag tasks to reorder across all projects.
+          </p>
+        </>
+      )}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
-          <div className="mt-4 flex flex-col divide-y divide-slate-200/70">
+          <div className={`${hideHeader ? '' : 'mt-4'} flex flex-col divide-y divide-slate-200/70`}>
             {tasks.map((task) => {
               const project =
                 task.projectId === null
@@ -125,6 +137,7 @@ const GlobalTaskList = ({
                     project={project}
                     onToggleComplete={onToggleComplete}
                     onDeleteTask={onDeleteTask}
+                    onUpdateTaskTitle={onUpdateTaskTitle}
                   />
                 </div>
               )

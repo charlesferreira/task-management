@@ -5,6 +5,7 @@ import type { Project, Task } from "../models/types";
 type BoardViewProps = {
   projects: Project[];
   tasks: Task[];
+  allTasks: Task[];
   onAddTask: (title: string, projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onCreateProject: (name: string, color: string) => void;
@@ -17,12 +18,14 @@ type BoardViewProps = {
   ) => void;
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onUpdateProject: (projectId: string, updates: { name: string; color: string }) => void;
 };
 
 const BoardView = ({
   projects,
   tasks,
+  allTasks,
   onAddTask,
   onDeleteProject,
   onCreateProject,
@@ -30,6 +33,7 @@ const BoardView = ({
   onReorderProjectTasks,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
   onUpdateProject,
 }: BoardViewProps) => {
   const [name, setName] = useState("");
@@ -86,12 +90,14 @@ const BoardView = ({
       <ProjectBoard
         projects={projects}
         tasks={tasks}
+        allTasks={allTasks}
         onAddTask={onAddTask}
         onDeleteProject={onDeleteProject}
         onReorderProjects={onReorderProjects}
         onReorderProjectTasks={onReorderProjectTasks}
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}
+        onUpdateTaskTitle={onUpdateTaskTitle}
         onUpdateProject={onUpdateProject}
       />
     </section>

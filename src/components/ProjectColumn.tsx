@@ -15,11 +15,18 @@ type ProjectColumnProps = {
   tasks: Task[];
   isUnassigned?: boolean;
   dragHandle?: ReactNode;
+  headerDragProps?: {
+    attributes: Record<string, unknown>;
+    listeners: Record<string, unknown>;
+    setActivatorNodeRef: (element: HTMLDivElement | null) => void;
+  };
+  activeCount: number;
   onAddTask: (title: string, projectId: string | null) => void;
   onDeleteProject?: (projectId: string) => void;
   onUpdateProject?: (projectId: string, updates: { name: string; color: string }) => void;
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTaskTitle: (taskId: string, title: string) => void;
 };
 
 type SortableTaskCardProps = {
@@ -27,6 +34,7 @@ type SortableTaskCardProps = {
   project: Project;
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onUpdateTaskTitle: (taskId: string, title: string) => void;
 };
 
 const SortableTaskCard = ({
@@ -34,6 +42,7 @@ const SortableTaskCard = ({
   project,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
 }: SortableTaskCardProps) => {
   const {
     attributes,
@@ -62,6 +71,7 @@ const SortableTaskCard = ({
         showProjectBadge={false}
         onToggleComplete={onToggleComplete}
         onDelete={onDeleteTask}
+        onUpdateTitle={onUpdateTaskTitle}
         dragHandleProps={{
           attributes,
           listeners,
@@ -77,11 +87,14 @@ const ProjectColumn = ({
   tasks,
   isUnassigned = false,
   dragHandle,
+  headerDragProps,
+  activeCount,
   onAddTask,
   onDeleteProject,
   onUpdateProject,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
 }: ProjectColumnProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -126,13 +139,15 @@ const ProjectColumn = ({
         isOver ? "border-slate-300" : ""
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div
+        ref={(element) => headerDragProps?.setActivatorNodeRef(element)}
+        className={`flex items-center justify-between ${
+          headerDragProps ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
+        {...headerDragProps?.attributes}
+        {...headerDragProps?.listeners}
+      >
         <div className="flex min-w-0 items-center gap-2">
-          {dragHandle ? (
-            <div className="flex w-0 items-center justify-center overflow-hidden opacity-0 transition-[width,opacity] group-hover:w-7 group-hover:opacity-100 group-focus-within:w-7 group-focus-within:opacity-100">
-              {dragHandle}
-            </div>
-          ) : null}
           <span
             className="h-3 w-3 rounded-full"
             style={{ backgroundColor: project.color }}
@@ -149,14 +164,11 @@ const ProjectColumn = ({
             />
           ) : (
             <h3 className="truncate text-sm font-semibold text-slate-900">
-              {project.name}
+              {project.name} ({activeCount})
             </h3>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">
-            {tasks.length}
-          </span>
           {!isUnassigned && onUpdateProject ? (
             <div className="flex items-center gap-1">
               {isEditing ? (
@@ -193,7 +205,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-slate-700"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-slate-700"
                 >
                   Edit
                 </button>
@@ -204,14 +216,14 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 transition hover:text-rose-500"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-rose-500"
             >
               Delete
             </button>
           ) : null}
         </div>
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div className="max-h-[360px] flex-1 overflow-hidden">
         {tasks.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500">
             No tasks to show
@@ -221,7 +233,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex flex-col gap-2.5">
+            <div className="flex max-h-[360px] flex-col gap-2.5 overflow-y-auto pr-1">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}
@@ -229,6 +241,7 @@ const ProjectColumn = ({
                   project={project}
                   onToggleComplete={onToggleComplete}
                   onDeleteTask={onDeleteTask}
+                  onUpdateTaskTitle={onUpdateTaskTitle}
                 />
               ))}
             </div>

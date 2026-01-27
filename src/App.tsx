@@ -3,9 +3,12 @@ import { useProjects } from './hooks/useProjects'
 import { useTasks } from './hooks/useTasks'
 import BoardView from './pages/BoardView'
 import ListView from './pages/ListView'
+import ZenView from './pages/ZenView'
 
 function App() {
-  const [activeView, setActiveView] = useState<'board' | 'list'>('board')
+  const [activeView, setActiveView] = useState<'board' | 'list' | 'focused'>(
+    'board',
+  )
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>(() => {
     const stored = localStorage.getItem('taskOrganizer.filter')
     if (stored === 'active' || stored === 'completed' || stored === 'all') {
@@ -24,6 +27,7 @@ function App() {
     toggleComplete,
     deleteTask,
     deleteCompleted,
+    updateTaskTitle,
     setTasks,
   } = useTasks()
 
@@ -45,6 +49,9 @@ function App() {
     () => tasks.filter((task) => task.completedAt).length,
     [tasks],
   )
+  const focusedTask = useMemo(() => {
+    return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null
+  }, [tasks])
 
   const handleDeleteProject = (projectId: string) => {
     reorderProjects(projects.filter((project) => project.id !== projectId))
@@ -90,40 +97,56 @@ function App() {
               >
                 Global list
               </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1">
-                {(['all', 'active', 'completed'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setFilter(mode)}
-                    className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
-                      filter === mode
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-500 hover:text-slate-900'
-                    }`}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
               <button
                 type="button"
-                onClick={deleteCompleted}
-                disabled={completedCount === 0}
-                className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={() => setActiveView('focused')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  activeView === 'focused'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
               >
-                Delete completed
+                Focused
               </button>
             </div>
+            {activeView === 'focused' ? null : (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1">
+                  {(['all', 'active', 'completed'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setFilter(mode)}
+                      className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
+                        filter === mode
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={deleteCompleted}
+                  disabled={completedCount === 0}
+                  className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Delete completed
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
-        {activeView === 'board' ? (
+        {activeView === 'focused' ? (
+          <ZenView task={focusedTask} onComplete={toggleComplete} />
+        ) : activeView === 'board' ? (
           <BoardView
             projects={projects}
             tasks={filteredTasks}
+            allTasks={tasks}
             onAddTask={addTaskAfterProject}
             onCreateProject={createProject}
             onDeleteProject={handleDeleteProject}
@@ -131,6 +154,7 @@ function App() {
             onReorderProjectTasks={moveTaskInBoard}
             onToggleComplete={toggleComplete}
             onDeleteTask={deleteTask}
+            onUpdateTaskTitle={updateTaskTitle}
             onUpdateProject={updateProject}
           />
         ) : (
@@ -141,6 +165,7 @@ function App() {
             onAddTask={addTaskAtTop}
             onToggleComplete={toggleComplete}
             onDeleteTask={deleteTask}
+            onUpdateTaskTitle={updateTaskTitle}
           />
         )}
       </div>

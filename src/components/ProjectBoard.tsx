@@ -23,10 +23,12 @@ import TaskItem from './TaskItem'
 type ProjectBoardProps = {
   projects: Project[]
   tasks: Task[]
+  allTasks: Task[]
   onAddTask: (title: string, projectId: string | null) => void
   onDeleteProject: (projectId: string) => void
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onUpdateTaskTitle: (taskId: string, title: string) => void
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
@@ -43,10 +45,12 @@ type ProjectBoardProps = {
 type SortableProjectColumnProps = {
   project: Project
   tasks: Task[]
+  activeCount: number
   onAddTask: (title: string, projectId: string | null) => void
   onDeleteProject: (projectId: string) => void
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
+  onUpdateTaskTitle: (taskId: string, title: string) => void
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
@@ -56,10 +60,12 @@ type SortableProjectColumnProps = {
 const SortableProjectColumn = ({
   project,
   tasks,
+  activeCount,
   onAddTask,
   onDeleteProject,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
   onUpdateProject,
 }: SortableProjectColumnProps) => {
   const measureRef = useRef<HTMLDivElement | null>(null)
@@ -86,25 +92,18 @@ const SortableProjectColumn = ({
       <ProjectColumn
         project={project}
         tasks={tasks}
+        activeCount={activeCount}
         onAddTask={onAddTask}
         onDeleteProject={onDeleteProject}
         onUpdateProject={onUpdateProject}
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}
-        dragHandle={
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            className={`flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200/70 text-[10px] text-slate-400 transition hover:text-slate-700 ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-            aria-label="Drag project"
-            {...attributes}
-            {...listeners}
-          >
-            ::
-          </button>
-        }
+        onUpdateTaskTitle={onUpdateTaskTitle}
+        headerDragProps={{
+          attributes,
+          listeners,
+          setActivatorNodeRef,
+        }}
       />
     </div>
   )
@@ -113,10 +112,12 @@ const SortableProjectColumn = ({
 const ProjectBoard = ({
   projects,
   tasks,
+  allTasks,
   onAddTask,
   onDeleteProject,
   onToggleComplete,
   onDeleteTask,
+  onUpdateTaskTitle,
   onUpdateProject,
   onReorderProjects,
   onReorderProjectTasks,
@@ -221,15 +222,20 @@ const ProjectBoard = ({
             const projectTasks = tasks.filter(
               (task) => task.projectId === project.id,
             )
+            const activeCount = allTasks.filter(
+              (task) => task.projectId === project.id && !task.completedAt,
+            ).length
             return (
               <SortableProjectColumn
                 key={project.id}
                 project={project}
                 tasks={projectTasks}
+                activeCount={activeCount}
                 onAddTask={onAddTask}
                 onDeleteProject={onDeleteProject}
                 onToggleComplete={onToggleComplete}
                 onDeleteTask={onDeleteTask}
+                onUpdateTaskTitle={onUpdateTaskTitle}
                 onUpdateProject={onUpdateProject}
               />
             )
@@ -239,9 +245,14 @@ const ProjectBoard = ({
           project={UNASSIGNED_PROJECT}
           tasks={tasks.filter((task) => task.projectId === null)}
           isUnassigned
+          activeCount={
+            allTasks.filter((task) => task.projectId === null && !task.completedAt)
+              .length
+          }
           onAddTask={onAddTask}
           onToggleComplete={onToggleComplete}
           onDeleteTask={onDeleteTask}
+          onUpdateTaskTitle={onUpdateTaskTitle}
         />
       </div>
       <DragOverlay adjustScale={false}>
