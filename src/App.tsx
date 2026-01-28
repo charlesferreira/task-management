@@ -62,26 +62,26 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
               Task Organizer
             </p>
-            <h1 className="text-xl font-medium text-slate-900">
+            <h1 className="text-xl font-medium text-slate-900 dark:text-slate-100">
               Keep every task in one global order.
             </h1>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1">
+            <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
               <button
                 type="button"
                 onClick={() => setActiveView('board')}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   activeView === 'board'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                 }`}
               >
                 Board
@@ -91,8 +91,8 @@ function App() {
                 onClick={() => setActiveView('list')}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   activeView === 'list'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                 }`}
               >
                 Global list
@@ -102,8 +102,8 @@ function App() {
                 onClick={() => setActiveView('focused')}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   activeView === 'focused'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                 }`}
               >
                 Focused
@@ -111,7 +111,7 @@ function App() {
             </div>
             {activeView === 'focused' ? null : (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1">
+                <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1 dark:border-slate-800/70 dark:bg-slate-900">
                   {(['all', 'active', 'completed'] as const).map((mode) => (
                     <button
                       key={mode}
@@ -119,8 +119,8 @@ function App() {
                       onClick={() => setFilter(mode)}
                       className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
                         filter === mode
-                          ? 'bg-slate-900 text-white'
-                          : 'text-slate-500 hover:text-slate-900'
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                          : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                       }`}
                     >
                       {mode}
@@ -131,7 +131,7 @@ function App() {
                   type="button"
                   onClick={deleteCompleted}
                   disabled={completedCount === 0}
-                  className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800/70 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
                 >
                   Delete completed
                 </button>

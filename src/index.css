@@ -6,6 +6,10 @@ body {
     "Segoe UI", sans-serif;
 }
 
+:root {
+  color-scheme: light dark;
+}
+
 input[type="color"] {
   appearance: none;
   -webkit-appearance: none;

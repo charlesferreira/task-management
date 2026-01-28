@@ -113,18 +113,24 @@ const GlobalTaskList = ({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900">
       {hideHeader ? null : (
         <>
-          <h2 className="text-base font-semibold text-slate-900">Global Task List</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+            Global Task List
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Drag tasks to reorder across all projects.
           </p>
         </>
       )}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
-          <div className={`${hideHeader ? '' : 'mt-4'} flex flex-col divide-y divide-slate-200/70`}>
+          <div
+            className={`${
+              hideHeader ? '' : 'mt-4'
+            } flex flex-col divide-y divide-slate-200/70 dark:divide-slate-800/70`}
+          >
             {tasks.map((task) => {
               const project =
                 task.projectId === null

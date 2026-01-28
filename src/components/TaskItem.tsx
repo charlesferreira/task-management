@@ -44,14 +44,18 @@ const TaskItem = ({
       ref={(element) =>
         isEditing ? null : dragHandleProps?.setActivatorNodeRef(element)
       }
-      className={`group/task relative flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition ${
-        dragHandleProps ? 'cursor-move hover:bg-slate-50' : ''
+      className={`group/task relative flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition dark:bg-slate-900 ${
+        dragHandleProps
+          ? 'cursor-move hover:bg-slate-50 dark:hover:bg-slate-800'
+          : ''
       }`}
       {...(!isEditing ? dragHandleProps?.attributes : {})}
       {...(!isEditing ? dragHandleProps?.listeners : {})}
     >
       {isDragging ? (
-        <p className="text-sm font-medium text-slate-900">{task.title}</p>
+        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          {task.title}
+        </p>
       ) : (
         <>
           <div className="flex items-center">
@@ -62,7 +66,7 @@ const TaskItem = ({
                 className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none transition ${
                   task.completedAt
                     ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-slate-300 text-transparent hover:text-slate-300'
+                    : 'border-slate-300 text-transparent hover:text-slate-300 dark:border-slate-600 dark:hover:text-slate-500'
                 }`}
                 aria-label={
                   task.completedAt ? 'Mark task incomplete' : 'Mark task complete'
@@ -92,15 +96,15 @@ const TaskItem = ({
                     }
                     setIsEditing(false)
                   }}
-                  className="w-full rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400"
+                  className="w-full rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
                   autoFocus
                 />
               ) : (
                 <p
                   className={`text-sm font-medium ${
                     task.completedAt
-                      ? 'text-slate-400 line-through'
-                      : 'text-slate-900'
+                      ? 'text-slate-400 line-through dark:text-slate-500'
+                      : 'text-slate-900 dark:text-slate-100'
                   }`}
                 >
                   {task.title}
@@ -116,14 +120,14 @@ const TaskItem = ({
                   <button
                     type="button"
                     onClick={() => onDelete?.(task.id)}
-                    className="rounded-lg border border-rose-200 px-2 py-1 font-semibold text-rose-500"
+                    className="rounded-lg border border-rose-200 px-2 py-1 font-semibold text-rose-500 dark:border-rose-500/40 dark:text-rose-400"
                   >
                     Confirm
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="rounded-lg border border-slate-200/70 px-2 py-1 font-semibold text-slate-400"
+                    className="rounded-lg border border-slate-200/70 px-2 py-1 font-semibold text-slate-400 dark:border-slate-700 dark:text-slate-500"
                   >
                     Cancel
                   </button>
@@ -131,18 +135,18 @@ const TaskItem = ({
               ) : isEditing ? null : (
                 actionsVariant === 'floating' ? (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none transition-opacity group-hover/task:opacity-100 group-hover/task:pointer-events-auto">
-                    <div className="flex items-center gap-1 rounded-lg bg-white/95 px-0.5 py-0.5 shadow-sm backdrop-blur">
+                    <div className="flex items-center gap-1 rounded-lg bg-white/95 px-0.5 py-0.5 shadow-sm backdrop-blur dark:bg-slate-900/90">
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(true)}
-                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500"
+                        className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-rose-400"
                       >
                         Delete
                       </button>
@@ -153,14 +157,14 @@ const TaskItem = ({
                     <button
                       type="button"
                       onClick={() => setIsEditing(true)}
-                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(true)}
-                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500"
+                      className="rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-xs font-semibold text-slate-500 hover:text-rose-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-rose-400"
                     >
                       Delete
                     </button>

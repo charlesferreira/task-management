@@ -135,8 +135,8 @@ const ProjectColumn = ({
   return (
     <div
       ref={setNodeRef}
-      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm ${
-        isOver ? "border-slate-300" : ""
+      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900 ${
+        isOver ? "border-slate-300 dark:border-slate-700" : ""
       }`}
     >
       <div
@@ -160,10 +160,10 @@ const ProjectColumn = ({
                 if (event.key === "Enter") handleSaveProject();
                 if (event.key === "Escape") setIsEditing(false);
               }}
-              className="w-full min-w-0 rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400"
+              className="w-full min-w-0 rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />
           ) : (
-            <h3 className="truncate text-sm font-semibold text-slate-900">
+            <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
               {project.name} ({activeCount})
             </h3>
           )}
@@ -173,7 +173,7 @@ const ProjectColumn = ({
             <div className="flex items-center gap-1">
               {isEditing ? (
                 <>
-                  <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm">
+                  <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <input
                       type="color"
                       value={draftColor}
@@ -185,7 +185,7 @@ const ProjectColumn = ({
                   <button
                     type="button"
                     onClick={handleSaveProject}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-300"
                   >
                     Save
                   </button>
@@ -196,7 +196,7 @@ const ProjectColumn = ({
                       setDraftColor(project.color);
                       setIsEditing(false);
                     }}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:border-slate-700 dark:text-slate-500"
                   >
                     Cancel
                   </button>
@@ -205,7 +205,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-slate-700"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                 >
                   Edit
                 </button>
@@ -216,7 +216,7 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-rose-500"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
             >
               Delete
             </button>
@@ -225,7 +225,7 @@ const ProjectColumn = ({
       </div>
       <div className="flex-1 overflow-hidden">
         {tasks.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500">
+          <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900 dark:text-slate-400">
             No tasks to show
           </p>
         ) : (
@@ -264,13 +264,13 @@ const ProjectColumn = ({
                 }
               }}
               placeholder="Task title"
-              className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400"
+              className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
+                className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
               >
                 Add task
               </button>
@@ -280,7 +280,7 @@ const ProjectColumn = ({
                   setIsAdding(false);
                   setTitle("");
                 }}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500"
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400"
               >
                 Cancel
               </button>
@@ -290,7 +290,7 @@ const ProjectColumn = ({
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900"
+            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
           >
             Add task
           </button>

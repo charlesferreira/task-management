@@ -257,7 +257,7 @@ const ProjectBoard = ({
       </div>
       <DragOverlay adjustScale={false}>
         {activeTask && activeProject ? (
-          <div className="w-[280px] rounded-lg bg-white shadow-md">
+          <div className="w-[280px] rounded-lg bg-white shadow-md dark:bg-slate-900">
             <TaskItem
               task={activeTask}
               project={activeProject}
@@ -266,13 +266,13 @@ const ProjectBoard = ({
             />
           </div>
         ) : activeColumnProject ? (
-          <div className="w-[320px] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+          <div className="w-[320px] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md dark:border-slate-800/70 dark:bg-slate-900">
             <div className="flex items-center gap-2">
               <span
                 className="h-3 w-3 rounded-full"
                 style={{ backgroundColor: activeColumnProject.color }}
               />
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {activeColumnProject.name}
               </p>
             </div>
