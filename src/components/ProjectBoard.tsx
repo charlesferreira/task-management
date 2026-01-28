@@ -7,56 +7,56 @@ import {
   rectIntersection,
   useSensor,
   useSensors,
-} from '@dnd-kit/core'
+} from "@dnd-kit/core";
 import {
   SortableContext,
   rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { useMemo, useRef, useState } from 'react'
-import type { Project, Task } from '../models/types'
-import { UNASSIGNED_PROJECT } from '../models/types'
-import ProjectColumn from './ProjectColumn'
-import TaskItem from './TaskItem'
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useMemo, useState } from "react";
+import type { Project, Task } from "../models/types";
+import { UNASSIGNED_PROJECT } from "../models/types";
+import ProjectColumn from "./ProjectColumn";
+import TaskItem from "./TaskItem";
 
 type ProjectBoardProps = {
-  projects: Project[]
-  tasks: Task[]
-  allTasks: Task[]
-  onAddTask: (title: string, projectId: string | null) => void
-  onDeleteProject: (projectId: string) => void
-  onToggleComplete: (taskId: string) => void
-  onDeleteTask: (taskId: string) => void
-  onUpdateTaskTitle: (taskId: string, title: string) => void
+  projects: Project[];
+  tasks: Task[];
+  allTasks: Task[];
+  onAddTask: (title: string, projectId: string | null) => void;
+  onDeleteProject: (projectId: string) => void;
+  onToggleComplete: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
-  ) => void
-  onReorderProjects: (projects: Project[]) => void
+  ) => void;
+  onReorderProjects: (projects: Project[]) => void;
   onReorderProjectTasks: (
     activeId: string,
     overId: string | null,
     targetProjectId: string | null,
     visibleTaskIds: string[],
-  ) => void
-}
+  ) => void;
+};
 
 type SortableProjectColumnProps = {
-  project: Project
-  tasks: Task[]
-  activeCount: number
-  onAddTask: (title: string, projectId: string | null) => void
-  onDeleteProject: (projectId: string) => void
-  onToggleComplete: (taskId: string) => void
-  onDeleteTask: (taskId: string) => void
-  onUpdateTaskTitle: (taskId: string, title: string) => void
+  project: Project;
+  tasks: Task[];
+  activeCount: number;
+  onAddTask: (title: string, projectId: string | null) => void;
+  onDeleteProject: (projectId: string) => void;
+  onToggleComplete: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
-  ) => void
-}
+  ) => void;
+};
 
 const SortableProjectColumn = ({
   project,
@@ -69,7 +69,6 @@ const SortableProjectColumn = ({
   onUpdateTaskTitle,
   onUpdateProject,
 }: SortableProjectColumnProps) => {
-  const measureRef = useRef<HTMLDivElement | null>(null)
   const {
     attributes,
     listeners,
@@ -78,26 +77,21 @@ const SortableProjectColumn = ({
     transform,
     transition,
     isDragging,
-    isOver,
   } = useSortable({
     id: project.id,
-    data: { type: 'column', projectId: project.id },
-  })
+    data: { type: "column", projectId: project.id },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`transition ${isDragging ? 'opacity-40' : ''} ${
-        isOver
-          ? 'ring-4 ring-sky-500 ring-offset-4 ring-offset-slate-50 bg-sky-50/70 dark:ring-sky-400 dark:ring-offset-slate-950 dark:bg-sky-900/20'
-          : ''
-      }`}
+      className={`transition ${isDragging ? "opacity-40" : ""}`}
     >
       <ProjectColumn
         project={project}
@@ -116,8 +110,8 @@ const SortableProjectColumn = ({
         }}
       />
     </div>
-  )
-}
+  );
+};
 
 const ProjectBoard = ({
   projects,
@@ -132,114 +126,116 @@ const ProjectBoard = ({
   onReorderProjects,
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
-  )
+  );
 
-  const orderedProjects = [...projects].sort((a, b) => a.order - b.order)
-  const visibleTaskIds = tasks.map((task) => task.id)
+  const orderedProjects = [...projects].sort((a, b) => a.order - b.order);
+  const visibleTaskIds = tasks.map((task) => task.id);
   const projectMap = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
     [projects],
-  )
+  );
   const activeTask = activeTaskId
-    ? tasks.find((task) => task.id === activeTaskId) ?? null
-    : null
+    ? (tasks.find((task) => task.id === activeTaskId) ?? null)
+    : null;
   const activeProject =
     activeTask?.projectId === null
       ? UNASSIGNED_PROJECT
       : activeTask
-        ? projectMap.get(activeTask.projectId) ?? UNASSIGNED_PROJECT
-        : null
+        ? (projectMap.get(activeTask.projectId) ?? UNASSIGNED_PROJECT)
+        : null;
   const activeColumnProject = activeProjectId
-    ? projectMap.get(activeProjectId) ?? null
-    : null
+    ? (projectMap.get(activeProjectId) ?? null)
+    : null;
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={(args) => {
-        const activeType = args.active?.data.current?.type
-        if (activeType === 'column') {
+        const activeType = args.active?.data.current?.type;
+        if (activeType === "column") {
           const columnDroppables = args.droppableContainers.filter(
             (container) => {
-              const type = container.data.current?.type
-              return type === 'column' || type === 'column-drop'
+              const type = container.data.current?.type;
+              return type === "column" || type === "column-drop";
             },
-          )
+          );
           return rectIntersection({
             ...args,
             droppableContainers:
-              columnDroppables.length > 0 ? columnDroppables : args.droppableContainers,
-          })
+              columnDroppables.length > 0
+                ? columnDroppables
+                : args.droppableContainers,
+          });
         }
-        return closestCenter(args)
+        return closestCenter(args);
       }}
       onDragStart={({ active }) => {
-        if (active.data.current?.type === 'task') {
-          setActiveTaskId(String(active.id))
+        if (active.data.current?.type === "task") {
+          setActiveTaskId(String(active.id));
         }
-        if (active.data.current?.type === 'column') {
-          setActiveProjectId(String(active.id))
+        if (active.data.current?.type === "column") {
+          setActiveProjectId(String(active.id));
         }
       }}
       onDragEnd={({ active, over }) => {
         if (!over || active.id === over.id) {
-          setActiveTaskId(null)
-          setActiveProjectId(null)
-          return
+          setActiveTaskId(null);
+          setActiveProjectId(null);
+          return;
         }
-        const activeType = active.data.current?.type
-        const overType = over.data.current?.type
+        const activeType = active.data.current?.type;
+        const overType = over.data.current?.type;
 
-        if (activeType === 'column') {
+        if (activeType === "column") {
           const targetProjectId =
-            overType === 'column-drop'
+            overType === "column-drop"
               ? over.data.current?.projectId
-              : String(over.id)
+              : String(over.id);
           const oldIndex = orderedProjects.findIndex(
             (project) => project.id === active.id,
-          )
+          );
           const newIndex = orderedProjects.findIndex(
             (project) => project.id === targetProjectId,
-          )
-          if (oldIndex === -1 || newIndex === -1) return
-          const updated = [...orderedProjects]
-          const [moved] = updated.splice(oldIndex, 1)
-          updated.splice(newIndex, 0, moved)
-          onReorderProjects(updated)
-          setActiveTaskId(null)
-          setActiveProjectId(null)
-          return
+          );
+          if (oldIndex === -1 || newIndex === -1) return;
+          const updated = [...orderedProjects];
+          const [moved] = updated.splice(oldIndex, 1);
+          updated.splice(newIndex, 0, moved);
+          onReorderProjects(updated);
+          setActiveTaskId(null);
+          setActiveProjectId(null);
+          return;
         }
 
-        if (activeType === 'task') {
-          const isOverColumn = overType === 'column-drop'
+        if (activeType === "task") {
+          const isOverColumn = overType === "column-drop";
           const targetProjectId = isOverColumn
-            ? over.data.current?.projectId ?? null
-            : over.data.current?.projectId ?? null
-          const overTaskId = isOverColumn ? null : String(over.id)
+            ? (over.data.current?.projectId ?? null)
+            : (over.data.current?.projectId ?? null);
+          const overTaskId = isOverColumn ? null : String(over.id);
           onReorderProjectTasks(
             String(active.id),
             overTaskId,
             targetProjectId ?? null,
             visibleTaskIds,
-          )
+          );
         }
-        setActiveTaskId(null)
-        setActiveProjectId(null)
+        setActiveTaskId(null);
+        setActiveProjectId(null);
       }}
       onDragCancel={() => {
-        setActiveTaskId(null)
-        setActiveProjectId(null)
+        setActiveTaskId(null);
+        setActiveProjectId(null);
       }}
     >
-      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))] gap-5">
         <SortableContext
           items={orderedProjects.map((project) => project.id)}
           strategy={rectSortingStrategy}
@@ -247,10 +243,10 @@ const ProjectBoard = ({
           {orderedProjects.map((project) => {
             const projectTasks = tasks.filter(
               (task) => task.projectId === project.id,
-            )
+            );
             const activeCount = allTasks.filter(
               (task) => task.projectId === project.id && !task.completedAt,
-            ).length
+            ).length;
             return (
               <SortableProjectColumn
                 key={project.id}
@@ -264,7 +260,7 @@ const ProjectBoard = ({
                 onUpdateTaskTitle={onUpdateTaskTitle}
                 onUpdateProject={onUpdateProject}
               />
-            )
+            );
           })}
         </SortableContext>
         <ProjectColumn
@@ -272,8 +268,9 @@ const ProjectBoard = ({
           tasks={tasks.filter((task) => task.projectId === null)}
           isUnassigned
           activeCount={
-            allTasks.filter((task) => task.projectId === null && !task.completedAt)
-              .length
+            allTasks.filter(
+              (task) => task.projectId === null && !task.completedAt,
+            ).length
           }
           onAddTask={onAddTask}
           onToggleComplete={onToggleComplete}
@@ -306,7 +303,7 @@ const ProjectBoard = ({
         ) : null}
       </DragOverlay>
     </DndContext>
-  )
-}
+  );
+};
 
-export default ProjectBoard
+export default ProjectBoard;

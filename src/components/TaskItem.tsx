@@ -1,3 +1,4 @@
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useEffect, useState } from 'react'
 import type { Project, Task } from '../models/types'
 import ProjectBadge from './ProjectBadge'
@@ -8,8 +9,8 @@ type TaskItemProps = {
   isDragging?: boolean
   actionsVariant?: 'floating' | 'inline'
   dragHandleProps?: {
-    attributes: Record<string, unknown>
-    listeners: Record<string, unknown>
+    attributes: DraggableAttributes
+    listeners?: DraggableSyntheticListeners
     setActivatorNodeRef: (element: HTMLElement | null) => void
   }
   showProjectBadge?: boolean
@@ -41,9 +42,12 @@ const TaskItem = ({
 
   return (
     <div
-      ref={(element) =>
-        isEditing ? null : dragHandleProps?.setActivatorNodeRef(element)
-      }
+      data-task-card
+      ref={(element) => {
+        if (!isEditing) {
+          dragHandleProps?.setActivatorNodeRef(element)
+        }
+      }}
       className={`group/task relative flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition dark:bg-slate-900 ${
         dragHandleProps
           ? 'cursor-move hover:bg-slate-50 dark:hover:bg-slate-800'

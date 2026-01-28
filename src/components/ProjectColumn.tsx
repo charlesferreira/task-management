@@ -1,3 +1,4 @@
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -5,7 +6,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Project, Task } from "../models/types";
 import TaskItem from "./TaskItem";
@@ -14,10 +14,9 @@ type ProjectColumnProps = {
   project: Project;
   tasks: Task[];
   isUnassigned?: boolean;
-  dragHandle?: ReactNode;
   headerDragProps?: {
-    attributes: Record<string, unknown>;
-    listeners: Record<string, unknown>;
+    attributes: DraggableAttributes;
+    listeners?: DraggableSyntheticListeners;
     setActivatorNodeRef: (element: HTMLDivElement | null) => void;
   };
   activeCount: number;
@@ -86,7 +85,6 @@ const ProjectColumn = ({
   project,
   tasks,
   isUnassigned = false,
-  dragHandle,
   headerDragProps,
   activeCount,
   onAddTask,
@@ -114,6 +112,11 @@ const ProjectColumn = ({
     data: { type: "column-drop", projectId: isUnassigned ? null : project.id },
   });
 
+  const setCombinedRef = (element: HTMLDivElement | null) => {
+    setNodeRef(element);
+    headerDragProps?.setActivatorNodeRef(element);
+  };
+
   const handleSubmit = () => {
     const trimmed = title.trim();
     if (!trimmed) return;
@@ -134,18 +137,19 @@ const ProjectColumn = ({
 
   return (
     <div
-      ref={setNodeRef}
-      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900 ${
-        isOver ? "border-slate-300 dark:border-slate-700" : ""
+      ref={setCombinedRef}
+      {...headerDragProps?.attributes}
+      {...headerDragProps?.listeners}
+      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+        isOver
+          ? "border-sky-400 ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-300 dark:ring-sky-300 dark:ring-offset-slate-950 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)]"
+          : ""
       }`}
     >
       <div
-        ref={(element) => headerDragProps?.setActivatorNodeRef(element)}
         className={`flex items-center justify-between ${
           headerDragProps ? "cursor-grab active:cursor-grabbing" : ""
         }`}
-        {...headerDragProps?.attributes}
-        {...headerDragProps?.listeners}
       >
         <div className="flex min-w-0 items-center gap-2">
           <span
@@ -160,6 +164,7 @@ const ProjectColumn = ({
                 if (event.key === "Enter") handleSaveProject();
                 if (event.key === "Escape") setIsEditing(false);
               }}
+              onPointerDown={(event) => event.stopPropagation()}
               className="w-full min-w-0 rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />
           ) : (
@@ -168,7 +173,10 @@ const ProjectColumn = ({
             </h3>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           {!isUnassigned && onUpdateProject ? (
             <div className="flex items-center gap-1">
               {isEditing ? (
@@ -223,7 +231,15 @@ const ProjectColumn = ({
           ) : null}
         </div>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div
+        className="flex-1 overflow-hidden"
+        onPointerDown={(event) => {
+          const target = event.target as HTMLElement | null;
+          if (target?.closest?.("[data-task-card]")) {
+            event.stopPropagation();
+          }
+        }}
+      >
         {tasks.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900 dark:text-slate-400">
             No tasks to show
@@ -263,6 +279,7 @@ const ProjectColumn = ({
                   setTitle("");
                 }
               }}
+              onPointerDown={(event) => event.stopPropagation()}
               placeholder="Task title"
               className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />
