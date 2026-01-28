@@ -213,7 +213,7 @@ const ProjectBoard = ({
         setActiveProjectId(null)
       }}
     >
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
         <SortableContext
           items={orderedProjects.map((project) => project.id)}
           strategy={rectSortingStrategy}

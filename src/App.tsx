@@ -63,14 +63,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8">
+      <div className="flex w-full flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
               Task Organizer
-            </p>
-            <h1 className="text-xl font-medium text-slate-900 dark:text-slate-100">
-              Keep every task in one global order.
             </h1>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
