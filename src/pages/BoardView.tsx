@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ProjectBoard from "../components/ProjectBoard";
 import type { Project, Task } from "../models/types";
 
@@ -42,6 +42,8 @@ const BoardView = ({
   const [name, setName] = useState("");
   const [color, setColor] = useState("#38bdf8");
   const [showProjectForm, setShowProjectForm] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const fabRef = useRef<HTMLButtonElement | null>(null);
 
   const handleCreate = () => {
     const trimmed = name.trim();
@@ -50,6 +52,18 @@ const BoardView = ({
     setName("");
     setShowProjectForm(false);
   };
+
+  useEffect(() => {
+    if (!showProjectForm) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      if (fabRef.current?.contains(target)) return;
+      setShowProjectForm(false);
+    };
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [showProjectForm]);
 
   return (
     <section className="space-y-6 pb-24">
@@ -67,7 +81,10 @@ const BoardView = ({
         onUpdateProject={onUpdateProject}
       />
       {showProjectForm ? (
-        <div className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+        <div
+          ref={panelRef}
+          className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md"
+        >
           <div className="flex flex-col gap-3">
             <input
               value={name}
@@ -104,6 +121,7 @@ const BoardView = ({
       <button
         type="button"
         onClick={() => setShowProjectForm((prev) => !prev)}
+        ref={fabRef}
         className="group fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4"
         aria-label="Add project"
       >

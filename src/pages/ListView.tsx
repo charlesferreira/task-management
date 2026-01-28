@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import GlobalTaskList from "../components/GlobalTaskList";
 import {
   UNASSIGNED_PROJECT,
@@ -29,6 +29,8 @@ const ListView = ({
   const [title, setTitle] = useState("");
   const [selectedProject, setSelectedProject] = useState(UNASSIGNED_PROJECT_ID);
   const [showCreate, setShowCreate] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const fabRef = useRef<HTMLButtonElement | null>(null);
 
   const orderedProjects = useMemo(() => {
     return [...projects].sort((a, b) => a.order - b.order);
@@ -44,6 +46,18 @@ const ListView = ({
     setShowCreate(false);
   };
 
+  useEffect(() => {
+    if (!showCreate) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      if (fabRef.current?.contains(target)) return;
+      setShowCreate(false);
+    };
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [showCreate]);
+
   return (
     <section className="space-y-6 pb-24">
       <GlobalTaskList
@@ -56,7 +70,10 @@ const ListView = ({
         onUpdateTaskTitle={onUpdateTaskTitle}
       />
       {showCreate ? (
-        <div className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md">
+        <div
+          ref={panelRef}
+          className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md"
+        >
           <div className="flex flex-col gap-3">
             <input
               value={title}
@@ -98,6 +115,7 @@ const ListView = ({
       <button
         type="button"
         onClick={() => setShowCreate((prev) => !prev)}
+        ref={fabRef}
         className="group fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-36 hover:justify-start hover:gap-2 hover:px-5"
         aria-label="Add task"
       >
