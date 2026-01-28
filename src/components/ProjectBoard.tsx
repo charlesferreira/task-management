@@ -4,6 +4,7 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCenter,
+  rectIntersection,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -77,6 +78,7 @@ const SortableProjectColumn = ({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({
     id: project.id,
     data: { type: 'column', projectId: project.id },
@@ -88,7 +90,15 @@ const SortableProjectColumn = ({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={isDragging ? 'opacity-0' : ''}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`transition ${isDragging ? 'opacity-40' : ''} ${
+        isOver
+          ? 'ring-4 ring-sky-500 ring-offset-4 ring-offset-slate-50 bg-sky-50/70 dark:ring-sky-400 dark:ring-offset-slate-950 dark:bg-sky-900/20'
+          : ''
+      }`}
+    >
       <ProjectColumn
         project={project}
         tasks={tasks}
@@ -153,7 +163,23 @@ const ProjectBoard = ({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={(args) => {
+        const activeType = args.active?.data.current?.type
+        if (activeType === 'column') {
+          const columnDroppables = args.droppableContainers.filter(
+            (container) => {
+              const type = container.data.current?.type
+              return type === 'column' || type === 'column-drop'
+            },
+          )
+          return rectIntersection({
+            ...args,
+            droppableContainers:
+              columnDroppables.length > 0 ? columnDroppables : args.droppableContainers,
+          })
+        }
+        return closestCenter(args)
+      }}
       onDragStart={({ active }) => {
         if (active.data.current?.type === 'task') {
           setActiveTaskId(String(active.id))
