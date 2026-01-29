@@ -122,7 +122,7 @@ const BoardView = ({
         type="button"
         onClick={() => setShowProjectForm((prev) => !prev)}
         ref={fabRef}
-        className="group fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4 dark:bg-slate-100 dark:text-slate-900"
+        className="group/fab fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4 dark:bg-slate-100 dark:text-slate-900"
         aria-label="Add project"
       >
         <span
@@ -138,7 +138,7 @@ const BoardView = ({
             />
           </svg>
         </span>
-        <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover:max-w-40 group-hover:opacity-100">
+        <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-40 group-hover/fab:opacity-100">
           Add project
         </span>
       </button>
