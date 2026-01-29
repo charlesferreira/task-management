@@ -1,4 +1,7 @@
-import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -22,7 +25,10 @@ type ProjectColumnProps = {
   activeCount: number;
   onAddTask: (title: string, projectId: string | null) => void;
   onDeleteProject?: (projectId: string) => void;
-  onUpdateProject?: (projectId: string, updates: { name: string; color: string }) => void;
+  onUpdateProject?: (
+    projectId: string,
+    updates: { name: string; color: string },
+  ) => void;
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
@@ -62,7 +68,11 @@ const SortableTaskCard = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={isDragging ? "opacity-0" : ""}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={isDragging ? "opacity-0" : ""}
+    >
       <TaskItem
         task={task}
         project={project}
@@ -133,7 +143,10 @@ const ProjectColumn = ({
       setIsEditing(false);
       return;
     }
-    onUpdateProject(project.id, { name: trimmed, color: draftColor || project.color });
+    onUpdateProject(project.id, {
+      name: trimmed,
+      color: draftColor || project.color,
+    });
     setIsEditing(false);
   };
 
@@ -142,9 +155,9 @@ const ProjectColumn = ({
       ref={setCombinedRef}
       {...headerDragProps?.attributes}
       {...headerDragProps?.listeners}
-      className={`group relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+      className={`group relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
         isOver
-          ? "border-sky-400 ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-300 dark:ring-sky-300 dark:ring-offset-slate-950 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)]"
+          ? "border-sky-400 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)] dark:ring-sky-300 dark:ring-offset-slate-950"
           : ""
       }`}
     >
@@ -195,7 +208,7 @@ const ProjectColumn = ({
                   <button
                     type="button"
                     onClick={handleSaveProject}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-300"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-700 dark:text-slate-300"
                   >
                     Save
                   </button>
@@ -206,7 +219,7 @@ const ProjectColumn = ({
                       setDraftColor(project.color);
                       setIsEditing(false);
                     }}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:border-slate-700 dark:text-slate-500"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase dark:border-slate-700 dark:text-slate-500"
                   >
                     Cancel
                   </button>
@@ -215,7 +228,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                 >
                   Edit
                 </button>
@@ -226,7 +239,7 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
             >
               Delete
             </button>
@@ -251,7 +264,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20">
+            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding] duration-200">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}
@@ -266,54 +279,56 @@ const ProjectColumn = ({
           </SortableContext>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-x-5 bottom-5 translate-y-2 opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
-        {isAdding ? (
-          <div className="flex flex-col gap-2">
-            <input
-              ref={inputRef}
-              autoFocus
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") handleSubmit();
-                if (event.key === "Escape") {
-                  setIsAdding(false);
-                  setTitle("");
-                }
-              }}
-              onPointerDown={(event) => event.stopPropagation()}
-              placeholder="Task title"
-              className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
-              >
-                Add task
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setTitle("");
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 opacity-0 transition duration-200 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="rounded-b-xl bg-linear-to-t from-white/95 via-white/80 to-transparent px-5 pt-6 pb-4 shadow-[0_-10px_25px_rgba(0,0,0,0.12)] backdrop-blur dark:from-slate-900/95 dark:via-slate-900/80">
+          {isAdding ? (
+            <div className="flex flex-col gap-2">
+              <input
+                ref={inputRef}
+                autoFocus
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleSubmit();
+                  if (event.key === "Escape") {
+                    setIsAdding(false);
+                    setTitle("");
+                  }
                 }}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400"
-              >
-                Cancel
-              </button>
+                onPointerDown={(event) => event.stopPropagation()}
+                placeholder="Task title"
+                className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+                >
+                  Add task
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdding(false);
+                    setTitle("");
+                  }}
+                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
-          >
-            Add task
-          </button>
-        )}
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsAdding(true)}
+              className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
+            >
+              Add task
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
