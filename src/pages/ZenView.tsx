@@ -22,27 +22,29 @@ const ZenView = ({ task, onComplete }: ZenViewProps) => {
   }
 
   return (
-    <section className="flex min-h-[60vh] items-center justify-center rounded-xl border border-slate-200/70 bg-white p-10 shadow-sm dark:border-slate-800/70 dark:bg-slate-900">
+    <section className="group relative flex-1 w-full">
       {task ? (
         <div
           key={task.id}
-          className={`flex w-full max-w-4xl flex-col items-center gap-8 text-center transition-opacity duration-200 ${
+          className={`absolute inset-0 flex items-center justify-center text-center transition-opacity duration-200 ${
             isFading ? 'opacity-0' : 'opacity-100'
           }`}
         >
-          <h2 className="text-4xl font-semibold leading-tight text-slate-900 md:text-6xl dark:text-slate-100">
-            {task.title}
-          </h2>
-          <button
-            type="button"
-            onClick={handleComplete}
-            className="rounded-lg border border-slate-200/70 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-          >
-            Mark complete
-          </button>
+          <div className="flex w-full max-w-4xl flex-col items-center gap-10 md:gap-12">
+            <h2 className="text-4xl font-semibold leading-tight text-slate-900 md:text-6xl dark:text-slate-100">
+              {task.title}
+            </h2>
+            <button
+              type="button"
+              onClick={handleComplete}
+              className="rounded-lg border border-slate-200/70 bg-white px-4 py-2 text-sm font-semibold text-slate-600 opacity-0 shadow-sm transition hover:text-slate-900 group-hover:opacity-100 group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+            >
+              Mark complete
+            </button>
+          </div>
         </div>
       ) : (
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+        <p className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
           No tasks available
         </p>
       )}

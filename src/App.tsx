@@ -9,6 +9,7 @@ function App() {
   const [activeView, setActiveView] = useState<'board' | 'list' | 'focused'>(
     'board',
   )
+  const isFocused = activeView === 'focused'
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>(() => {
     const stored = localStorage.getItem('taskOrganizer.filter')
     if (stored === 'active' || stored === 'completed' || stored === 'all') {
@@ -63,8 +64,18 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <div className="flex w-full flex-col gap-6 px-6 py-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div
+        className={`group relative flex min-h-screen w-full flex-col ${
+          isFocused ? 'px-6 py-0' : 'gap-6 px-6 py-8'
+        }`}
+      >
+        <header
+          className={`flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between ${
+            isFocused
+              ? 'pointer-events-none absolute left-6 right-6 top-6 z-10 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100'
+              : ''
+          }`}
+        >
           <div>
             <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
               Task Organizer
@@ -137,34 +148,36 @@ function App() {
           </div>
         </header>
 
-        {activeView === 'focused' ? (
-          <ZenView task={focusedTask} onComplete={toggleComplete} />
-        ) : activeView === 'board' ? (
-          <BoardView
-            projects={projects}
-            tasks={filteredTasks}
-            allTasks={tasks}
-            onAddTask={addTaskAfterProject}
-            onCreateProject={createProject}
-            onDeleteProject={handleDeleteProject}
-            onReorderProjects={reorderProjects}
-            onReorderProjectTasks={moveTaskInBoard}
-            onToggleComplete={toggleComplete}
-            onDeleteTask={deleteTask}
-            onUpdateTaskTitle={updateTaskTitle}
-            onUpdateProject={updateProject}
-          />
-        ) : (
-          <ListView
-            projects={projects}
-            tasks={filteredTasks}
-            onReorder={reorderVisibleTasks}
-            onAddTask={addTaskAtTop}
-            onToggleComplete={toggleComplete}
-            onDeleteTask={deleteTask}
-            onUpdateTaskTitle={updateTaskTitle}
-          />
-        )}
+        <div className={isFocused ? 'flex flex-1' : ''}>
+          {activeView === 'focused' ? (
+            <ZenView task={focusedTask} onComplete={toggleComplete} />
+          ) : activeView === 'board' ? (
+            <BoardView
+              projects={projects}
+              tasks={filteredTasks}
+              allTasks={tasks}
+              onAddTask={addTaskAfterProject}
+              onCreateProject={createProject}
+              onDeleteProject={handleDeleteProject}
+              onReorderProjects={reorderProjects}
+              onReorderProjectTasks={moveTaskInBoard}
+              onToggleComplete={toggleComplete}
+              onDeleteTask={deleteTask}
+              onUpdateTaskTitle={updateTaskTitle}
+              onUpdateProject={updateProject}
+            />
+          ) : (
+            <ListView
+              projects={projects}
+              tasks={filteredTasks}
+              onReorder={reorderVisibleTasks}
+              onAddTask={addTaskAtTop}
+              onToggleComplete={toggleComplete}
+              onDeleteTask={deleteTask}
+              onUpdateTaskTitle={updateTaskTitle}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
