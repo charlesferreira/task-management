@@ -264,7 +264,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding] duration-200">
+            <div className="duration-200˝ flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding]">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}
