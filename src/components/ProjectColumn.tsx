@@ -122,7 +122,9 @@ const ProjectColumn = ({
     if (!trimmed) return;
     onAddTask(trimmed, isUnassigned ? null : project.id);
     setTitle("");
-    setIsAdding(false);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   const handleSaveProject = () => {
@@ -140,7 +142,7 @@ const ProjectColumn = ({
       ref={setCombinedRef}
       {...headerDragProps?.attributes}
       {...headerDragProps?.listeners}
-      className={`group flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+      className={`group relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
         isOver
           ? "border-sky-400 ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-300 dark:ring-sky-300 dark:ring-offset-slate-950 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)]"
           : ""
@@ -249,7 +251,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1">
+            <div className="flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}
@@ -264,7 +266,7 @@ const ProjectColumn = ({
           </SortableContext>
         )}
       </div>
-      <div className="mt-auto">
+      <div className="pointer-events-none absolute inset-x-5 bottom-5 translate-y-2 opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
         {isAdding ? (
           <div className="flex flex-col gap-2">
             <input

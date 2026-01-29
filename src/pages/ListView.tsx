@@ -31,6 +31,7 @@ const ListView = ({
   const [showCreate, setShowCreate] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const fabRef = useRef<HTMLButtonElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const orderedProjects = useMemo(() => {
     return [...projects].sort((a, b) => a.order - b.order);
@@ -43,7 +44,9 @@ const ListView = ({
       selectedProject === UNASSIGNED_PROJECT_ID ? null : selectedProject;
     onAddTask(trimmed, projectId);
     setTitle("");
-    setShowCreate(false);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   useEffect(() => {
@@ -76,6 +79,7 @@ const ListView = ({
         >
           <div className="flex flex-col gap-3">
             <input
+              ref={inputRef}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               onKeyDown={(event) => {
@@ -90,6 +94,12 @@ const ListView = ({
               <select
                 value={selectedProject}
                 onChange={(event) => setSelectedProject(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleSubmit();
+                  }
+                }}
                 className="w-full min-w-max rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-500"
               >
                 <option value={UNASSIGNED_PROJECT_ID}>
