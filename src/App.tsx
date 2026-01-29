@@ -4,6 +4,7 @@ import { useTasks } from './hooks/useTasks'
 import BoardView from './pages/BoardView'
 import ListView from './pages/ListView'
 import ZenView from './pages/ZenView'
+import { UNASSIGNED_PROJECT } from './models/types'
 
 function App() {
   const [activeView, setActiveView] = useState<'board' | 'list' | 'focused'>(
@@ -53,6 +54,14 @@ function App() {
   const focusedTask = useMemo(() => {
     return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null
   }, [tasks])
+  const focusedProject = useMemo(() => {
+    if (!focusedTask) return null
+    if (focusedTask.projectId === null) return UNASSIGNED_PROJECT
+    return (
+      projects.find((project) => project.id === focusedTask.projectId) ??
+      UNASSIGNED_PROJECT
+    )
+  }, [focusedTask, projects])
 
   const handleDeleteProject = (projectId: string) => {
     reorderProjects(projects.filter((project) => project.id !== projectId))
@@ -117,40 +126,16 @@ function App() {
                 Focused
               </button>
             </div>
-            {activeView === 'focused' ? null : (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1 dark:border-slate-800/70 dark:bg-slate-900">
-                  {(['all', 'active', 'completed'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setFilter(mode)}
-                      className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
-                        filter === mode
-                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                          : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
-                      }`}
-                    >
-                      {mode}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={deleteCompleted}
-                  disabled={completedCount === 0}
-                  className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800/70 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-                >
-                  Delete completed
-                </button>
-              </div>
-            )}
           </div>
         </header>
 
         <div className={isFocused ? 'flex flex-1' : ''}>
           {activeView === 'focused' ? (
-            <ZenView task={focusedTask} onComplete={toggleComplete} />
+            <ZenView
+              task={focusedTask}
+              project={focusedProject}
+              onComplete={toggleComplete}
+            />
           ) : activeView === 'board' ? (
             <BoardView
               projects={projects}
@@ -170,6 +155,10 @@ function App() {
             <ListView
               projects={projects}
               tasks={filteredTasks}
+              filter={filter}
+              onFilterChange={setFilter}
+              completedCount={completedCount}
+              onDeleteCompleted={deleteCompleted}
               onReorder={reorderVisibleTasks}
               onAddTask={addTaskAtTop}
               onToggleComplete={toggleComplete}

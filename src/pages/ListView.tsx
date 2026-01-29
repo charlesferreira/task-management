@@ -10,6 +10,10 @@ import {
 type ListViewProps = {
   projects: Project[];
   tasks: Task[];
+  filter: "all" | "active" | "completed";
+  onFilterChange: (mode: "all" | "active" | "completed") => void;
+  completedCount: number;
+  onDeleteCompleted: () => void;
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onAddTask: (title: string, projectId: string | null) => void;
   onToggleComplete: (taskId: string) => void;
@@ -20,6 +24,10 @@ type ListViewProps = {
 const ListView = ({
   projects,
   tasks,
+  filter,
+  onFilterChange,
+  completedCount,
+  onDeleteCompleted,
   onReorder,
   onAddTask,
   onToggleComplete,
@@ -67,6 +75,10 @@ const ListView = ({
         projects={projects}
         tasks={tasks}
         hideHeader
+        filter={filter}
+        onFilterChange={onFilterChange}
+        completedCount={completedCount}
+        onDeleteCompleted={onDeleteCompleted}
         onReorder={onReorder}
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}

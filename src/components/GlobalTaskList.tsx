@@ -26,6 +26,10 @@ type GlobalTaskListProps = {
   tasks: Task[]
   projects: Project[]
   hideHeader?: boolean
+  filter?: 'all' | 'active' | 'completed'
+  onFilterChange?: (mode: 'all' | 'active' | 'completed') => void
+  completedCount?: number
+  onDeleteCompleted?: () => void
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
@@ -90,6 +94,10 @@ const GlobalTaskList = ({
   tasks,
   projects,
   hideHeader = false,
+  filter,
+  onFilterChange,
+  completedCount = 0,
+  onDeleteCompleted,
   onReorder,
   onToggleComplete,
   onDeleteTask,
@@ -124,11 +132,39 @@ const GlobalTaskList = ({
           </p>
         </>
       )}
+      {filter && onFilterChange ? (
+        <div className={`${hideHeader ? '' : 'mt-4'} flex flex-wrap items-center gap-2`}>
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1 dark:border-slate-800/70 dark:bg-slate-900">
+            {(['all', 'active', 'completed'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onFilterChange(mode)}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
+                  filter === mode
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={onDeleteCompleted}
+            disabled={completedCount === 0}
+            className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800/70 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+          >
+            Delete completed
+          </button>
+        </div>
+      ) : null}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
           <div
             className={`${
-              hideHeader ? '' : 'mt-4'
+              hideHeader && !(filter && onFilterChange) ? '' : 'mt-4'
             } flex flex-col divide-y divide-slate-200/70 dark:divide-slate-800/70`}
           >
             {tasks.map((task) => {

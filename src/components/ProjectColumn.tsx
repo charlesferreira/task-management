@@ -155,7 +155,7 @@ const ProjectColumn = ({
       ref={setCombinedRef}
       {...headerDragProps?.attributes}
       {...headerDragProps?.listeners}
-      className={`group relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+      className={`group/column relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
         isOver
           ? "border-sky-400 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)] dark:ring-sky-300 dark:ring-offset-slate-950"
           : ""
@@ -228,7 +228,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                 >
                   Edit
                 </button>
@@ -239,7 +239,7 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
             >
               Delete
             </button>
@@ -279,7 +279,7 @@ const ProjectColumn = ({
           </SortableContext>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 opacity-0 transition duration-200 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 opacity-0 transition duration-200 group-focus-within/column:pointer-events-auto group-focus-within/column:translate-y-0 group-focus-within/column:opacity-100 group-hover/column:pointer-events-auto group-hover/column:translate-y-0 group-hover/column:opacity-100">
         <div className="rounded-b-xl bg-linear-to-t from-white/95 via-white/80 to-transparent px-5 pt-6 pb-4 shadow-[0_-10px_25px_rgba(0,0,0,0.12)] backdrop-blur dark:from-slate-900/95 dark:via-slate-900/80">
           {isAdding ? (
             <div className="flex flex-col gap-2">

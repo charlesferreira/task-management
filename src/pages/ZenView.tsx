@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import type { Task } from '../models/types'
+import type { Project, Task } from '../models/types'
 
 type ZenViewProps = {
   task: Task | null
+  project: Project | null
   onComplete: (taskId: string) => void
 }
 
-const ZenView = ({ task, onComplete }: ZenViewProps) => {
+const ZenView = ({ task, project, onComplete }: ZenViewProps) => {
   const [isFading, setIsFading] = useState(false)
 
   useEffect(() => {
@@ -31,6 +32,15 @@ const ZenView = ({ task, onComplete }: ZenViewProps) => {
           }`}
         >
           <div className="flex w-full max-w-4xl flex-col items-center gap-10 md:gap-12">
+            {project ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: project.color }}
+                />
+                {project.name}
+              </div>
+            ) : null}
             <h2 className="text-4xl font-semibold leading-tight text-slate-900 md:text-6xl dark:text-slate-100">
               {task.title}
             </h2>
