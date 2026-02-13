@@ -1,25 +1,27 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useProjects } from './hooks/useProjects'
-import { useTasks } from './hooks/useTasks'
-import BoardView from './pages/BoardView'
-import ListView from './pages/ListView'
-import ZenView from './pages/ZenView'
-import { UNASSIGNED_PROJECT } from './models/types'
+import { useEffect, useMemo, useState } from "react";
+import { useProjects } from "./hooks/useProjects";
+import { useTasks } from "./hooks/useTasks";
+import { UNASSIGNED_PROJECT } from "./models/types";
+import BoardView from "./pages/BoardView";
+import ListView from "./pages/ListView";
+import ZenView from "./pages/ZenView";
 
 function App() {
-  const [activeView, setActiveView] = useState<'board' | 'list' | 'focused'>(
-    'board',
-  )
-  const isFocused = activeView === 'focused'
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>(() => {
-    const stored = localStorage.getItem('taskOrganizer.filter')
-    if (stored === 'active' || stored === 'completed' || stored === 'all') {
-      return stored
+  const [activeView, setActiveView] = useState<"board" | "list" | "zen">(
+    "board",
+  );
+  const isZen = activeView === "zen";
+
+  const [filter, setFilter] = useState<"all" | "active" | "completed">(() => {
+    const stored = localStorage.getItem("taskOrganizer.filter");
+    if (stored === "active" || stored === "completed" || stored === "all") {
+      return stored;
     }
-    return 'all'
-  })
+    return "all";
+  });
+
   const { projects, createProject, reorderProjects, updateProject } =
-    useProjects()
+    useProjects();
   const {
     tasks,
     reorderVisibleTasks,
@@ -31,58 +33,68 @@ function App() {
     deleteCompleted,
     updateTaskTitle,
     setTasks,
-  } = useTasks()
+  } = useTasks();
 
   useEffect(() => {
-    localStorage.setItem('taskOrganizer.filter', filter)
-  }, [filter])
+    localStorage.setItem("taskOrganizer.filter", filter);
+  }, [filter]);
 
   const filteredTasks = useMemo(() => {
-    if (filter === 'active') {
-      return tasks.filter((task) => !task.completedAt)
+    if (filter === "active") {
+      return tasks.filter((task) => !task.completedAt);
     }
-    if (filter === 'completed') {
-      return tasks.filter((task) => task.completedAt)
+    if (filter === "completed") {
+      return tasks.filter((task) => task.completedAt);
     }
-    return tasks
-  }, [filter, tasks])
+    return tasks;
+  }, [filter, tasks]);
 
   const completedCount = useMemo(
     () => tasks.filter((task) => task.completedAt).length,
     [tasks],
-  )
+  );
+
   const focusedTask = useMemo(() => {
-    return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null
-  }, [tasks])
+    return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null;
+  }, [tasks]);
+
+  const upcomingTasks = useMemo(() => {
+    if (!focusedTask) return [];
+    return tasks
+      .filter((task) => !task.completedAt && task.id !== focusedTask.id)
+      .slice(0, 4);
+  }, [focusedTask, tasks]);
+
   const focusedProject = useMemo(() => {
-    if (!focusedTask) return null
-    if (focusedTask.projectId === null) return UNASSIGNED_PROJECT
+    if (!focusedTask) return null;
+    if (focusedTask.projectId === null) return UNASSIGNED_PROJECT;
+
     return (
       projects.find((project) => project.id === focusedTask.projectId) ??
       UNASSIGNED_PROJECT
-    )
-  }, [focusedTask, projects])
+    );
+  }, [focusedTask, projects]);
 
   const handleDeleteProject = (projectId: string) => {
-    reorderProjects(projects.filter((project) => project.id !== projectId))
+    reorderProjects(projects.filter((project) => project.id !== projectId));
     const updatedTasks = tasks.map((task) =>
       task.projectId === projectId ? { ...task, projectId: null } : task,
-    )
-    setTasks(updatedTasks)
-  }
+    );
+    setTasks(updatedTasks);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div
         className={`group relative flex min-h-screen w-full flex-col ${
-          isFocused ? 'px-6 py-0' : 'gap-6 px-6 py-8'
+          isZen ? "px-6 py-0" : "gap-6 px-6 py-8"
         }`}
       >
         <header
           className={`flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between ${
-            isFocused
-              ? 'pointer-events-none absolute left-6 right-6 top-6 z-10 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100'
-              : ''
+            isZen
+              ? "pointer-events-none absolute top-6 right-6 left-6 z-10 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"
+              : ""
           }`}
         >
           <div>
@@ -90,53 +102,55 @@ function App() {
               Task Organizer
             </h1>
           </div>
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
               <button
                 type="button"
-                onClick={() => setActiveView('board')}
+                onClick={() => setActiveView("board")}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === 'board'
-                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  activeView === "board"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                 }`}
               >
                 Board
               </button>
               <button
                 type="button"
-                onClick={() => setActiveView('list')}
+                onClick={() => setActiveView("list")}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === 'list'
-                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  activeView === "list"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                 }`}
               >
                 Global list
               </button>
               <button
                 type="button"
-                onClick={() => setActiveView('focused')}
+                onClick={() => setActiveView("zen")}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === 'focused'
-                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  activeView === "zen"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                 }`}
               >
-                Focused
+                Zen
               </button>
             </div>
           </div>
         </header>
 
-        <div className={isFocused ? 'flex flex-1' : ''}>
-          {activeView === 'focused' ? (
+        <div className={isZen ? "flex flex-1" : ""}>
+          {activeView === "zen" ? (
             <ZenView
               task={focusedTask}
               project={focusedProject}
+              upcomingTasks={upcomingTasks}
               onComplete={toggleComplete}
             />
-          ) : activeView === 'board' ? (
+          ) : activeView === "board" ? (
             <BoardView
               projects={projects}
               tasks={filteredTasks}
@@ -169,7 +183,7 @@ function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
