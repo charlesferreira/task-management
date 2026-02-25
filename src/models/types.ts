@@ -4,6 +4,26 @@ export type Task = {
   projectId: string | null
   order: number
   completedAt: string | null
+  description: string
+  storyPoints: 1 | 2 | 3 | 5 | 8 | null
+  actualTimeMinutes: number
+}
+
+export type TaskHistoryEventType =
+  | 'task_created'
+  | 'task_completed'
+  | 'task_reopened'
+  | 'task_updated'
+
+export type TaskHistoryEvent = {
+  id: string
+  taskId: string
+  eventType: TaskHistoryEventType
+  fromCompletedAt: string | null
+  toCompletedAt: string | null
+  pointsSnapshot: 1 | 2 | 3 | 5 | 8 | null
+  effortSnapshotMinutes: number
+  occurredAt: string
 }
 
 export type Project = {

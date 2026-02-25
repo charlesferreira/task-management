@@ -9,6 +9,9 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 0,
     completedAt: null,
+    description: '',
+    storyPoints: 3,
+    actualTimeMinutes: 0,
   },
   {
     id: 'task-2',
@@ -16,6 +19,9 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 1,
     completedAt: null,
+    description: '',
+    storyPoints: 2,
+    actualTimeMinutes: 0,
   },
   {
     id: 'task-3',
@@ -23,6 +29,9 @@ const sampleTasks: Task[] = [
     projectId: 'project-3',
     order: 2,
     completedAt: null,
+    description: '',
+    storyPoints: 5,
+    actualTimeMinutes: 0,
   },
   {
     id: 'task-4',
@@ -30,6 +39,9 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 3,
     completedAt: null,
+    description: '',
+    storyPoints: 1,
+    actualTimeMinutes: 0,
   },
   {
     id: 'task-5',
@@ -37,25 +49,50 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 4,
     completedAt: null,
+    description: '',
+    storyPoints: 8,
+    actualTimeMinutes: 0,
   },
 ]
 
 const normalizeTasks = (tasks: Task[]) => {
   let changed = false
+  const allowedStoryPoints = new Set([1, 2, 3, 5, 8])
   const normalized = tasks.map((task, index) => {
     const order = typeof task.order === 'number' ? task.order : index
     const projectId =
       typeof task.projectId === 'string' ? task.projectId : null
     const completedAt =
       typeof task.completedAt === 'string' ? task.completedAt : null
+    const description =
+      typeof task.description === 'string' ? task.description : ''
+    const storyPoints =
+      typeof task.storyPoints === 'number' && allowedStoryPoints.has(task.storyPoints)
+        ? (task.storyPoints as 1 | 2 | 3 | 5 | 8)
+        : null
+    const actualTimeMinutes =
+      typeof task.actualTimeMinutes === 'number' && task.actualTimeMinutes > 0
+        ? Math.round(task.actualTimeMinutes)
+        : 0
     if (
       order !== task.order ||
       projectId !== task.projectId ||
-      completedAt !== task.completedAt
+      completedAt !== task.completedAt ||
+      description !== task.description ||
+      storyPoints !== task.storyPoints ||
+      actualTimeMinutes !== task.actualTimeMinutes
     ) {
       changed = true
     }
-    return { ...task, order, projectId, completedAt }
+    return {
+      ...task,
+      order,
+      projectId,
+      completedAt,
+      description,
+      storyPoints,
+      actualTimeMinutes,
+    }
   })
   return { normalized, changed }
 }

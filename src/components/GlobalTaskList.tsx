@@ -34,6 +34,7 @@ type GlobalTaskListProps = {
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
   onUpdateTaskTitle: (taskId: string, title: string) => void
+  onOpenTaskDetails: (taskId: string) => void
 }
 
 type SortableTaskItemProps = {
@@ -42,6 +43,7 @@ type SortableTaskItemProps = {
   onToggleComplete: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
   onUpdateTaskTitle: (taskId: string, title: string) => void
+  onOpenTaskDetails: (taskId: string) => void
 }
 
 const SortableTaskItem = ({
@@ -50,6 +52,7 @@ const SortableTaskItem = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
 }: SortableTaskItemProps) => {
   const {
     attributes,
@@ -85,6 +88,7 @@ const SortableTaskItem = ({
         onToggleComplete={onToggleComplete}
         onDelete={onDeleteTask}
         onUpdateTitle={onUpdateTaskTitle}
+        onOpenDetails={onOpenTaskDetails}
       />
     </div>
   )
@@ -102,6 +106,7 @@ const GlobalTaskList = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
 }: GlobalTaskListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -180,6 +185,7 @@ const GlobalTaskList = ({
                     onToggleComplete={onToggleComplete}
                     onDeleteTask={onDeleteTask}
                     onUpdateTaskTitle={onUpdateTaskTitle}
+                    onOpenTaskDetails={onOpenTaskDetails}
                   />
                 </div>
               )

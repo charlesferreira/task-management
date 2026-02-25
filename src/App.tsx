@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
 import { UNASSIGNED_PROJECT } from "./models/types";
@@ -10,6 +11,7 @@ function App() {
   const [activeView, setActiveView] = useState<"board" | "list" | "zen">(
     "board",
   );
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const isZen = activeView === "zen";
 
   const [filter, setFilter] = useState<"all" | "active" | "completed">(() => {
@@ -32,6 +34,8 @@ function App() {
     deleteTask,
     deleteCompleted,
     updateTaskTitle,
+    updateTaskDetails,
+    todayStats,
     setTasks,
   } = useTasks();
 
@@ -74,6 +78,13 @@ function App() {
       UNASSIGNED_PROJECT
     );
   }, [focusedTask, projects]);
+
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.id === selectedTaskId) ?? null,
+    [selectedTaskId, tasks],
+  );
+
+  const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
   const handleDeleteProject = (projectId: string) => {
     reorderProjects(projects.filter((project) => project.id !== projectId));
@@ -163,6 +174,7 @@ function App() {
               onToggleComplete={toggleComplete}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
+              onOpenTaskDetails={setSelectedTaskId}
               onUpdateProject={updateProject}
             />
           ) : (
@@ -178,9 +190,18 @@ function App() {
               onToggleComplete={toggleComplete}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
+              onOpenTaskDetails={setSelectedTaskId}
             />
           )}
         </div>
+        <TaskDetailsDrawer
+          isOpen={isTaskDrawerOpen}
+          task={selectedTask}
+          todayStats={todayStats}
+          onClose={() => setSelectedTaskId(null)}
+          onDelete={deleteTask}
+          onSave={updateTaskDetails}
+        />
       </div>
     </div>
   );

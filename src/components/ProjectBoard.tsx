@@ -30,6 +30,7 @@ type ProjectBoardProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
@@ -52,6 +53,7 @@ type SortableProjectColumnProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
@@ -67,6 +69,7 @@ const SortableProjectColumn = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
   onUpdateProject,
 }: SortableProjectColumnProps) => {
   const {
@@ -103,6 +106,7 @@ const SortableProjectColumn = ({
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
+        onOpenTaskDetails={onOpenTaskDetails}
         headerDragProps={{
           attributes,
           listeners,
@@ -122,6 +126,7 @@ const ProjectBoard = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
   onUpdateProject,
   onReorderProjects,
   onReorderProjectTasks,
@@ -258,6 +263,7 @@ const ProjectBoard = ({
                 onToggleComplete={onToggleComplete}
                 onDeleteTask={onDeleteTask}
                 onUpdateTaskTitle={onUpdateTaskTitle}
+                onOpenTaskDetails={onOpenTaskDetails}
                 onUpdateProject={onUpdateProject}
               />
             );
@@ -276,6 +282,7 @@ const ProjectBoard = ({
           onToggleComplete={onToggleComplete}
           onDeleteTask={onDeleteTask}
           onUpdateTaskTitle={onUpdateTaskTitle}
+          onOpenTaskDetails={onOpenTaskDetails}
         />
       </div>
       <DragOverlay adjustScale={false}>

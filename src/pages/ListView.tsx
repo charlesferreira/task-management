@@ -19,6 +19,7 @@ type ListViewProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
 };
 
 const ListView = ({
@@ -33,6 +34,7 @@ const ListView = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
 }: ListViewProps) => {
   const [title, setTitle] = useState("");
   const [selectedProject, setSelectedProject] = useState(UNASSIGNED_PROJECT_ID);
@@ -83,6 +85,7 @@ const ListView = ({
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
+        onOpenTaskDetails={onOpenTaskDetails}
       />
       {showCreate ? (
         <div

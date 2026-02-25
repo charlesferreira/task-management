@@ -19,6 +19,7 @@ type BoardViewProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
   onUpdateProject: (
     projectId: string,
     updates: { name: string; color: string },
@@ -37,6 +38,7 @@ const BoardView = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
   onUpdateProject,
 }: BoardViewProps) => {
   const [name, setName] = useState("");
@@ -78,6 +80,7 @@ const BoardView = ({
         onToggleComplete={onToggleComplete}
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
+        onOpenTaskDetails={onOpenTaskDetails}
         onUpdateProject={onUpdateProject}
       />
       {showProjectForm ? (

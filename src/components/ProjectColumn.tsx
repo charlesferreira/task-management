@@ -32,6 +32,7 @@ type ProjectColumnProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
 };
 
 type SortableTaskCardProps = {
@@ -40,6 +41,7 @@ type SortableTaskCardProps = {
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
+  onOpenTaskDetails: (taskId: string) => void;
 };
 
 const SortableTaskCard = ({
@@ -48,6 +50,7 @@ const SortableTaskCard = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
 }: SortableTaskCardProps) => {
   const {
     attributes,
@@ -81,6 +84,7 @@ const SortableTaskCard = ({
         onToggleComplete={onToggleComplete}
         onDelete={onDeleteTask}
         onUpdateTitle={onUpdateTaskTitle}
+        onOpenDetails={onOpenTaskDetails}
         dragHandleProps={{
           attributes,
           listeners,
@@ -103,6 +107,7 @@ const ProjectColumn = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
+  onOpenTaskDetails,
 }: ProjectColumnProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -273,6 +278,7 @@ const ProjectColumn = ({
                   onToggleComplete={onToggleComplete}
                   onDeleteTask={onDeleteTask}
                   onUpdateTaskTitle={onUpdateTaskTitle}
+                  onOpenTaskDetails={onOpenTaskDetails}
                 />
               ))}
             </div>
