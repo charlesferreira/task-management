@@ -1,6 +1,8 @@
 import type { Project } from '../models/types'
 
 const STORAGE_KEY = 'taskOrganizer.projects'
+const UNASSIGNED_NAME_KEY = 'taskOrganizer.unassignedProjectName'
+const DEFAULT_UNASSIGNED_NAME = 'Unassigned'
 
 const sampleProjects: Project[] = [
   { id: 'project-1', name: 'Personal', color: '#16a34a', order: 0 },
@@ -39,6 +41,17 @@ const writeProjects = (projects: Project[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
 }
 
+const readUnassignedProjectName = () => {
+  const raw = localStorage.getItem(UNASSIGNED_NAME_KEY)
+  if (!raw) return DEFAULT_UNASSIGNED_NAME
+  const trimmed = raw.trim()
+  return trimmed || DEFAULT_UNASSIGNED_NAME
+}
+
+const writeUnassignedProjectName = (name: string) => {
+  localStorage.setItem(UNASSIGNED_NAME_KEY, name.trim() || DEFAULT_UNASSIGNED_NAME)
+}
+
 export const projectService = {
   getProjects() {
     return readProjects()
@@ -59,5 +72,11 @@ export const projectService = {
     if (existing.length > 0) return existing
     writeProjects(sampleProjects)
     return sampleProjects
+  },
+  getUnassignedProjectName() {
+    return readUnassignedProjectName()
+  },
+  saveUnassignedProjectName(name: string) {
+    writeUnassignedProjectName(name)
   },
 }

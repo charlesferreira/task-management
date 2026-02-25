@@ -1,43 +1,80 @@
-import { useEffect, useState } from "react";
-import type { Project, Task } from "../models/types";
+import { useEffect, useRef, useState } from 'react'
+import type { Project, Task } from '../models/types'
 
 type ZenViewProps = {
-  task: Task | null;
-  project: Project | null;
-  upcomingTasks: Task[];
-  onComplete: (taskId: string) => void;
-};
+  task: Task | null
+  project: Project | null
+  onOpenDetails: (taskId: string) => void
+  onToggleTracking: (taskId: string) => void
+  isTaskTracking: (taskId: string) => boolean
+  getTaskLiveMinutes: (taskId: string) => number
+}
+
+const formatTimer = (minutes: number) => {
+  const totalSeconds = Math.max(0, Math.floor(minutes * 60))
+  const hours = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, '0')
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0')
+  const secs = (totalSeconds % 60).toString().padStart(2, '0')
+  return `${hours}:${mins}:${secs}`
+}
 
 const ZenView = ({
   task,
   project,
-  upcomingTasks,
-  onComplete,
+  onOpenDetails,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
 }: ZenViewProps) => {
-  const [isFading, setIsFading] = useState(false);
+  const [timerHover, setTimerHover] = useState(false)
+  const [, setRenderSecond] = useState(0)
+  const animationFrameRef = useRef<number | null>(null)
+  const lastSecondRef = useRef<number>(0)
+
+  const taskId = task?.id ?? null
+  const isTrackingCurrentTask = taskId ? isTaskTracking(taskId) : false
 
   useEffect(() => {
-    setIsFading(false);
-  }, [task?.id]);
+    if (!taskId || !isTrackingCurrentTask) {
+      if (animationFrameRef.current) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+      animationFrameRef.current = null
+      return
+    }
 
-  const handleComplete = () => {
-    if (!task) return;
-    setIsFading(true);
-    window.setTimeout(() => {
-      onComplete(task.id);
-    }, 180);
-  };
+    lastSecondRef.current = Math.floor(Date.now() / 1000)
+
+    const loop = () => {
+      const nowSecond = Math.floor(Date.now() / 1000)
+      if (nowSecond !== lastSecondRef.current) {
+        lastSecondRef.current = nowSecond
+        setRenderSecond(nowSecond)
+      }
+      animationFrameRef.current = window.requestAnimationFrame(loop)
+    }
+
+    animationFrameRef.current = window.requestAnimationFrame(loop)
+
+    return () => {
+      if (animationFrameRef.current) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+      animationFrameRef.current = null
+    }
+  }, [taskId, isTrackingCurrentTask])
+
+  const liveMinutes = taskId ? getTaskLiveMinutes(taskId) : 0
 
   return (
     <section className="group relative w-full flex-1">
       {task ? (
-        <div
-          key={task.id}
-          className={`absolute inset-0 flex items-center justify-center text-center transition-opacity duration-200 ${
-            isFading ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          <div className="flex w-full max-w-4xl flex-col items-center gap-10 md:gap-12">
+        <div className="absolute inset-0 flex items-center justify-center text-center">
+          <div className="flex w-full max-w-4xl flex-col items-center gap-8 md:gap-10">
             {project ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                 <span
@@ -47,15 +84,43 @@ const ZenView = ({
                 {project.name}
               </div>
             ) : null}
-            <h2 className="text-4xl leading-tight font-semibold text-slate-900 md:text-6xl dark:text-slate-100">
-              {task.title}
-            </h2>
+
             <button
               type="button"
-              onClick={handleComplete}
-              className="rounded-lg border border-slate-200/70 bg-white px-4 py-2 text-sm font-semibold text-slate-600 opacity-0 shadow-sm transition group-focus-within:opacity-100 group-hover:opacity-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+              onClick={() => onOpenDetails(task.id)}
+              className="text-4xl leading-tight font-semibold text-slate-900 transition hover:opacity-80 md:text-6xl dark:text-slate-100"
             >
-              Mark complete
+              {task.title}
+            </button>
+
+            <button
+              type="button"
+              onMouseEnter={() => setTimerHover(true)}
+              onMouseLeave={() => setTimerHover(false)}
+              onClick={() => onToggleTracking(task.id)}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200/70 bg-white px-3 py-1.5 font-mono text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100"
+              aria-label={isTrackingCurrentTask ? 'Pause timer' : 'Start timer'}
+            >
+              <span className="inline-flex h-4 w-4 items-center justify-center text-current">
+                {timerHover ? (
+                  isTrackingCurrentTask ? (
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                      <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
+                      <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                      <path d="M7 5.5v13c0 .9 1 1.5 1.8 1l9.7-6.5a1.2 1.2 0 0 0 0-2L8.8 4.5A1.2 1.2 0 0 0 7 5.5Z" />
+                    </svg>
+                  )
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                )}
+              </span>
+              <span>{formatTimer(liveMinutes)}</span>
             </button>
           </div>
         </div>
@@ -64,32 +129,8 @@ const ZenView = ({
           No tasks available
         </p>
       )}
-      {upcomingTasks.length > 0 ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-4 opacity-0 transition-opacity duration-300 group-hover:pointer-events-auto group-hover:opacity-100">
-          <div className="group/upcoming pointer-events-auto relative w-full max-w-2xl overflow-hidden rounded-t-2xl border border-b-0 border-slate-700/80 bg-slate-950/95 px-5 pt-3 pb-0 shadow-lg backdrop-blur transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400">
-                Coming up
-              </p>
-            </div>
-            <div className="relative mt-2 max-h-6 pb-3 transition-all duration-300 group-hover/upcoming:max-h-28">
-              <ul className="space-y-2">
-                {upcomingTasks.map((upcomingTask) => (
-                  <li
-                    key={upcomingTask.id}
-                    className="truncate text-sm font-medium text-slate-700 dark:text-slate-200"
-                  >
-                    {upcomingTask.title}
-                  </li>
-                ))}
-              </ul>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-b from-transparent to-slate-950/95 transition-opacity duration-300 group-hover/upcoming:opacity-0" />
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
-  );
-};
+  )
+}
 
-export default ZenView;
+export default ZenView

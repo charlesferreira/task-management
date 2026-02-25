@@ -17,12 +17,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
 import type { Project, Task } from "../models/types";
-import { UNASSIGNED_PROJECT } from "../models/types";
 import ProjectColumn from "./ProjectColumn";
 import TaskItem from "./TaskItem";
 
 type ProjectBoardProps = {
   projects: Project[];
+  unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
   onAddTask: (title: string, projectId: string | null) => void;
@@ -35,6 +35,7 @@ type ProjectBoardProps = {
     projectId: string,
     updates: { name: string; color: string },
   ) => void;
+  onUpdateUnassignedProjectName: (name: string) => void;
   onReorderProjects: (projects: Project[]) => void;
   onReorderProjectTasks: (
     activeId: string,
@@ -119,6 +120,7 @@ const SortableProjectColumn = ({
 
 const ProjectBoard = ({
   projects,
+  unassignedProject,
   tasks,
   allTasks,
   onAddTask,
@@ -128,6 +130,7 @@ const ProjectBoard = ({
   onUpdateTaskTitle,
   onOpenTaskDetails,
   onUpdateProject,
+  onUpdateUnassignedProjectName,
   onReorderProjects,
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
@@ -151,9 +154,9 @@ const ProjectBoard = ({
     : null;
   const activeProject =
     activeTask?.projectId === null
-      ? UNASSIGNED_PROJECT
+      ? unassignedProject
       : activeTask
-        ? (projectMap.get(activeTask.projectId) ?? UNASSIGNED_PROJECT)
+        ? (projectMap.get(activeTask.projectId) ?? unassignedProject)
         : null;
   const activeColumnProject = activeProjectId
     ? (projectMap.get(activeProjectId) ?? null)
@@ -270,7 +273,7 @@ const ProjectBoard = ({
           })}
         </SortableContext>
         <ProjectColumn
-          project={UNASSIGNED_PROJECT}
+          project={unassignedProject}
           tasks={tasks.filter((task) => task.projectId === null)}
           isUnassigned
           activeCount={
@@ -283,6 +286,7 @@ const ProjectBoard = ({
           onDeleteTask={onDeleteTask}
           onUpdateTaskTitle={onUpdateTaskTitle}
           onOpenTaskDetails={onOpenTaskDetails}
+          onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
         />
       </div>
       <DragOverlay adjustScale={false}>

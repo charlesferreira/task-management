@@ -72,7 +72,7 @@ const normalizeTasks = (tasks: Task[]) => {
         : null
     const actualTimeMinutes =
       typeof task.actualTimeMinutes === 'number' && task.actualTimeMinutes > 0
-        ? Math.round(task.actualTimeMinutes)
+        ? Math.round(task.actualTimeMinutes * 100) / 100
         : 0
     if (
       order !== task.order ||

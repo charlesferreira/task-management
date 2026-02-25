@@ -4,6 +4,7 @@ import type { Project, Task } from "../models/types";
 
 type BoardViewProps = {
   projects: Project[];
+  unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
   onAddTask: (title: string, projectId: string | null) => void;
@@ -24,10 +25,12 @@ type BoardViewProps = {
     projectId: string,
     updates: { name: string; color: string },
   ) => void;
+  onUpdateUnassignedProjectName: (name: string) => void;
 };
 
 const BoardView = ({
   projects,
+  unassignedProject,
   tasks,
   allTasks,
   onAddTask,
@@ -40,6 +43,7 @@ const BoardView = ({
   onUpdateTaskTitle,
   onOpenTaskDetails,
   onUpdateProject,
+  onUpdateUnassignedProjectName,
 }: BoardViewProps) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#38bdf8");
@@ -71,6 +75,7 @@ const BoardView = ({
     <section className="space-y-6 pb-24">
       <ProjectBoard
         projects={projects}
+        unassignedProject={unassignedProject}
         tasks={tasks}
         allTasks={allTasks}
         onAddTask={onAddTask}
@@ -82,6 +87,7 @@ const BoardView = ({
         onUpdateTaskTitle={onUpdateTaskTitle}
         onOpenTaskDetails={onOpenTaskDetails}
         onUpdateProject={onUpdateProject}
+        onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
       />
       {showProjectForm ? (
         <div

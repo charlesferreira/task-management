@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import type { Project } from '../models/types'
+import { useState } from 'react'
+import { UNASSIGNED_PROJECT_ID, type Project } from '../models/types'
 import { projectService } from '../services/projectService'
 
 const generateId = () => {
@@ -10,11 +10,12 @@ const generateId = () => {
 }
 
 export const useProjects = () => {
-  const [projects, setProjects] = useState<Project[]>([])
-
-  useEffect(() => {
-    setProjects(projectService.getOrInitializeProjects())
-  }, [])
+  const [projects, setProjects] = useState<Project[]>(() =>
+    projectService.getOrInitializeProjects(),
+  )
+  const [unassignedProjectName, setUnassignedProjectName] = useState(() =>
+    projectService.getUnassignedProjectName(),
+  )
 
   const saveProjects = (next: Project[]) => {
     setProjects(next)
@@ -54,11 +55,27 @@ export const useProjects = () => {
     return updated
   }
 
+  const updateUnassignedProjectName = (name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setUnassignedProjectName(trimmed)
+    projectService.saveUnassignedProjectName(trimmed)
+  }
+
+  const unassignedProject: Project = {
+    id: UNASSIGNED_PROJECT_ID,
+    name: unassignedProjectName,
+    color: '#94a3b8',
+    order: Number.MAX_SAFE_INTEGER,
+  }
+
   return {
     projects,
+    unassignedProject,
     setProjects: saveProjects,
     createProject,
     reorderProjects,
     updateProject,
+    updateUnassignedProjectName,
   }
 }

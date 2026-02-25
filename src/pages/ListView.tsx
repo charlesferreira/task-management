@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import GlobalTaskList from "../components/GlobalTaskList";
 import {
-  UNASSIGNED_PROJECT,
   UNASSIGNED_PROJECT_ID,
   type Project,
   type Task,
@@ -9,6 +8,7 @@ import {
 
 type ListViewProps = {
   projects: Project[];
+  unassignedProject: Project;
   tasks: Task[];
   filter: "all" | "active" | "completed";
   onFilterChange: (mode: "all" | "active" | "completed") => void;
@@ -24,6 +24,7 @@ type ListViewProps = {
 
 const ListView = ({
   projects,
+  unassignedProject,
   tasks,
   filter,
   onFilterChange,
@@ -75,6 +76,7 @@ const ListView = ({
     <section className="space-y-6 pb-24">
       <GlobalTaskList
         projects={projects}
+        unassignedProject={unassignedProject}
         tasks={tasks}
         hideHeader
         filter={filter}
@@ -118,7 +120,7 @@ const ListView = ({
                 className="w-full min-w-max rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-500"
               >
                 <option value={UNASSIGNED_PROJECT_ID}>
-                  {UNASSIGNED_PROJECT.name}
+                  {unassignedProject.name}
                 </option>
                 {orderedProjects.map((project) => (
                   <option key={project.id} value={project.id}>

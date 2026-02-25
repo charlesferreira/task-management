@@ -16,7 +16,6 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useMemo } from 'react'
 import {
-  UNASSIGNED_PROJECT,
   type Project,
   type Task,
 } from '../models/types'
@@ -25,6 +24,7 @@ import TaskItem from './TaskItem'
 type GlobalTaskListProps = {
   tasks: Task[]
   projects: Project[]
+  unassignedProject: Project
   hideHeader?: boolean
   filter?: 'all' | 'active' | 'completed'
   onFilterChange?: (mode: 'all' | 'active' | 'completed') => void
@@ -97,6 +97,7 @@ const SortableTaskItem = ({
 const GlobalTaskList = ({
   tasks,
   projects,
+  unassignedProject,
   hideHeader = false,
   filter,
   onFilterChange,
@@ -175,8 +176,8 @@ const GlobalTaskList = ({
             {tasks.map((task) => {
               const project =
                 task.projectId === null
-                  ? UNASSIGNED_PROJECT
-                  : projectMap.get(task.projectId) ?? UNASSIGNED_PROJECT
+                  ? unassignedProject
+                  : projectMap.get(task.projectId) ?? unassignedProject
               return (
                 <div key={task.id} className="py-1">
                   <SortableTaskItem

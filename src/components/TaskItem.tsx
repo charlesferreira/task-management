@@ -1,6 +1,7 @@
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import type { Project, Task } from '../models/types'
 import ProjectBadge from './ProjectBadge'
+import StoryPointsBadge from './StoryPointsBadge'
 
 type TaskItemProps = {
   task: Task
@@ -84,6 +85,7 @@ const TaskItem = ({
             >
               {task.title}
             </p>
+            <StoryPointsBadge storyPoints={task.storyPoints} />
           </div>
           <div className="flex items-center gap-2">
             {showProjectBadge ? <ProjectBadge project={project} /> : null}

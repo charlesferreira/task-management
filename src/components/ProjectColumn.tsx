@@ -29,6 +29,7 @@ type ProjectColumnProps = {
     projectId: string,
     updates: { name: string; color: string },
   ) => void;
+  onUpdateUnassignedProjectName?: (name: string) => void;
   onToggleComplete: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
@@ -104,6 +105,7 @@ const ProjectColumn = ({
   onAddTask,
   onDeleteProject,
   onUpdateProject,
+  onUpdateUnassignedProjectName,
   onToggleComplete,
   onDeleteTask,
   onUpdateTaskTitle,
@@ -144,14 +146,18 @@ const ProjectColumn = ({
 
   const handleSaveProject = () => {
     const trimmed = draftName.trim();
-    if (!trimmed || !onUpdateProject) {
+    if (!trimmed) {
       setIsEditing(false);
       return;
     }
-    onUpdateProject(project.id, {
-      name: trimmed,
-      color: draftColor || project.color,
-    });
+    if (isUnassigned) {
+      onUpdateUnassignedProjectName?.(trimmed);
+    } else if (onUpdateProject) {
+      onUpdateProject(project.id, {
+        name: trimmed,
+        color: draftColor || project.color,
+      });
+    }
     setIsEditing(false);
   };
 
@@ -197,19 +203,21 @@ const ProjectColumn = ({
           className="flex items-center gap-2"
           onPointerDown={(event) => event.stopPropagation()}
         >
-          {!isUnassigned && onUpdateProject ? (
+          {(isUnassigned ? Boolean(onUpdateUnassignedProjectName) : Boolean(onUpdateProject)) ? (
             <div className="flex items-center gap-1">
               {isEditing ? (
                 <>
-                  <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <input
-                      type="color"
-                      value={draftColor}
-                      onChange={(event) => setDraftColor(event.target.value)}
-                      className="h-full w-full cursor-pointer appearance-none overflow-hidden rounded-full border-0 p-0"
-                      aria-label="Project color"
-                    />
-                  </div>
+                  {!isUnassigned ? (
+                    <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                      <input
+                        type="color"
+                        value={draftColor}
+                        onChange={(event) => setDraftColor(event.target.value)}
+                        className="h-full w-full cursor-pointer appearance-none overflow-hidden rounded-full border-0 p-0"
+                        aria-label="Project color"
+                      />
+                    </div>
+                  ) : null}
                   <button
                     type="button"
                     onClick={handleSaveProject}

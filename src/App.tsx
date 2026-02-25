@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
+import TodayStatsWidget from "./components/TodayStatsWidget";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
-import { UNASSIGNED_PROJECT } from "./models/types";
 import BoardView from "./pages/BoardView";
 import ListView from "./pages/ListView";
 import ZenView from "./pages/ZenView";
 
 function App() {
   const [activeView, setActiveView] = useState<"board" | "list" | "zen">(
+    "board",
+  );
+  const [lastNonZenView, setLastNonZenView] = useState<"board" | "list">(
     "board",
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -22,8 +25,14 @@ function App() {
     return "all";
   });
 
-  const { projects, createProject, reorderProjects, updateProject } =
-    useProjects();
+  const {
+    projects,
+    unassignedProject,
+    createProject,
+    reorderProjects,
+    updateProject,
+    updateUnassignedProjectName,
+  } = useProjects();
   const {
     tasks,
     reorderVisibleTasks,
@@ -35,6 +44,9 @@ function App() {
     deleteCompleted,
     updateTaskTitle,
     updateTaskDetails,
+    toggleTracking,
+    isTaskTracking,
+    getTaskLiveMinutes,
     todayStats,
     setTasks,
   } = useTasks();
@@ -62,22 +74,15 @@ function App() {
     return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null;
   }, [tasks]);
 
-  const upcomingTasks = useMemo(() => {
-    if (!focusedTask) return [];
-    return tasks
-      .filter((task) => !task.completedAt && task.id !== focusedTask.id)
-      .slice(0, 4);
-  }, [focusedTask, tasks]);
-
   const focusedProject = useMemo(() => {
     if (!focusedTask) return null;
-    if (focusedTask.projectId === null) return UNASSIGNED_PROJECT;
+    if (focusedTask.projectId === null) return unassignedProject;
 
     return (
       projects.find((project) => project.id === focusedTask.projectId) ??
-      UNASSIGNED_PROJECT
+      unassignedProject
     );
-  }, [focusedTask, projects]);
+  }, [focusedTask, projects, unassignedProject]);
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -94,6 +99,18 @@ function App() {
     setTasks(updatedTasks);
   };
 
+  const handleChangeView = (view: "board" | "list" | "zen") => {
+    if (view === "zen") {
+      if (activeView !== "zen") {
+        setLastNonZenView(activeView as "board" | "list");
+      }
+      setActiveView("zen");
+      return;
+    }
+    setLastNonZenView(view);
+    setActiveView(view);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div
@@ -101,69 +118,77 @@ function App() {
           isZen ? "px-6 py-0" : "gap-6 px-6 py-8"
         }`}
       >
-        <header
-          className={`flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between ${
-            isZen
-              ? "pointer-events-none absolute top-6 right-6 left-6 z-10 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"
-              : ""
-          }`}
-        >
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-              Task Organizer
-            </h1>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
+        {isZen ? (
+          <div className="absolute inset-x-0 top-0 z-20 h-20">
+            <div className="flex justify-end px-6 pt-4">
               <button
                 type="button"
-                onClick={() => setActiveView("board")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === "board"
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                }`}
+                onClick={() => setActiveView(lastNonZenView)}
+                className="pointer-events-auto p-0 text-4xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80"
+                aria-label="Exit zen mode"
               >
-                Board
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveView("list")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === "list"
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                }`}
-              >
-                Global list
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveView("zen")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeView === "zen"
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                }`}
-              >
-                Zen
+                ×
               </button>
             </div>
           </div>
-        </header>
+        ) : (
+          <header className="flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Task Organizer
+              </h1>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={() => handleChangeView("board")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    activeView === "board"
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  }`}
+                >
+                  Board
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChangeView("list")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    activeView === "list"
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  }`}
+                >
+                  Global list
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChangeView("zen")}
+                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                >
+                  Zen
+                </button>
+              </div>
+            </div>
+          </header>
+        )}
 
         <div className={isZen ? "flex flex-1" : ""}>
           {activeView === "zen" ? (
             <ZenView
               task={focusedTask}
               project={focusedProject}
-              upcomingTasks={upcomingTasks}
-              onComplete={toggleComplete}
+              onOpenDetails={setSelectedTaskId}
+              onToggleTracking={toggleTracking}
+              isTaskTracking={isTaskTracking}
+              getTaskLiveMinutes={getTaskLiveMinutes}
             />
           ) : activeView === "board" ? (
             <BoardView
               projects={projects}
+              unassignedProject={unassignedProject}
               tasks={filteredTasks}
               allTasks={tasks}
               onAddTask={addTaskAfterProject}
@@ -176,10 +201,12 @@ function App() {
               onUpdateTaskTitle={updateTaskTitle}
               onOpenTaskDetails={setSelectedTaskId}
               onUpdateProject={updateProject}
+              onUpdateUnassignedProjectName={updateUnassignedProjectName}
             />
           ) : (
             <ListView
               projects={projects}
+              unassignedProject={unassignedProject}
               tasks={filteredTasks}
               filter={filter}
               onFilterChange={setFilter}
@@ -197,11 +224,19 @@ function App() {
         <TaskDetailsDrawer
           isOpen={isTaskDrawerOpen}
           task={selectedTask}
-          todayStats={todayStats}
+          projects={projects}
+          unassignedProject={unassignedProject}
           onClose={() => setSelectedTaskId(null)}
           onDelete={deleteTask}
           onSave={updateTaskDetails}
         />
+        {!isZen ? (
+          <TodayStatsWidget
+            tasksCompleted={todayStats.tasksCompleted}
+            pointsCompleted={todayStats.pointsCompleted}
+            effortMinutes={todayStats.effortMinutes}
+          />
+        ) : null}
       </div>
     </div>
   );
