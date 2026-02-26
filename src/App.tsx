@@ -78,13 +78,6 @@ function App() {
   const isZen = activeView === "zen";
   const isBoard = activeView === "board";
 
-  const [filter, setFilter] = useState<"all" | "active" | "completed">(() => {
-    const stored = localStorage.getItem("taskOrganizer.filter");
-    if (stored === "active" || stored === "completed" || stored === "all") {
-      return stored;
-    }
-    return "all";
-  });
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const stored = localStorage.getItem("taskOrganizer.themeMode");
     if (stored === "light" || stored === "dark" || stored === "system") {
@@ -119,8 +112,9 @@ function App() {
     reorderWithinProject,
     toggleComplete,
     deleteTask,
-    deleteCompleted,
-    updateTaskTitle,
+    deleteTasks,
+    archiveTasks,
+    unarchiveTasks,
     updateTaskDetails,
     toggleTracking,
     setTaskZenVisibility,
@@ -132,10 +126,6 @@ function App() {
     getSnapshot: getTasksSnapshot,
     restoreSnapshot: restoreTasksSnapshot,
   } = useTasks();
-
-  useEffect(() => {
-    localStorage.setItem("taskOrganizer.filter", filter);
-  }, [filter]);
 
   useEffect(() => {
     localStorage.setItem("taskOrganizer.themeMode", themeMode);
@@ -173,23 +163,13 @@ function App() {
     return () => media.removeEventListener("change", applyTheme);
   }, [themeMode]);
 
-  const filteredTasks = useMemo(() => {
-    if (filter === "active") {
-      return tasks.filter((task) => !task.completedAt);
-    }
-    if (filter === "completed") {
-      return tasks.filter((task) => task.completedAt);
-    }
-    return tasks;
-  }, [filter, tasks]);
-
-  const completedCount = useMemo(
-    () => tasks.filter((task) => task.completedAt).length,
+  const visibleBoardTasks = useMemo(
+    () => tasks.filter((task) => !task.archivedAt),
     [tasks],
   );
 
   const zenRows = useMemo(() => {
-    const activeTasks = tasks.filter((task) => !task.completedAt);
+    const activeTasks = tasks.filter((task) => !task.completedAt && !task.archivedAt);
     return activeTasks
       .map((task) => {
         return {
@@ -221,9 +201,11 @@ function App() {
   const selectedProjectTasks = useMemo(() => {
     if (!selectedProject) return [];
     if (selectedProject.id === UNASSIGNED_PROJECT_ID) {
-      return tasks.filter((task) => task.projectId === null);
+      return tasks.filter((task) => task.projectId === null && !task.archivedAt);
     }
-    return tasks.filter((task) => task.projectId === selectedProject.id);
+    return tasks.filter(
+      (task) => task.projectId === selectedProject.id && !task.archivedAt,
+    );
   }, [selectedProject, tasks]);
 
   const completeTask = (taskId: string) => {
@@ -384,6 +366,39 @@ function App() {
     showUndoToast("Task deleted", () => restoreTasksSnapshot(snapshot));
   };
 
+  const handleDeleteTasks = (taskIds: string[]) => {
+    if (taskIds.length === 0) return;
+    const snapshot = getTasksSnapshot();
+    const deletedCount = deleteTasks(taskIds);
+    if (deletedCount === 0) return;
+    const label = deletedCount === 1 ? "task" : "tasks";
+    showUndoToast(`${deletedCount} ${label} deleted`, () =>
+      restoreTasksSnapshot(snapshot),
+    );
+  };
+
+  const handleArchiveTasks = (taskIds: string[]) => {
+    if (taskIds.length === 0) return;
+    const snapshot = getTasksSnapshot();
+    const archivedCount = archiveTasks(taskIds);
+    if (archivedCount === 0) return;
+    const label = archivedCount === 1 ? "task" : "tasks";
+    showUndoToast(`${archivedCount} ${label} archived`, () =>
+      restoreTasksSnapshot(snapshot),
+    );
+  };
+
+  const handleUnarchiveTasks = (taskIds: string[]) => {
+    if (taskIds.length === 0) return;
+    const snapshot = getTasksSnapshot();
+    const unarchivedCount = unarchiveTasks(taskIds);
+    if (unarchivedCount === 0) return;
+    const label = unarchivedCount === 1 ? "task" : "tasks";
+    showUndoToast(`${unarchivedCount} ${label} restored`, () =>
+      restoreTasksSnapshot(snapshot),
+    );
+  };
+
   const handleMoveTaskInBoard = (
     activeId: string,
     overId: string | null,
@@ -530,19 +545,13 @@ function App() {
             <BoardView
               projects={projects}
               unassignedProject={unassignedProject}
-              tasks={filteredTasks}
-              allTasks={tasks}
+              tasks={visibleBoardTasks}
+              allTasks={visibleBoardTasks}
               onCreateProject={createProject}
               onDeleteProject={handleDeleteProject}
               onOpenProjectDetails={handleOpenProjectDetails}
               onReorderProjects={reorderProjects}
               onReorderProjectTasks={handleMoveTaskInBoard}
-              onToggleComplete={handleToggleComplete}
-              onToggleTracking={toggleTracking}
-              isTaskTracking={isTaskTracking}
-              getTaskLiveMinutes={getTaskLiveMinutes}
-              onDeleteTask={handleDeleteTask}
-              onUpdateTaskTitle={updateTaskTitle}
               onOpenTaskDetails={handleOpenTaskDetails}
               themeMode={themeMode}
               onToggleTheme={cycleThemeMode}
@@ -551,13 +560,12 @@ function App() {
             <ListView
               projects={projects}
               unassignedProject={unassignedProject}
-              tasks={filteredTasks}
-              filter={filter}
-              onFilterChange={setFilter}
-              completedCount={completedCount}
-              onDeleteCompleted={deleteCompleted}
+              tasks={tasks}
               onReorder={handleReorderVisibleTasks}
               onCreateTask={handleCreateTaskFromList}
+              onArchiveTasks={handleArchiveTasks}
+              onDeleteTasks={handleDeleteTasks}
+              onUnarchiveTasks={handleUnarchiveTasks}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
               onSetZenVisibility={setTaskZenVisibility}

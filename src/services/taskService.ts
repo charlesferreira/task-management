@@ -9,6 +9,7 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 0,
     completedAt: null,
+    archivedAt: null,
     description: '',
     storyPoints: 3,
     actualTimeMinutes: 0,
@@ -20,6 +21,7 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 1,
     completedAt: null,
+    archivedAt: null,
     description: '',
     storyPoints: 2,
     actualTimeMinutes: 0,
@@ -31,6 +33,7 @@ const sampleTasks: Task[] = [
     projectId: 'project-3',
     order: 2,
     completedAt: null,
+    archivedAt: null,
     description: '',
     storyPoints: 5,
     actualTimeMinutes: 0,
@@ -42,6 +45,7 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 3,
     completedAt: null,
+    archivedAt: null,
     description: '',
     storyPoints: 1,
     actualTimeMinutes: 0,
@@ -53,6 +57,7 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 4,
     completedAt: null,
+    archivedAt: null,
     description: '',
     storyPoints: 8,
     actualTimeMinutes: 0,
@@ -69,6 +74,8 @@ const normalizeTasks = (tasks: Task[]) => {
       typeof task.projectId === 'string' ? task.projectId : null
     const completedAt =
       typeof task.completedAt === 'string' ? task.completedAt : null
+    const archivedAt =
+      typeof task.archivedAt === 'string' ? task.archivedAt : null
     const description =
       typeof task.description === 'string' ? task.description : ''
     const storyPoints =
@@ -84,6 +91,7 @@ const normalizeTasks = (tasks: Task[]) => {
       order !== task.order ||
       projectId !== task.projectId ||
       completedAt !== task.completedAt ||
+      archivedAt !== task.archivedAt ||
       description !== task.description ||
       storyPoints !== task.storyPoints ||
       actualTimeMinutes !== task.actualTimeMinutes ||
@@ -96,6 +104,7 @@ const normalizeTasks = (tasks: Task[]) => {
       order,
       projectId,
       completedAt,
+      archivedAt,
       description,
       storyPoints,
       actualTimeMinutes,

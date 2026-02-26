@@ -9,12 +9,11 @@ type ListViewProps = {
   projects: Project[];
   unassignedProject: Project;
   tasks: Task[];
-  filter: "all" | "active" | "completed";
-  onFilterChange: (mode: "all" | "active" | "completed") => void;
-  completedCount: number;
-  onDeleteCompleted: () => void;
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onCreateTask: () => void;
+  onArchiveTasks: (taskIds: string[]) => void;
+  onDeleteTasks: (taskIds: string[]) => void;
+  onUnarchiveTasks: (taskIds: string[]) => void;
   onOpenTaskDetails: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
@@ -27,12 +26,11 @@ const ListView = ({
   projects,
   unassignedProject,
   tasks,
-  filter,
-  onFilterChange,
-  completedCount,
-  onDeleteCompleted,
   onReorder,
   onCreateTask,
+  onArchiveTasks,
+  onDeleteTasks,
+  onUnarchiveTasks,
   onOpenTaskDetails,
   isTaskTracking,
   getTaskLiveMinutes,
@@ -47,11 +45,10 @@ const ListView = ({
         unassignedProject={unassignedProject}
         tasks={tasks}
         hideHeader
-        filter={filter}
-        onFilterChange={onFilterChange}
-        completedCount={completedCount}
-        onDeleteCompleted={onDeleteCompleted}
         onReorder={onReorder}
+        onArchiveTasks={onArchiveTasks}
+        onDeleteTasks={onDeleteTasks}
+        onUnarchiveTasks={onUnarchiveTasks}
         onOpenTaskDetails={onOpenTaskDetails}
         isTaskTracking={isTaskTracking}
         getTaskLiveMinutes={getTaskLiveMinutes}

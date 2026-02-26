@@ -28,12 +28,6 @@ type ProjectBoardProps = {
   allTasks: Task[];
   onDeleteProject: (projectId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
-  onToggleComplete: (taskId: string) => void;
-  onToggleTracking: (taskId: string) => void;
-  isTaskTracking: (taskId: string) => boolean;
-  getTaskLiveMinutes: (taskId: string) => number;
-  onDeleteTask: (taskId: string) => void;
-  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
   onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
   onReorderProjectTasks: (
@@ -51,12 +45,6 @@ type SortableProjectColumnProps = {
   isUnassigned?: boolean;
   onDeleteProject?: (projectId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
-  onToggleComplete: (taskId: string) => void;
-  onToggleTracking: (taskId: string) => void;
-  isTaskTracking: (taskId: string) => boolean;
-  getTaskLiveMinutes: (taskId: string) => number;
-  onDeleteTask: (taskId: string) => void;
-  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
 };
 
@@ -67,12 +55,6 @@ const SortableProjectColumn = ({
   isUnassigned = false,
   onDeleteProject,
   onOpenProjectDetails,
-  onToggleComplete,
-  onToggleTracking,
-  isTaskTracking,
-  getTaskLiveMinutes,
-  onDeleteTask,
-  onUpdateTaskTitle,
   onOpenTaskDetails,
 }: SortableProjectColumnProps) => {
   const {
@@ -107,12 +89,6 @@ const SortableProjectColumn = ({
         activeCount={activeCount}
         onDeleteProject={onDeleteProject}
         onOpenProjectDetails={onOpenProjectDetails}
-        onToggleComplete={onToggleComplete}
-        onToggleTracking={onToggleTracking}
-        isTaskTracking={isTaskTracking}
-        getTaskLiveMinutes={getTaskLiveMinutes}
-        onDeleteTask={onDeleteTask}
-        onUpdateTaskTitle={onUpdateTaskTitle}
         onOpenTaskDetails={onOpenTaskDetails}
       />
     </div>
@@ -126,12 +102,6 @@ const ProjectBoard = ({
   allTasks,
   onDeleteProject,
   onOpenProjectDetails,
-  onToggleComplete,
-  onToggleTracking,
-  isTaskTracking,
-  getTaskLiveMinutes,
-  onDeleteTask,
-  onUpdateTaskTitle,
   onOpenTaskDetails,
   onReorderProjects,
   onReorderProjectTasks,
@@ -288,12 +258,6 @@ const ProjectBoard = ({
                   isUnassigned={isUnassigned}
                   onDeleteProject={isUnassigned ? undefined : onDeleteProject}
                   onOpenProjectDetails={onOpenProjectDetails}
-                  onToggleComplete={onToggleComplete}
-                  onToggleTracking={onToggleTracking}
-                  isTaskTracking={isTaskTracking}
-                  getTaskLiveMinutes={getTaskLiveMinutes}
-                  onDeleteTask={onDeleteTask}
-                  onUpdateTaskTitle={onUpdateTaskTitle}
                   onOpenTaskDetails={onOpenTaskDetails}
                 />
               );

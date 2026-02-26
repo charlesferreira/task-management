@@ -194,6 +194,7 @@ export const useTasks = () => {
     if (tracker.runningByTaskId[taskId]) return
     const task = tasks.find((entry) => entry.id === taskId)
     if (!task) return
+    if (task.archivedAt) return
     if (!task.showInZen) {
       const updatedTasks = tasks.map((entry) =>
         entry.id === taskId ? { ...entry, showInZen: true } : entry,
@@ -234,6 +235,7 @@ export const useTasks = () => {
     const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const target = sourceTasks.find((task) => task.id === taskId)
     if (!target) return false
+    if (target.archivedAt) return false
 
     const nextCompletedAt = target.completedAt ? null : new Date().toISOString()
     const updated = sourceTasks.map((task) =>
@@ -260,17 +262,66 @@ export const useTasks = () => {
   }
 
   const deleteTask = (taskId: string) => {
-    const exists = tasks.some((task) => task.id === taskId)
-    if (!exists) return false
-    const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
-    const updated = sourceTasks.filter((task) => task.id !== taskId)
-    if (tracker.runningByTaskId[taskId]) {
-      const nextRunning = { ...tracker.runningByTaskId }
-      delete nextRunning[taskId]
+    return deleteTasks([taskId]) > 0
+  }
+
+  const deleteTasks = (taskIds: string[]) => {
+    const ids = new Set(taskIds)
+    if (ids.size === 0) return 0
+    const existingCount = tasks.filter((task) => ids.has(task.id)).length
+    if (existingCount === 0) return 0
+
+    const updated = tasks.filter((task) => !ids.has(task.id))
+    const nextRunning = Object.fromEntries(
+      Object.entries(tracker.runningByTaskId).filter(([taskId]) => !ids.has(taskId)),
+    )
+    if (Object.keys(nextRunning).length !== Object.keys(tracker.runningByTaskId).length) {
       saveTracker({ runningByTaskId: nextRunning })
     }
     setTasks(taskService.reorderTasks(updated))
-    return true
+    return existingCount
+  }
+
+  const archiveTasks = (taskIds: string[]) => {
+    const ids = new Set(taskIds)
+    if (ids.size === 0) return 0
+    const now = new Date().toISOString()
+    let changed = 0
+    const updated = tasks.map((task) => {
+      if (!ids.has(task.id) || task.archivedAt) return task
+      changed += 1
+      return {
+        ...task,
+        archivedAt: now,
+        showInZen: false,
+      }
+    })
+    if (changed === 0) return 0
+    const nextRunning = Object.fromEntries(
+      Object.entries(tracker.runningByTaskId).filter(([taskId]) => !ids.has(taskId)),
+    )
+    if (Object.keys(nextRunning).length !== Object.keys(tracker.runningByTaskId).length) {
+      saveTracker({ runningByTaskId: nextRunning })
+    }
+    setTasks(taskService.reorderTasks(updated))
+    return changed
+  }
+
+  const unarchiveTasks = (taskIds: string[]) => {
+    const ids = new Set(taskIds)
+    if (ids.size === 0) return 0
+    let changed = 0
+    const updated = tasks.map((task) => {
+      if (!ids.has(task.id) || !task.archivedAt) return task
+      changed += 1
+      return {
+        ...task,
+        archivedAt: null,
+      }
+    })
+    if (changed === 0) return 0
+    setTasks(taskService.reorderTasks(updated))
+    return changed
   }
 
   const updateTaskTitle = (taskId: string, title: string) => {
@@ -278,7 +329,7 @@ export const useTasks = () => {
     if (!trimmed) return
 
     const previous = tasks.find((task) => task.id === taskId)
-    if (!previous || previous.title === trimmed) return
+    if (!previous || previous.title === trimmed || previous.archivedAt) return
 
     const updated = tasks.map((task) =>
       task.id === taskId ? { ...task, title: trimmed } : task,
@@ -308,7 +359,7 @@ export const useTasks = () => {
     },
   ) => {
     const previous = tasks.find((task) => task.id === taskId)
-    if (!previous) return
+    if (!previous || previous.archivedAt) return
 
     const trimmedTitle = updates.title.trim()
     if (!trimmedTitle) return
@@ -448,6 +499,7 @@ export const useTasks = () => {
       projectId,
       order: 0,
       completedAt: null,
+      archivedAt: null,
       description: '',
       storyPoints: null,
       actualTimeMinutes: 0,
@@ -466,6 +518,7 @@ export const useTasks = () => {
       projectId,
       order: tasks.length,
       completedAt: null,
+      archivedAt: null,
       description: '',
       storyPoints: null,
       actualTimeMinutes: 0,
@@ -524,7 +577,7 @@ export const useTasks = () => {
     const sourceTasks =
       !showInZen && isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const target = sourceTasks.find((task) => task.id === taskId)
-    if (!target || target.showInZen === showInZen) return
+    if (!target || target.showInZen === showInZen || target.archivedAt) return
     const updated = sourceTasks.map((task) =>
       task.id === taskId ? { ...task, showInZen } : task,
     )
@@ -586,6 +639,9 @@ export const useTasks = () => {
     reorderWithinProject,
     toggleComplete,
     deleteTask,
+    deleteTasks,
+    archiveTasks,
+    unarchiveTasks,
     deleteCompleted,
     updateTaskTitle,
     updateTaskDetails,

@@ -21,12 +21,6 @@ type BoardViewProps = {
     targetProjectId: string | null,
     visibleTaskIds: string[],
   ) => void;
-  onToggleComplete: (taskId: string) => void;
-  onToggleTracking: (taskId: string) => void;
-  isTaskTracking: (taskId: string) => boolean;
-  getTaskLiveMinutes: (taskId: string) => number;
-  onDeleteTask: (taskId: string) => void;
-  onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
   themeMode: ThemeMode;
   onToggleTheme: () => void;
@@ -42,12 +36,6 @@ const BoardView = ({
   onCreateProject,
   onReorderProjects,
   onReorderProjectTasks,
-  onToggleComplete,
-  onToggleTracking,
-  isTaskTracking,
-  getTaskLiveMinutes,
-  onDeleteTask,
-  onUpdateTaskTitle,
   onOpenTaskDetails,
   themeMode,
   onToggleTheme,
@@ -90,12 +78,6 @@ const BoardView = ({
           onOpenProjectDetails={onOpenProjectDetails}
           onReorderProjects={onReorderProjects}
           onReorderProjectTasks={onReorderProjectTasks}
-          onToggleComplete={onToggleComplete}
-          onToggleTracking={onToggleTracking}
-          isTaskTracking={isTaskTracking}
-          getTaskLiveMinutes={getTaskLiveMinutes}
-          onDeleteTask={onDeleteTask}
-          onUpdateTaskTitle={onUpdateTaskTitle}
           onOpenTaskDetails={onOpenTaskDetails}
         />
       </div>
