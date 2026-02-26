@@ -37,3 +37,58 @@ input[type="color"]::-moz-color-swatch {
 button {
   cursor: pointer;
 }
+
+@keyframes drawerOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawerOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawerContentIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerContentOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.drawer-overlay[data-state="open"] {
+  animation: drawerOverlayIn 200ms ease-out;
+}
+
+.drawer-overlay[data-state="closed"] {
+  animation: drawerOverlayOut 200ms ease-in;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.drawer-content[data-state="open"] {
+  animation: drawerContentIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-content[data-state="closed"] {
+  animation: drawerContentOut 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}

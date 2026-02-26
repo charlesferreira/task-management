@@ -158,7 +158,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => navigate("/list")}
-                className="pointer-events-auto p-0 text-4xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80"
+                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 aria-label="Exit zen mode"
               >
                 ×

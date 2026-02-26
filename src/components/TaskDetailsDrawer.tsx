@@ -88,6 +88,7 @@ const TaskDetailsDrawerContent = ({
 }: DrawerContentProps) => {
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false)
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
+  const projectOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const [, setRenderSecond] = useState(0)
   const animationFrameRef = useRef<number | null>(null)
   const lastSecondRef = useRef<number>(0)
@@ -113,6 +114,12 @@ const TaskDetailsDrawerContent = ({
         : project.id === (task?.projectId ?? UNASSIGNED_PROJECT_ID),
     ) ?? unassignedProject
 
+  const selectedProjectIndex = selectableProjects.findIndex((project) =>
+    project.id === UNASSIGNED_PROJECT_ID
+      ? (task?.projectId ?? UNASSIGNED_PROJECT_ID) === UNASSIGNED_PROJECT_ID
+      : project.id === (task?.projectId ?? UNASSIGNED_PROJECT_ID),
+  )
+
   useEffect(() => {
     if (!isProjectPickerOpen) return
     const handleOutside = (event: MouseEvent) => {
@@ -123,6 +130,15 @@ const TaskDetailsDrawerContent = ({
     window.addEventListener('mousedown', handleOutside)
     return () => window.removeEventListener('mousedown', handleOutside)
   }, [isProjectPickerOpen])
+
+  useEffect(() => {
+    if (!isProjectPickerOpen) return
+    const focusIndex = selectedProjectIndex >= 0 ? selectedProjectIndex : 0
+    const timer = window.setTimeout(() => {
+      projectOptionRefs.current[focusIndex]?.focus()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [isProjectPickerOpen, selectedProjectIndex])
 
   useEffect(() => {
     if (!trackingThisTask) {
@@ -162,9 +178,10 @@ const TaskDetailsDrawerContent = ({
     if (!task) return
     onSave(task.id, {
       title: patch.title ?? task.title,
-      projectId: patch.projectId ?? task.projectId,
+      projectId: patch.projectId !== undefined ? patch.projectId : task.projectId,
       description: patch.description ?? task.description,
-      storyPoints: patch.storyPoints ?? task.storyPoints,
+      storyPoints:
+        patch.storyPoints !== undefined ? patch.storyPoints : task.storyPoints,
       actualTimeMinutes: patch.actualTimeMinutes ?? task.actualTimeMinutes,
     })
   }
@@ -184,14 +201,20 @@ const TaskDetailsDrawerContent = ({
                 setIsProjectPickerOpen((open) => !open)
               }}
               disabled={!task}
+              aria-haspopup="listbox"
+              aria-expanded={isProjectPickerOpen}
               className="rounded-lg border border-transparent p-0.5 disabled:opacity-50"
             >
               <ProjectBadge project={selectedProject} />
             </button>
             {isProjectPickerOpen && task ? (
-              <div className="absolute top-full left-0 z-50 mt-2 min-w-[240px] rounded-xl border border-slate-200/70 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <div
+                role="listbox"
+                aria-label="Project options"
+                className="absolute top-full left-0 z-50 mt-2 min-w-[240px] rounded-xl border border-slate-200/70 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+              >
                 <div className="flex flex-col gap-1">
-                  {selectableProjects.map((project) => {
+                  {selectableProjects.map((project, index) => {
                     const optionValue =
                       project.id === UNASSIGNED_PROJECT_ID
                         ? UNASSIGNED_PROJECT_ID
@@ -201,6 +224,9 @@ const TaskDetailsDrawerContent = ({
                     return (
                       <button
                         key={project.id}
+                        ref={(element) => {
+                          projectOptionRefs.current[index] = element
+                        }}
                         type="button"
                         onClick={() => {
                           saveTaskPatch({
@@ -211,6 +237,40 @@ const TaskDetailsDrawerContent = ({
                           })
                           setIsProjectPickerOpen(false)
                         }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'ArrowDown') {
+                            event.preventDefault()
+                            const nextIndex = (index + 1) % selectableProjects.length
+                            projectOptionRefs.current[nextIndex]?.focus()
+                            return
+                          }
+                          if (event.key === 'ArrowUp') {
+                            event.preventDefault()
+                            const previousIndex =
+                              (index - 1 + selectableProjects.length) %
+                              selectableProjects.length
+                            projectOptionRefs.current[previousIndex]?.focus()
+                            return
+                          }
+                          if (event.key === 'Home') {
+                            event.preventDefault()
+                            projectOptionRefs.current[0]?.focus()
+                            return
+                          }
+                          if (event.key === 'End') {
+                            event.preventDefault()
+                            projectOptionRefs.current[
+                              selectableProjects.length - 1
+                            ]?.focus()
+                            return
+                          }
+                          if (event.key === 'Escape') {
+                            event.preventDefault()
+                            setIsProjectPickerOpen(false)
+                          }
+                        }}
+                        role="option"
+                        aria-selected={isSelected}
                         className={`flex items-center justify-between rounded-lg px-2 py-1.5 transition ${
                           isSelected
                             ? 'bg-slate-100 dark:bg-slate-800'
@@ -375,9 +435,13 @@ const TaskDetailsDrawer = ({
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => (open ? null : onClose())}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/35 transition-opacity duration-200 data-[state=closed]:opacity-0 data-[state=open]:opacity-100" />
+        <Dialog.Overlay
+          forceMount
+          className="drawer-overlay fixed inset-0 z-40 bg-slate-950/35"
+        />
         <Dialog.Content
-          className="fixed top-0 right-0 z-50 h-screen w-full max-w-xl border-l border-slate-200/70 bg-white shadow-2xl transition-transform duration-300 ease-out data-[state=closed]:translate-x-full data-[state=open]:translate-x-0 dark:border-slate-800/70 dark:bg-slate-900"
+          forceMount
+          className="drawer-content fixed top-0 right-0 z-50 h-screen w-full max-w-xl border-l border-slate-200/70 bg-white shadow-2xl dark:border-slate-800/70 dark:bg-slate-900"
           aria-label="Task details"
         >
           <div className="flex h-full flex-col">
