@@ -12,6 +12,7 @@ type TaskTimerButtonProps = {
   interactive?: boolean
   showLeadingIcon?: boolean
   dimWhenPaused?: boolean
+  forceToggleIcon?: boolean
 }
 
 const TaskTimerButton = ({
@@ -25,6 +26,7 @@ const TaskTimerButton = ({
   interactive = true,
   showLeadingIcon = true,
   dimWhenPaused = false,
+  forceToggleIcon = false,
 }: TaskTimerButtonProps) => {
   const [hover, setHover] = useState(false)
   const [displayMinutes, setDisplayMinutes] = useState(minutes)
@@ -67,6 +69,12 @@ const TaskTimerButton = ({
     }
   }, [isRunning, taskId, getTaskLiveMinutes])
 
+  const stateToneClass = dimWhenPaused
+    ? isRunning
+      ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-100 shadow-[0_0_0_1px_rgba(16,185,129,0.22)] dark:border-emerald-400/60 dark:bg-emerald-500/10 dark:text-emerald-100'
+      : 'border-slate-600/70 bg-slate-900/35 text-slate-400 opacity-70 dark:border-slate-700 dark:bg-slate-900/35 dark:text-slate-400'
+    : ''
+
   return (
     <button
       type="button"
@@ -82,13 +90,13 @@ const TaskTimerButton = ({
       className={`inline-flex items-center gap-2 rounded-lg border border-slate-200/70 bg-white font-mono font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100 ${
         compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'
       } ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover/task:opacity-100'} ${
-        dimWhenPaused && !isRunning ? 'opacity-65' : ''
-      } ${interactive ? '' : 'cursor-default hover:border-slate-200/70 hover:text-slate-700 dark:hover:border-slate-700 dark:hover:text-slate-200'}`}
+        stateToneClass
+      } ${interactive ? '' : 'cursor-default'}`}
       aria-label={isRunning ? 'Pause timer' : 'Start timer'}
     >
       {showLeadingIcon ? (
         <span className="inline-flex h-4 w-4 items-center justify-center text-current">
-          {hover ? (
+          {forceToggleIcon || hover ? (
             isRunning ? (
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
                 <rect x="6" y="5" width="4.5" height="14" rx="1.2" />

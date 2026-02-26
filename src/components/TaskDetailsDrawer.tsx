@@ -3,8 +3,9 @@ import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
 import { getStoryPointsTextTone } from '../utils/storyPoints'
-import { formatMinutesAsHoursMinutes, parseHoursMinutesInput } from '../utils/timeFormat'
+import { formatMinutesAsClock } from '../utils/timeFormat'
 import ProjectBadge from './ProjectBadge'
+import TimeCodeInput from './shared/TimeCodeInput'
 
 type TaskDetailsDrawerProps = {
   isOpen: boolean
@@ -72,9 +73,13 @@ const TaskDetailsDrawerContent = ({
 }: DrawerContentProps) => {
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false)
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
-  const [timeInput, setTimeInput] = useState(
-    formatMinutesAsHoursMinutes(task?.actualTimeMinutes ?? 0),
+  const [timeSeconds, setTimeSeconds] = useState(
+    Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60)),
   )
+
+  useEffect(() => {
+    setTimeSeconds(Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60)))
+  }, [task?.id, task?.actualTimeMinutes])
 
   const orderedProjects = useMemo(
     () => [...projects].sort((a, b) => a.order - b.order),
@@ -103,10 +108,6 @@ const TaskDetailsDrawerContent = ({
     window.addEventListener('mousedown', handleOutside)
     return () => window.removeEventListener('mousedown', handleOutside)
   }, [isProjectPickerOpen])
-
-  const parsedTime = parseHoursMinutesInput(timeInput)
-  const currentMinutes = task?.actualTimeMinutes ?? 0
-  const previewMinutes = parsedTime.isValid ? parsedTime.minutes : currentMinutes
 
   const saveTaskPatch = (patch: {
     title?: string
@@ -246,38 +247,22 @@ const TaskDetailsDrawerContent = ({
           <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
             Time tracked
           </p>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={timeInput}
-              onFocus={(event) => event.currentTarget.select()}
-              onChange={(event) => {
-                const value = event.target.value
-                setTimeInput(value)
-                const parsed = parseHoursMinutesInput(value)
-                if (parsed.isValid) {
-                  saveTaskPatch({ actualTimeMinutes: parsed.minutes })
-                }
+          <div className="flex items-center gap-3">
+            <TimeCodeInput
+              valueSeconds={timeSeconds}
+              onChange={(nextSeconds) => {
+                setTimeSeconds(nextSeconds)
+                saveTaskPatch({ actualTimeMinutes: nextSeconds / 60 })
               }}
               disabled={!task}
-              placeholder="1h 30m"
-              className={`w-32 rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 outline-none disabled:opacity-50 dark:bg-slate-900 dark:text-slate-100 ${
-                parsedTime.isValid
-                  ? 'border-slate-200/70 focus:border-slate-400 dark:border-slate-700 dark:focus:border-slate-500'
-                  : 'border-rose-300 focus:border-rose-400 dark:border-rose-500/50 dark:focus:border-rose-400'
-              }`}
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Ex: 1h 30m
+              Tab alterna bloco, setas ↑↓ ajustam valor.
             </p>
           </div>
-          {!parsedTime.isValid ? (
-            <p className="text-xs font-medium text-rose-500">Invalid time format.</p>
-          ) : (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Total: {formatMinutesAsHoursMinutes(previewMinutes)}
-            </p>
-          )}
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Total: {formatMinutesAsClock(timeSeconds / 60)}
+          </p>
         </div>
       </div>
 

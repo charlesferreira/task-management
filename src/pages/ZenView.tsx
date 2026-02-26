@@ -1,3 +1,4 @@
+import { useState } from "react";
 import TaskTimerButton from "../components/TaskTimerButton";
 import type { Project, Task } from "../models/types";
 
@@ -22,81 +23,79 @@ const ZenView = ({
   onToggleTracking,
   onComplete,
 }: ZenViewProps) => {
+  const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
+
   return (
     <section className="relative flex w-full flex-1 items-center justify-center px-4 py-8 md:px-6">
       {rows.length > 0 ? (
         <div className="mx-auto w-full max-w-5xl">
           <div className="space-y-2">
-            {rows.map(({ task, project, isTracking, liveMinutes, getTaskLiveMinutes }) => (
-              <div
-                key={task.id}
-                className="group/task group/zen-row rounded-xl border border-transparent px-3 py-2 transition hover:border-slate-200/70 hover:bg-white/30 dark:hover:border-slate-800/70 dark:hover:bg-slate-900/30"
-              >
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <div className="max-w-0 overflow-hidden opacity-0 transition-all duration-150 group-hover/zen-row:max-w-44 group-hover/zen-row:opacity-100">
-                      {project ? (
-                        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: project.color }}
-                          />
-                          <span className="truncate">{project.name}</span>
-                        </div>
-                      ) : null}
+            {rows.map(
+              ({
+                task,
+                project,
+                isTracking,
+                liveMinutes,
+                getTaskLiveMinutes,
+              }) => (
+                <div
+                  key={task.id}
+                  onMouseEnter={() => setHoveredTaskId(task.id)}
+                  onMouseLeave={() =>
+                    setHoveredTaskId((current) =>
+                      current === task.id ? null : current,
+                    )
+                  }
+                  onClick={() => onOpenDetails(task.id)}
+                  className="group/task group/zen-row cursor-pointer rounded-xl border border-transparent px-3 py-2 transition hover:border-slate-200/70 hover:bg-white/30 dark:hover:border-slate-800/70 dark:hover:bg-slate-900/30"
+                >
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="max-w-0 overflow-hidden opacity-0 transition-all duration-150 group-hover/zen-row:max-w-44 group-hover/zen-row:opacity-100">
+                        {project ? (
+                          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                            <span
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: project.color }}
+                            />
+                            <span className="truncate">{project.name}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                      <p className="min-w-0 truncate text-left text-2xl leading-tight font-semibold text-slate-900 transition group-hover/zen-row:opacity-80 md:text-3xl dark:text-slate-100">
+                        {task.title}
+                      </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onOpenDetails(task.id)}
-                      className="min-w-0 truncate text-left text-2xl leading-tight font-semibold text-slate-900 transition hover:opacity-80 md:text-3xl dark:text-slate-100"
-                    >
-                      {task.title}
-                    </button>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <TaskTimerButton
-                      taskId={task.id}
-                      minutes={liveMinutes}
-                      isRunning={isTracking}
-                      getTaskLiveMinutes={getTaskLiveMinutes}
-                      onToggle={() => onToggleTracking(task.id)}
-                      alwaysVisible
-                      interactive={false}
-                      showLeadingIcon={false}
-                      dimWhenPaused
-                    />
-                    <button
-                      type="button"
-                      onClick={() => onToggleTracking(task.id)}
-                      className="max-w-0 overflow-hidden rounded-lg border border-slate-200/70 bg-white px-0 py-1.5 text-slate-600 opacity-0 transition-all duration-150 group-hover/zen-row:max-w-10 group-hover/zen-row:px-2.5 group-hover/zen-row:opacity-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-                      aria-label={isTracking ? "Pause timer" : "Start timer"}
-                    >
-                      {isTracking ? (
-                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
-                          <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
-                          <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
-                        </svg>
-                      ) : (
-                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
-                          <path d="M7 5.5v13c0 .9 1 1.5 1.8 1l9.7-6.5a1.2 1.2 0 0 0 0-2L8.8 4.5A1.2 1.2 0 0 0 7 5.5Z" />
-                        </svg>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isTracking) onToggleTracking(task.id);
-                        onComplete(task.id);
-                      }}
-                      className="max-w-0 overflow-hidden rounded-lg border border-slate-200/70 bg-white px-0 py-1.5 text-xs font-semibold text-slate-600 opacity-0 transition-all duration-150 group-hover/zen-row:max-w-24 group-hover/zen-row:px-3 group-hover/zen-row:opacity-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-                    >
-                      Complete
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <TaskTimerButton
+                        taskId={task.id}
+                        minutes={liveMinutes}
+                        isRunning={isTracking}
+                        getTaskLiveMinutes={getTaskLiveMinutes}
+                        onToggle={() => onToggleTracking(task.id)}
+                        alwaysVisible
+                        interactive
+                        showLeadingIcon
+                        dimWhenPaused
+                        forceToggleIcon={hoveredTaskId === task.id}
+                      />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (isTracking) onToggleTracking(task.id);
+                          onComplete(task.id);
+                        }}
+                        className="max-w-0 overflow-hidden rounded-lg border border-slate-200/70 bg-white px-0 py-1.5 text-xs font-semibold text-slate-600 opacity-0 transition-all duration-150 group-hover/zen-row:max-w-24 group-hover/zen-row:px-3 group-hover/zen-row:opacity-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+                      >
+                        Done
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ),
+            )}
           </div>
         </div>
       ) : (
