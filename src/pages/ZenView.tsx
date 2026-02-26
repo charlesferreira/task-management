@@ -57,17 +57,17 @@ const ZenView = ({
                     );
                   }}
                   onClick={() => onOpenDetails(task.id)}
-                  className="group/task group/zen-row cursor-pointer rounded-xl border border-transparent px-3 py-2 transition hover:border-slate-200/70 hover:bg-white/30 focus-within:border-slate-200/70 focus-within:bg-white/30 dark:hover:border-slate-800/70 dark:hover:bg-slate-900/30 dark:focus-within:border-slate-800/70 dark:focus-within:bg-slate-900/30"
+                  className="group/task group/zen-row cursor-pointer rounded-xl px-3 py-2 transition hover:bg-white/30 focus-within:bg-white/30 dark:hover:bg-slate-900/30 dark:focus-within:bg-slate-900/30"
                 >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                     <div className="flex min-w-0 items-center gap-2">
                       {project ? (
-                        <div className="inline-flex max-w-3 items-center overflow-hidden rounded-full border border-transparent bg-transparent px-0 py-0 text-xs font-semibold text-slate-600 transition-all duration-150 group-hover/zen-row:max-w-44 group-hover/zen-row:border-slate-200/70 group-hover/zen-row:bg-white group-hover/zen-row:px-3 group-hover/zen-row:py-1 group-hover/zen-row:text-slate-600 group-hover/zen-row:shadow-sm group-focus-within/zen-row:max-w-44 group-focus-within/zen-row:border-slate-200/70 group-focus-within/zen-row:bg-white group-focus-within/zen-row:px-3 group-focus-within/zen-row:py-1 group-focus-within/zen-row:text-slate-600 group-focus-within/zen-row:shadow-sm dark:text-slate-300 dark:group-hover/zen-row:border-slate-700 dark:group-hover/zen-row:bg-slate-900 dark:group-hover/zen-row:text-slate-300 dark:group-focus-within/zen-row:border-slate-700 dark:group-focus-within/zen-row:bg-slate-900 dark:group-focus-within/zen-row:text-slate-300">
+                        <div className="inline-flex max-w-3 shrink-0 items-center overflow-hidden rounded-full border border-transparent bg-transparent px-0 py-0 text-xs font-semibold text-slate-600 transition-all duration-150 group-hover/zen-row:max-w-max group-hover/zen-row:border-slate-200/70 group-hover/zen-row:bg-white group-hover/zen-row:px-3 group-hover/zen-row:py-1 group-hover/zen-row:text-slate-600 group-hover/zen-row:shadow-sm group-focus-within/zen-row:max-w-max group-focus-within/zen-row:border-slate-200/70 group-focus-within/zen-row:bg-white group-focus-within/zen-row:px-3 group-focus-within/zen-row:py-1 group-focus-within/zen-row:text-slate-600 group-focus-within/zen-row:shadow-sm dark:text-slate-300 dark:group-hover/zen-row:border-slate-700 dark:group-hover/zen-row:bg-slate-900 dark:group-hover/zen-row:text-slate-300 dark:group-focus-within/zen-row:border-slate-700 dark:group-focus-within/zen-row:bg-slate-900 dark:group-focus-within/zen-row:text-slate-300">
                           <span
                             className="h-2.5 w-2.5 shrink-0 rounded-full"
                             style={{ backgroundColor: project.color }}
                           />
-                          <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/zen-row:ml-2 group-hover/zen-row:max-w-36 group-hover/zen-row:opacity-100 group-focus-within/zen-row:ml-2 group-focus-within/zen-row:max-w-36 group-focus-within/zen-row:opacity-100">
+                          <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/zen-row:ml-2 group-hover/zen-row:max-w-none group-hover/zen-row:opacity-100 group-focus-within/zen-row:ml-2 group-focus-within/zen-row:max-w-none group-focus-within/zen-row:opacity-100">
                             {project.name}
                           </span>
                         </div>

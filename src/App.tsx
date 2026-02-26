@@ -260,7 +260,6 @@ function App() {
               onDeleteCompleted={deleteCompleted}
               onReorder={reorderVisibleTasks}
               onCreateTask={handleCreateTaskFromList}
-              onToggleTracking={toggleTracking}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
               onOpenTaskDetails={handleOpenTaskDetails}

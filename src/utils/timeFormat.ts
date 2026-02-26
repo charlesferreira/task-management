@@ -51,3 +51,14 @@ export const formatMinutesAsClock = (minutes: number) => {
   const secs = (totalSeconds % 60).toString().padStart(2, '0')
   return `${hours}:${mins}:${secs}`
 }
+
+export const formatMinutesAsHourMinuteClock = (minutes: number) => {
+  const totalSeconds = Math.max(0, Math.floor(minutes * 60))
+  const hours = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, '0')
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0')
+  return `${hours}:${mins}`
+}

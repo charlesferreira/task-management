@@ -13,7 +13,6 @@ type ListViewProps = {
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onCreateTask: () => void;
   onOpenTaskDetails: (taskId: string) => void;
-  onToggleTracking: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
 };
@@ -29,7 +28,6 @@ const ListView = ({
   onReorder,
   onCreateTask,
   onOpenTaskDetails,
-  onToggleTracking,
   isTaskTracking,
   getTaskLiveMinutes,
 }: ListViewProps) => {
@@ -46,7 +44,6 @@ const ListView = ({
         onDeleteCompleted={onDeleteCompleted}
         onReorder={onReorder}
         onOpenTaskDetails={onOpenTaskDetails}
-        onToggleTracking={onToggleTracking}
         isTaskTracking={isTaskTracking}
         getTaskLiveMinutes={getTaskLiveMinutes}
       />
