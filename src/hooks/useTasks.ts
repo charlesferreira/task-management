@@ -6,24 +6,53 @@ import { taskService } from '../services/taskService'
 const TRACKER_STORAGE_KEY = 'taskOrganizer.timeTracker'
 
 type TimeTrackerState = {
-  taskId: string | null
-  startedAt: string | null
+  runningByTaskId: Record<string, string>
 }
 
 const readTrackerState = (): TimeTrackerState => {
   const raw = localStorage.getItem(TRACKER_STORAGE_KEY)
-  if (!raw) return { taskId: null, startedAt: null }
+  if (!raw) return { runningByTaskId: {} }
   try {
-    const data = JSON.parse(raw) as TimeTrackerState
-    if (typeof data.taskId !== 'string' && data.taskId !== null) {
-      return { taskId: null, startedAt: null }
+    const data = JSON.parse(raw) as
+      | TimeTrackerState
+      | {
+          taskId?: string | null
+          startedAt?: string | null
+        }
+
+    if (
+      'runningByTaskId' in data &&
+      data.runningByTaskId &&
+      typeof data.runningByTaskId === 'object'
+    ) {
+      const cleaned: Record<string, string> = {}
+      Object.entries(data.runningByTaskId).forEach(([taskId, startedAt]) => {
+        if (
+          typeof taskId === 'string' &&
+          taskId &&
+          typeof startedAt === 'string' &&
+          !Number.isNaN(new Date(startedAt).getTime())
+        ) {
+          cleaned[taskId] = startedAt
+        }
+      })
+      return { runningByTaskId: cleaned }
     }
-    if (typeof data.startedAt !== 'string' && data.startedAt !== null) {
-      return { taskId: null, startedAt: null }
+
+    if (
+      'taskId' in data &&
+      typeof data.taskId === 'string' &&
+      data.taskId &&
+      'startedAt' in data &&
+      typeof data.startedAt === 'string' &&
+      !Number.isNaN(new Date(data.startedAt).getTime())
+    ) {
+      return { runningByTaskId: { [data.taskId]: data.startedAt } }
     }
-    return data
+
+    return { runningByTaskId: {} }
   } catch {
-    return { taskId: null, startedAt: null }
+    return { runningByTaskId: {} }
   }
 }
 
@@ -101,20 +130,24 @@ export const useTasks = () => {
     setTasks(normalized)
   }
 
-  const pauseTracking = (sourceTasks: Task[] = tasks) => {
-    if (!tracker.taskId || !tracker.startedAt) {
-      saveTracker({ taskId: null, startedAt: null })
+  const pauseTracking = (taskId: string, sourceTasks: Task[] = tasks) => {
+    const startedAt = tracker.runningByTaskId[taskId]
+    if (!startedAt) {
       return sourceTasks
     }
-    const startedAtMs = new Date(tracker.startedAt).getTime()
+    const startedAtMs = new Date(startedAt).getTime()
     if (Number.isNaN(startedAtMs)) {
-      saveTracker({ taskId: null, startedAt: null })
+      const nextRunning = { ...tracker.runningByTaskId }
+      delete nextRunning[taskId]
+      saveTracker({ runningByTaskId: nextRunning })
       return sourceTasks
     }
     const elapsedMinutes = Math.max(0, (Date.now() - startedAtMs) / 60000)
+    const nextRunning = { ...tracker.runningByTaskId }
+    delete nextRunning[taskId]
     if (elapsedMinutes > 0) {
       const updated = sourceTasks.map((task) =>
-        task.id === tracker.taskId
+        task.id === taskId
           ? {
               ...task,
               actualTimeMinutes: roundMinutes(task.actualTimeMinutes + elapsedMinutes),
@@ -123,61 +156,46 @@ export const useTasks = () => {
       )
       const normalized = taskService.reorderTasks(updated)
       setTasks(normalized)
-      saveTracker({ taskId: null, startedAt: null })
+      saveTracker({ runningByTaskId: nextRunning })
       return normalized
     }
-    saveTracker({ taskId: null, startedAt: null })
+    saveTracker({ runningByTaskId: nextRunning })
     return sourceTasks
   }
 
   const startTracking = (taskId: string) => {
-    if (tracker.taskId === taskId && tracker.startedAt) return
-
-    if (tracker.taskId && tracker.startedAt) {
-      const startedAtMs = new Date(tracker.startedAt).getTime()
-      const elapsedMinutes = Number.isNaN(startedAtMs)
-        ? 0
-        : Math.max(0, (Date.now() - startedAtMs) / 60000)
-      const updated = tasks.map((task) =>
-        task.id === tracker.taskId
-          ? {
-              ...task,
-              actualTimeMinutes: roundMinutes(task.actualTimeMinutes + elapsedMinutes),
-            }
-          : task,
-      )
-      const normalized = taskService.reorderTasks(updated)
-      setTasks(normalized)
-    }
-
+    if (tracker.runningByTaskId[taskId]) return
     saveTracker({
-      taskId,
-      startedAt: new Date().toISOString(),
+      runningByTaskId: {
+        ...tracker.runningByTaskId,
+        [taskId]: new Date().toISOString(),
+      },
     })
   }
 
   const toggleTracking = (taskId: string) => {
-    if (tracker.taskId === taskId && tracker.startedAt) {
-      pauseTracking()
+    if (tracker.runningByTaskId[taskId]) {
+      pauseTracking(taskId)
       return
     }
     startTracking(taskId)
   }
 
   const isTaskTracking = (taskId: string) =>
-    tracker.taskId === taskId && Boolean(tracker.startedAt)
+    Boolean(tracker.runningByTaskId[taskId])
 
   const getTaskLiveMinutes = (taskId: string) => {
     const task = tasks.find((entry) => entry.id === taskId)
     if (!task) return 0
-    if (!isTaskTracking(taskId) || !tracker.startedAt) return task.actualTimeMinutes
-    const startedAtMs = new Date(tracker.startedAt).getTime()
+    const startedAt = tracker.runningByTaskId[taskId]
+    if (!startedAt) return task.actualTimeMinutes
+    const startedAtMs = new Date(startedAt).getTime()
     if (Number.isNaN(startedAtMs)) return task.actualTimeMinutes
     return task.actualTimeMinutes + (Date.now() - startedAtMs) / 60000
   }
 
   const toggleComplete = (taskId: string) => {
-    const sourceTasks = isTaskTracking(taskId) ? pauseTracking(tasks) : tasks
+    const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const target = sourceTasks.find((task) => task.id === taskId)
     if (!target) return
 
@@ -205,8 +223,13 @@ export const useTasks = () => {
   }
 
   const deleteTask = (taskId: string) => {
-    const sourceTasks = isTaskTracking(taskId) ? pauseTracking(tasks) : tasks
+    const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const updated = sourceTasks.filter((task) => task.id !== taskId)
+    if (tracker.runningByTaskId[taskId]) {
+      const nextRunning = { ...tracker.runningByTaskId }
+      delete nextRunning[taskId]
+      saveTracker({ runningByTaskId: nextRunning })
+    }
     setTasks(taskService.reorderTasks(updated))
   }
 
@@ -289,6 +312,15 @@ export const useTasks = () => {
 
   const deleteCompleted = () => {
     const updated = tasks.filter((task) => !task.completedAt)
+    const validTaskIds = new Set(updated.map((task) => task.id))
+    const nextRunning = Object.fromEntries(
+      Object.entries(tracker.runningByTaskId).filter(([taskId]) =>
+        validTaskIds.has(taskId),
+      ),
+    )
+    if (Object.keys(nextRunning).length !== Object.keys(tracker.runningByTaskId).length) {
+      saveTracker({ runningByTaskId: nextRunning })
+    }
     setTasks(taskService.reorderTasks(updated))
   }
 

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import ProjectBoard from "../components/ProjectBoard";
+import ThemeToggleButton, {
+  type ThemeMode,
+} from "../components/ThemeToggleButton";
 import type { Project, Task } from "../models/types";
 
 type BoardViewProps = {
@@ -30,6 +33,8 @@ type BoardViewProps = {
     updates: { name: string; color: string },
   ) => void;
   onUpdateUnassignedProjectName: (name: string) => void;
+  themeMode: ThemeMode;
+  onToggleTheme: () => void;
 };
 
 const BoardView = ({
@@ -51,6 +56,8 @@ const BoardView = ({
   onOpenTaskDetails,
   onUpdateProject,
   onUpdateUnassignedProjectName,
+  themeMode,
+  onToggleTheme,
 }: BoardViewProps) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#38bdf8");
@@ -137,23 +144,26 @@ const BoardView = ({
           </div>
         </div>
       ) : null}
-      <button
-        type="button"
-        onClick={() => setShowProjectForm((prev) => !prev)}
-        ref={fabRef}
-        className="group/fab fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4 dark:bg-slate-100 dark:text-slate-900"
-        aria-label="Add project"
-      >
-        <span
-          className="flex h-6 w-6 items-center justify-center transition-transform duration-300"
-          aria-hidden="true"
+      <div className="fixed right-6 bottom-6 z-40 flex items-center gap-2">
+        <ThemeToggleButton mode={themeMode} onToggle={onToggleTheme} />
+        <button
+          type="button"
+          onClick={() => setShowProjectForm((prev) => !prev)}
+          ref={fabRef}
+          className="group/fab flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-40 hover:justify-start hover:gap-2 hover:px-4 dark:bg-slate-100 dark:text-slate-900"
+          aria-label="Add project"
         >
-          <Plus className="h-6 w-6" strokeWidth={2.5} />
-        </span>
-        <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-40 group-hover/fab:opacity-100">
-          Add project
-        </span>
-      </button>
+          <span
+            className="flex h-6 w-6 items-center justify-center transition-transform duration-300"
+            aria-hidden="true"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
+          </span>
+          <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-40 group-hover/fab:opacity-100">
+            Add project
+          </span>
+        </button>
+      </div>
     </section>
   );
 };

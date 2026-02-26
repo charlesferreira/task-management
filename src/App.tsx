@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
+import type { ThemeMode } from "./components/ThemeToggleButton";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
 import BoardView from "./pages/BoardView";
@@ -27,6 +28,13 @@ function App() {
       return stored;
     }
     return "all";
+  });
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem("taskOrganizer.themeMode");
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      return stored;
+    }
+    return "system";
   });
 
   const {
@@ -61,9 +69,29 @@ function App() {
   }, [filter]);
 
   useEffect(() => {
+    localStorage.setItem("taskOrganizer.themeMode", themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
     if (isAppView(params.view)) return;
     navigate("/board", { replace: true });
   }, [navigate, params.view]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      const useDark = themeMode === "dark" || (themeMode === "system" && media.matches);
+      root.classList.toggle("dark", useDark);
+      root.style.colorScheme =
+        themeMode === "system" ? (media.matches ? "dark" : "light") : themeMode;
+    };
+
+    applyTheme();
+    media.addEventListener("change", applyTheme);
+    return () => media.removeEventListener("change", applyTheme);
+  }, [themeMode]);
 
   const filteredTasks = useMemo(() => {
     if (filter === "active") {
@@ -145,6 +173,14 @@ function App() {
     navigate(`/${view}`);
   };
 
+  const cycleThemeMode = () => {
+    setThemeMode((current) => {
+      if (current === "system") return "light";
+      if (current === "light") return "dark";
+      return "system";
+    });
+  };
+
   useEffect(() => {
     if (!isZen || selectedTaskId) return;
     const handleEscape = (event: KeyboardEvent) => {
@@ -169,7 +205,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => navigate("/list")}
-                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-500 opacity-0 transition group-hover:opacity-100 hover:opacity-80 dark:text-white dark:focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
                 aria-label="Exit zen mode"
               >
                 <X className="h-8 w-8" strokeWidth={2.75} aria-hidden="true" />
@@ -248,6 +284,8 @@ function App() {
               onOpenTaskDetails={handleOpenTaskDetails}
               onUpdateProject={updateProject}
               onUpdateUnassignedProjectName={updateUnassignedProjectName}
+              themeMode={themeMode}
+              onToggleTheme={cycleThemeMode}
             />
           ) : (
             <ListView
@@ -263,6 +301,8 @@ function App() {
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
               onOpenTaskDetails={handleOpenTaskDetails}
+              themeMode={themeMode}
+              onToggleTheme={cycleThemeMode}
             />
           )}
         </div>

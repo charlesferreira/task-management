@@ -16,7 +16,7 @@ type TaskDetailsDrawerProps = {
   onClose: () => void
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
-  onPauseTracking: () => void
+  onPauseTracking: (taskId: string) => void
   onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
   getTaskLiveMinutes: (taskId: string) => number
@@ -39,7 +39,7 @@ type DrawerContentProps = {
   onClose: () => void
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
-  onPauseTracking: () => void
+  onPauseTracking: (taskId: string) => void
   onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
   getTaskLiveMinutes: (taskId: string) => number
@@ -359,7 +359,7 @@ const TaskDetailsDrawerContent = ({
                 if (!task) return
                 if (nextSeconds === timeSeconds) return
                 if (task && isTaskTracking(task.id)) {
-                  onPauseTracking()
+                  onPauseTracking(task.id)
                 }
                 saveTaskPatch({ actualTimeMinutes: nextSeconds / 60 })
               }}

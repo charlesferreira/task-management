@@ -1,5 +1,8 @@
 import { Plus } from "lucide-react";
 import GlobalTaskList from "../components/GlobalTaskList";
+import ThemeToggleButton, {
+  type ThemeMode,
+} from "../components/ThemeToggleButton";
 import type { Project, Task } from "../models/types";
 
 type ListViewProps = {
@@ -15,6 +18,8 @@ type ListViewProps = {
   onOpenTaskDetails: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
+  themeMode: ThemeMode;
+  onToggleTheme: () => void;
 };
 
 const ListView = ({
@@ -30,6 +35,8 @@ const ListView = ({
   onOpenTaskDetails,
   isTaskTracking,
   getTaskLiveMinutes,
+  themeMode,
+  onToggleTheme,
 }: ListViewProps) => {
   return (
     <section className="space-y-6 pb-24">
@@ -47,22 +54,25 @@ const ListView = ({
         isTaskTracking={isTaskTracking}
         getTaskLiveMinutes={getTaskLiveMinutes}
       />
-      <button
-        type="button"
-        onClick={onCreateTask}
-        className="group/fab fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-36 hover:justify-start hover:gap-2 hover:px-5 dark:bg-slate-100 dark:text-slate-900"
-        aria-label="Add task"
-      >
-        <span
-          className="flex h-6 w-6 items-center justify-center transition-transform duration-200"
-          aria-hidden="true"
+      <div className="fixed right-6 bottom-6 z-40 flex items-center gap-2">
+        <ThemeToggleButton mode={themeMode} onToggle={onToggleTheme} />
+        <button
+          type="button"
+          onClick={onCreateTask}
+          className="group/fab flex h-14 w-14 items-center justify-center gap-0 overflow-hidden rounded-full bg-slate-900 px-0 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:w-36 hover:justify-start hover:gap-2 hover:px-5 dark:bg-slate-100 dark:text-slate-900"
+          aria-label="Add task"
         >
-          <Plus className="h-6 w-6" strokeWidth={2.5} />
-        </span>
-        <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-36 group-hover/fab:opacity-100">
-          Add task
-        </span>
-      </button>
+          <span
+            className="flex h-6 w-6 items-center justify-center transition-transform duration-200"
+            aria-hidden="true"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
+          </span>
+          <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-36 group-hover/fab:opacity-100">
+            Add task
+          </span>
+        </button>
+      </div>
     </section>
   );
 };

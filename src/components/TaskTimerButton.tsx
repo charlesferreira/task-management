@@ -14,6 +14,7 @@ type TaskTimerButtonProps = {
   showLeadingIcon?: boolean
   dimWhenPaused?: boolean
   forceToggleIcon?: boolean
+  variant?: 'default' | 'zen'
 }
 
 const TaskTimerButton = ({
@@ -28,6 +29,7 @@ const TaskTimerButton = ({
   showLeadingIcon = true,
   dimWhenPaused = false,
   forceToggleIcon = false,
+  variant = 'default',
 }: TaskTimerButtonProps) => {
   const [hover, setHover] = useState(false)
   const [displayMinutes, setDisplayMinutes] = useState(minutes)
@@ -70,11 +72,15 @@ const TaskTimerButton = ({
     }
   }, [isRunning, taskId, getTaskLiveMinutes])
 
-  const stateToneClass = dimWhenPaused
+  const isZen = variant === 'zen'
+  const stateToneClass = !isZen && dimWhenPaused
     ? isRunning
       ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-100 ring-1 ring-emerald-400/20 dark:border-emerald-400/60 dark:bg-emerald-500/10 dark:text-emerald-100 dark:ring-emerald-300/20'
       : 'border-slate-600/70 bg-slate-900/35 text-slate-400 opacity-70 dark:border-slate-700 dark:bg-slate-900/35 dark:text-slate-400'
     : ''
+  const zenToneClass = isRunning
+    ? 'text-slate-700 dark:text-slate-100'
+    : 'text-slate-400 dark:text-slate-500'
 
   return (
     <button
@@ -87,11 +93,18 @@ const TaskTimerButton = ({
         event.stopPropagation()
         if (!interactive) return
         onToggle()
+        if (event.detail > 0) {
+          event.currentTarget.blur()
+        }
       }}
-      className={`inline-flex items-center gap-2 rounded-lg border border-slate-200/70 bg-white font-mono font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100 ${
+      className={`inline-flex items-center gap-2 rounded-lg font-mono font-semibold transition ${
         compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'
       } ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover/task:opacity-100'} ${
         stateToneClass
+      } ${
+        isZen
+          ? `${zenToneClass} ${interactive ? 'hover:text-slate-900 dark:hover:text-slate-100' : ''}`
+          : 'border border-slate-200/70 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100'
       } ${interactive ? '' : 'cursor-default'}`}
       aria-label={isRunning ? 'Pause timer' : 'Start timer'}
     >
