@@ -104,7 +104,7 @@ const CustomDropdown = <T extends string>({
           }
         }}
         disabled={disabled}
-        className={`flex w-full items-center justify-between rounded-lg border border-slate-200/70 bg-white text-left text-slate-900 outline-none transition hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-sky-500/70 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:focus-visible:ring-sky-400/70 ${
+        className={`flex w-full items-center justify-between rounded-lg border border-slate-200/70 bg-white text-left text-slate-900 outline-none transition focus:border-slate-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500 ${
           compact ? 'gap-1 px-2 py-2 text-sm' : 'gap-2 px-3 py-2 text-sm'
         }`}
         aria-haspopup="listbox"
@@ -123,66 +123,69 @@ const CustomDropdown = <T extends string>({
         </span>
       </button>
       {isOpen ? (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-slate-200/70 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <ul role="listbox" aria-label={label}>
+        <div
+          role="listbox"
+          aria-label={label}
+          className="absolute z-50 mt-1 w-full rounded-xl border border-slate-200/70 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+        >
+          <div className="flex flex-col gap-1">
             {options.map((option, index) => (
-              <li key={option.value}>
-                <button
-                  ref={(element) => {
-                    optionRefs.current[index] = element
-                  }}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value)
+              <button
+                key={option.value}
+                ref={(element) => {
+                  optionRefs.current[index] = element
+                }}
+                type="button"
+                onClick={() => {
+                  onChange(option.value)
+                  setIsOpen(false)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault()
+                    const nextIndex = (index + 1) % options.length
+                    optionRefs.current[nextIndex]?.focus()
+                    return
+                  }
+                  if (event.key === 'ArrowUp') {
+                    event.preventDefault()
+                    const previousIndex = (index - 1 + options.length) % options.length
+                    optionRefs.current[previousIndex]?.focus()
+                    return
+                  }
+                  if (event.key === 'Home') {
+                    event.preventDefault()
+                    optionRefs.current[0]?.focus()
+                    return
+                  }
+                  if (event.key === 'End') {
+                    event.preventDefault()
+                    optionRefs.current[options.length - 1]?.focus()
+                    return
+                  }
+                  if (event.key === 'Escape') {
+                    event.preventDefault()
                     setIsOpen(false)
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'ArrowDown') {
-                      event.preventDefault()
-                      const nextIndex = (index + 1) % options.length
-                      optionRefs.current[nextIndex]?.focus()
-                      return
-                    }
-                    if (event.key === 'ArrowUp') {
-                      event.preventDefault()
-                      const previousIndex = (index - 1 + options.length) % options.length
-                      optionRefs.current[previousIndex]?.focus()
-                      return
-                    }
-                    if (event.key === 'Home') {
-                      event.preventDefault()
-                      optionRefs.current[0]?.focus()
-                      return
-                    }
-                    if (event.key === 'End') {
-                      event.preventDefault()
-                      optionRefs.current[options.length - 1]?.focus()
-                      return
-                    }
-                    if (event.key === 'Escape') {
-                      event.preventDefault()
-                      setIsOpen(false)
-                    }
-                  }}
-                  role="option"
-                  aria-selected={option.value === value}
-                  className={`flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                    option.value === value
-                      ? 'bg-slate-100 dark:bg-slate-800'
-                      : ''
-                  }`}
+                  }
+                }}
+                role="option"
+                aria-selected={option.value === value}
+                className={`flex w-full items-center rounded-lg px-2 py-1.5 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200/80 dark:focus-visible:ring-slate-500/70 ${
+                  option.value === value
+                    ? 'bg-slate-100 dark:bg-slate-800'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <span
+                  className={
+                    option.toneClassName ?? 'text-slate-700 dark:text-slate-200'
+                  }
                 >
-                  <span
-                    className={
-                      option.toneClassName ?? 'text-slate-700 dark:text-slate-200'
-                    }
-                  >
-                    {option.label}
-                  </span>
-                </button>
-              </li>
+                  {option.label}
+                </span>
+              </button>
             ))}
-          </ul>
+          </div>
         </div>
       ) : null}
     </div>
