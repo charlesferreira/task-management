@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
@@ -161,7 +162,7 @@ function App() {
                 className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 aria-label="Exit zen mode"
               >
-                ×
+                <X className="h-8 w-8" strokeWidth={2.75} aria-hidden="true" />
               </button>
             </div>
           </div>

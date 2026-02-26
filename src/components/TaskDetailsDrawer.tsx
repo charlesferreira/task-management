@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
+import { Pause, Play } from 'lucide-react'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
@@ -211,7 +212,7 @@ const TaskDetailsDrawerContent = ({
               <div
                 role="listbox"
                 aria-label="Project options"
-                className="absolute top-full left-0 z-50 mt-2 min-w-[240px] rounded-xl border border-slate-200/70 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+                className="absolute top-full left-0 z-50 mt-2 min-w-60 rounded-xl border border-slate-200/70 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
               >
                 <div className="flex flex-col gap-1">
                   {selectableProjects.map((project, index) => {
@@ -328,7 +329,7 @@ const TaskDetailsDrawerContent = ({
               }
               disabled={!task}
               compact
-              className="w-[64px]"
+              className="w-16"
             />
           </div>
         </div>
@@ -370,18 +371,13 @@ const TaskDetailsDrawerContent = ({
                 onToggleTracking(task.id)
               }}
               disabled={!task}
-              className="inline-flex h-[44px] min-w-[52px] items-center justify-center rounded-lg border border-slate-200/70 bg-white px-3 text-slate-600 transition hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+              className="inline-flex h-11 min-w-13 items-center justify-center rounded-lg border border-slate-200/70 bg-white px-3 text-slate-600 transition hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
               aria-label={trackingThisTask ? 'Pause timer' : 'Start timer'}
             >
               {trackingThisTask ? (
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                  <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
-                  <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
-                </svg>
+                <Pause className="h-4 w-4" strokeWidth={2.6} />
               ) : (
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                  <path d="M7 5.5v13c0 .9 1 1.5 1.8 1l9.7-6.5a1.2 1.2 0 0 0 0-2L8.8 4.5A1.2 1.2 0 0 0 7 5.5Z" />
-                </svg>
+                <Play className="h-4 w-4" strokeWidth={2.6} />
               )}
             </button>
           </div>

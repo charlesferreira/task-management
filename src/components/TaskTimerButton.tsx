@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Clock3, Pause, Play } from 'lucide-react'
 import { formatMinutesAsClock } from '../utils/timeFormat'
 
 type TaskTimerButtonProps = {
@@ -98,28 +99,12 @@ const TaskTimerButton = ({
         <span className="inline-flex h-4 w-4 items-center justify-center text-current">
           {forceToggleIcon || hover ? (
             isRunning ? (
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
-                <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
-              </svg>
+              <Pause className="h-4 w-4" strokeWidth={2.6} />
             ) : (
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <path d="M7 5.5v13c0 .9 1 1.5 1.8 1l9.7-6.5a1.2 1.2 0 0 0 0-2L8.8 4.5A1.2 1.2 0 0 0 7 5.5Z" />
-              </svg>
+              <Play className="h-4 w-4" strokeWidth={2.6} />
             )
           ) : (
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
+            <Clock3 className="h-4 w-4" strokeWidth={2.2} />
           )}
         </span>
       ) : null}
