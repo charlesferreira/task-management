@@ -101,15 +101,19 @@ const SortableTaskItem = ({
       </td>
       <td className="w-px px-1 py-3 align-middle">
         <div className="flex items-center justify-center">
-          <span
-            className={`font-mono text-xs font-semibold tabular-nums ${
-              isTracking
-                ? "text-slate-900 dark:text-slate-100"
-                : "text-slate-500 dark:text-slate-400"
-            }`}
-          >
-            {timerLabel}
-          </span>
+          {hasTrackedTime ? (
+            <span
+              className={`font-mono text-xs font-semibold tabular-nums ${
+                isTracking
+                  ? "text-slate-900 dark:text-slate-100"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              {timerLabel}
+            </span>
+          ) : (
+            <StoryPointsBadge storyPoints={null} />
+          )}
         </div>
       </td>
       <td className="w-px px-2 py-3 align-middle">
