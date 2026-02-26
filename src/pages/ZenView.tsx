@@ -51,17 +51,17 @@ const ZenView = ({
                 >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <div className="max-w-0 overflow-hidden opacity-0 transition-all duration-150 group-hover/zen-row:max-w-44 group-hover/zen-row:opacity-100">
-                        {project ? (
-                          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                            <span
-                              className="h-2 w-2 rounded-full"
-                              style={{ backgroundColor: project.color }}
-                            />
-                            <span className="truncate">{project.name}</span>
-                          </div>
-                        ) : null}
-                      </div>
+                      {project ? (
+                        <div className="inline-flex max-w-3 items-center overflow-hidden rounded-full border border-transparent bg-transparent px-0 py-0 text-xs font-semibold text-slate-600 transition-all duration-150 group-hover/zen-row:max-w-44 group-hover/zen-row:border-slate-200/70 group-hover/zen-row:bg-white group-hover/zen-row:px-3 group-hover/zen-row:py-1 group-hover/zen-row:text-slate-600 group-hover/zen-row:shadow-sm dark:text-slate-300 dark:group-hover/zen-row:border-slate-700 dark:group-hover/zen-row:bg-slate-900 dark:group-hover/zen-row:text-slate-300">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: project.color }}
+                          />
+                          <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/zen-row:ml-2 group-hover/zen-row:max-w-36 group-hover/zen-row:opacity-100">
+                            {project.name}
+                          </span>
+                        </div>
+                      ) : null}
                       <p className="min-w-0 truncate text-left text-2xl leading-tight font-semibold text-slate-900 transition group-hover/zen-row:opacity-80 md:text-3xl dark:text-slate-100">
                         {task.title}
                       </p>
