@@ -11,9 +11,53 @@ import ListView from "./pages/ListView";
 import ZenView from "./pages/ZenView";
 
 type AppView = "board" | "list" | "zen";
+type NewTaskDraftSnapshot = {
+  id: string;
+  initial: {
+    title: string;
+    projectId: string | null;
+    description: string;
+    storyPoints: 1 | 2 | 3 | 5 | 8 | null;
+    actualTimeMinutes: number;
+  };
+};
 
 const isAppView = (value: string | undefined): value is AppView =>
   value === "board" || value === "list" || value === "zen";
+
+const buildNewTaskSnapshot = (task: {
+  id: string;
+  title: string;
+  projectId: string | null;
+  description: string;
+  storyPoints: 1 | 2 | 3 | 5 | 8 | null;
+  actualTimeMinutes: number;
+}): NewTaskDraftSnapshot => ({
+  id: task.id,
+  initial: {
+    title: task.title,
+    projectId: task.projectId,
+    description: task.description,
+    storyPoints: task.storyPoints,
+    actualTimeMinutes: task.actualTimeMinutes,
+  },
+});
+
+const isTaskSameAsDraftInitial = (
+  task: {
+    title: string;
+    projectId: string | null;
+    description: string;
+    storyPoints: 1 | 2 | 3 | 5 | 8 | null;
+    actualTimeMinutes: number;
+  },
+  draft: NewTaskDraftSnapshot,
+) =>
+  task.title === draft.initial.title &&
+  task.projectId === draft.initial.projectId &&
+  task.description === draft.initial.description &&
+  task.storyPoints === draft.initial.storyPoints &&
+  task.actualTimeMinutes === draft.initial.actualTimeMinutes;
 
 function App() {
   const params = useParams();
@@ -36,6 +80,8 @@ function App() {
     }
     return "system";
   });
+  const [pendingNewTaskDraft, setPendingNewTaskDraft] =
+    useState<NewTaskDraftSnapshot | null>(null);
 
   const {
     projects,
@@ -135,6 +181,14 @@ function App() {
     [selectedTaskId, tasks],
   );
 
+  useEffect(() => {
+    if (!pendingNewTaskDraft) return;
+    const exists = tasks.some((task) => task.id === pendingNewTaskDraft.id);
+    if (!exists) {
+      setPendingNewTaskDraft(null);
+    }
+  }, [pendingNewTaskDraft, tasks]);
+
   const completeTask = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task || task.completedAt) return;
@@ -144,12 +198,48 @@ function App() {
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
   const handleCreateTaskFromList = () => {
+    if (pendingNewTaskDraft) {
+      const existingDraft = tasks.find((task) => task.id === pendingNewTaskDraft.id);
+      if (existingDraft && isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)) {
+        navigate(`/list/task/${encodeURIComponent(existingDraft.id)}`);
+        return;
+      }
+      setPendingNewTaskDraft(null);
+    }
     const nextTaskId = addTaskAtTop("New task", null);
+    setPendingNewTaskDraft(
+      buildNewTaskSnapshot({
+        id: nextTaskId,
+        title: "New task",
+        projectId: null,
+        description: "",
+        storyPoints: null,
+        actualTimeMinutes: 0,
+      }),
+    );
     navigate(`/list/task/${encodeURIComponent(nextTaskId)}`);
   };
 
   const handleCreateTaskFromBoard = (projectId: string | null) => {
+    if (pendingNewTaskDraft) {
+      const existingDraft = tasks.find((task) => task.id === pendingNewTaskDraft.id);
+      if (existingDraft && isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)) {
+        navigate(`/board/task/${encodeURIComponent(existingDraft.id)}`);
+        return;
+      }
+      setPendingNewTaskDraft(null);
+    }
     const nextTaskId = addTaskAfterProject("New task", projectId);
+    setPendingNewTaskDraft(
+      buildNewTaskSnapshot({
+        id: nextTaskId,
+        title: "New task",
+        projectId,
+        description: "",
+        storyPoints: null,
+        actualTimeMinutes: 0,
+      }),
+    );
     navigate(`/board/task/${encodeURIComponent(nextTaskId)}`);
   };
 
@@ -158,6 +248,16 @@ function App() {
   };
 
   const handleCloseTaskDetails = () => {
+    if (
+      selectedTask &&
+      pendingNewTaskDraft &&
+      selectedTask.id === pendingNewTaskDraft.id
+    ) {
+      if (isTaskSameAsDraftInitial(selectedTask, pendingNewTaskDraft)) {
+        deleteTask(selectedTask.id);
+      }
+      setPendingNewTaskDraft(null);
+    }
     navigate(`/${activeView}`);
   };
 
@@ -205,7 +305,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => navigate("/list")}
-                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-500 opacity-0 transition group-hover:opacity-100 hover:opacity-80 dark:text-white dark:focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-700 opacity-0 transition group-hover:opacity-100 hover:opacity-80 dark:text-white dark:focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
                 aria-label="Exit zen mode"
               >
                 <X className="h-8 w-8" strokeWidth={2.75} aria-hidden="true" />
@@ -309,6 +409,13 @@ function App() {
         <TaskDetailsDrawer
           isOpen={isTaskDrawerOpen}
           task={selectedTask}
+          autoSelectTitle={
+            Boolean(
+              selectedTask &&
+                pendingNewTaskDraft &&
+                selectedTask.id === pendingNewTaskDraft.id,
+            )
+          }
           projects={projects}
           unassignedProject={unassignedProject}
           onClose={handleCloseTaskDetails}

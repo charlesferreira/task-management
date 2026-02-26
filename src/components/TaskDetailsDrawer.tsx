@@ -11,6 +11,7 @@ import TimeCodeInput from './shared/TimeCodeInput'
 type TaskDetailsDrawerProps = {
   isOpen: boolean
   task: Task | null
+  autoSelectTitle?: boolean
   projects: Project[]
   unassignedProject: Project
   onClose: () => void
@@ -34,6 +35,7 @@ type TaskDetailsDrawerProps = {
 
 type DrawerContentProps = {
   task: Task | null
+  autoSelectTitle?: boolean
   projects: Project[]
   unassignedProject: Project
   onClose: () => void
@@ -76,6 +78,7 @@ const valueToStoryPoints = (value: '-' | '1' | '2' | '3' | '5' | '8') => {
 
 const TaskDetailsDrawerContent = ({
   task,
+  autoSelectTitle = false,
   projects,
   unassignedProject,
   onClose,
@@ -90,6 +93,8 @@ const TaskDetailsDrawerContent = ({
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false)
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
   const projectOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const titleInputRef = useRef<HTMLInputElement | null>(null)
+  const [titleDraft, setTitleDraft] = useState(task?.title ?? '')
   const [, setRenderSecond] = useState(0)
   const animationFrameRef = useRef<number | null>(null)
   const lastSecondRef = useRef<number>(0)
@@ -120,6 +125,19 @@ const TaskDetailsDrawerContent = ({
       ? (task?.projectId ?? UNASSIGNED_PROJECT_ID) === UNASSIGNED_PROJECT_ID
       : project.id === (task?.projectId ?? UNASSIGNED_PROJECT_ID),
   )
+
+  useEffect(() => {
+    setTitleDraft(task?.title ?? '')
+  }, [task?.id])
+
+  useEffect(() => {
+    if (!autoSelectTitle || !task) return
+    const frame = window.requestAnimationFrame(() => {
+      titleInputRef.current?.focus()
+      titleInputRef.current?.select()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [autoSelectTitle, task?.id])
 
   useEffect(() => {
     if (!isProjectPickerOpen) return
@@ -310,8 +328,15 @@ const TaskDetailsDrawerContent = ({
               Title
             </span>
             <input
-              value={task?.title ?? ''}
-              onChange={(event) => saveTaskPatch({ title: event.target.value })}
+              ref={titleInputRef}
+              value={titleDraft}
+              onChange={(event) => {
+                const nextTitle = event.target.value
+                setTitleDraft(nextTitle)
+                if (nextTitle.trim()) {
+                  saveTaskPatch({ title: nextTitle })
+                }
+              }}
               disabled={!task}
               className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />
@@ -418,6 +443,7 @@ const TaskDetailsDrawerContent = ({
 const TaskDetailsDrawer = ({
   isOpen,
   task,
+  autoSelectTitle = false,
   projects,
   unassignedProject,
   onClose,
@@ -445,6 +471,7 @@ const TaskDetailsDrawer = ({
             <TaskDetailsDrawerContent
               key={task?.id ?? 'no-task-selected'}
               task={task}
+              autoSelectTitle={autoSelectTitle}
               projects={projects}
               unassignedProject={unassignedProject}
               onClose={onClose}
