@@ -7,13 +7,25 @@ import BoardView from "./pages/BoardView";
 import ListView from "./pages/ListView";
 import ZenView from "./pages/ZenView";
 
+type AppView = "board" | "list" | "zen";
+type NonZenView = "board" | "list";
+
+const parseViewFromHash = (hash: string): AppView => {
+  if (hash === "#list") return "list";
+  if (hash === "#zen") return "zen";
+  return "board";
+};
+
 function App() {
-  const [activeView, setActiveView] = useState<"board" | "list" | "zen">(
-    "board",
-  );
-  const [lastNonZenView, setLastNonZenView] = useState<"board" | "list">(
-    "board",
-  );
+  const [activeView, setActiveView] = useState<AppView>(() => {
+    if (typeof window === "undefined") return "board";
+    return parseViewFromHash(window.location.hash);
+  });
+  const [lastNonZenView, setLastNonZenView] = useState<NonZenView>(() => {
+    if (typeof window === "undefined") return "board";
+    const initialView = parseViewFromHash(window.location.hash);
+    return initialView === "zen" ? "board" : initialView;
+  });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const isZen = activeView === "zen";
 
@@ -55,6 +67,29 @@ function App() {
   useEffect(() => {
     localStorage.setItem("taskOrganizer.filter", filter);
   }, [filter]);
+
+  useEffect(() => {
+    const nextHash = `#${activeView}`;
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}${nextHash}`,
+      );
+    }
+  }, [activeView]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const nextView = parseViewFromHash(window.location.hash);
+      setActiveView(nextView);
+      if (nextView !== "zen") {
+        setLastNonZenView(nextView);
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const filteredTasks = useMemo(() => {
     if (filter === "active") {
@@ -114,7 +149,7 @@ function App() {
     setTasks(updatedTasks);
   };
 
-  const handleChangeView = (view: "board" | "list" | "zen") => {
+  const handleChangeView = (view: AppView) => {
     if (view === "zen") {
       if (activeView !== "zen") {
         setLastNonZenView(activeView as "board" | "list");
