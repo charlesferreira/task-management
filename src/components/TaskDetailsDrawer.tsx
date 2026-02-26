@@ -14,6 +14,9 @@ type TaskDetailsDrawerProps = {
   onClose: () => void
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
+  onPauseTracking: () => void
+  isTaskTracking: (taskId: string) => boolean
+  getTaskLiveMinutes: (taskId: string) => number
   onSave: (
     taskId: string,
     updates: {
@@ -33,6 +36,9 @@ type DrawerContentProps = {
   onClose: () => void
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
+  onPauseTracking: () => void
+  isTaskTracking: (taskId: string) => boolean
+  getTaskLiveMinutes: (taskId: string) => number
   onSave: (
     taskId: string,
     updates: {
@@ -71,11 +77,20 @@ const TaskDetailsDrawerContent = ({
   onClose,
   onDelete,
   onComplete,
+  onPauseTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onSave,
 }: DrawerContentProps) => {
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false)
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
-  const timeSeconds = Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60))
+  const [, setRenderSecond] = useState(0)
+  const animationFrameRef = useRef<number | null>(null)
+  const lastSecondRef = useRef<number>(0)
+  const trackingThisTask = task ? isTaskTracking(task.id) : false
+  const liveMinutes =
+    task && trackingThisTask ? getTaskLiveMinutes(task.id) : (task?.actualTimeMinutes ?? 0)
+  const timeSeconds = Math.max(0, Math.floor(liveMinutes * 60))
 
   const orderedProjects = useMemo(
     () => [...projects].sort((a, b) => a.order - b.order),
@@ -104,6 +119,34 @@ const TaskDetailsDrawerContent = ({
     window.addEventListener('mousedown', handleOutside)
     return () => window.removeEventListener('mousedown', handleOutside)
   }, [isProjectPickerOpen])
+
+  useEffect(() => {
+    if (!trackingThisTask) {
+      if (animationFrameRef.current) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+      animationFrameRef.current = null
+      return
+    }
+
+    lastSecondRef.current = Math.floor(Date.now() / 1000)
+    const loop = () => {
+      const second = Math.floor(Date.now() / 1000)
+      if (second !== lastSecondRef.current) {
+        lastSecondRef.current = second
+        setRenderSecond(second)
+      }
+      animationFrameRef.current = window.requestAnimationFrame(loop)
+    }
+    animationFrameRef.current = window.requestAnimationFrame(loop)
+
+    return () => {
+      if (animationFrameRef.current) {
+        window.cancelAnimationFrame(animationFrameRef.current)
+      }
+      animationFrameRef.current = null
+    }
+  }, [trackingThisTask])
 
   const saveTaskPatch = (patch: {
     title?: string
@@ -245,9 +288,11 @@ const TaskDetailsDrawerContent = ({
           </p>
           <div>
             <TimeCodeInput
-              key={task?.id ?? 'no-task'}
               valueSeconds={timeSeconds}
               onChange={(nextSeconds) => {
+                if (task && isTaskTracking(task.id)) {
+                  onPauseTracking()
+                }
                 saveTaskPatch({ actualTimeMinutes: nextSeconds / 60 })
               }}
               disabled={!task}
@@ -294,6 +339,9 @@ const TaskDetailsDrawer = ({
   onClose,
   onDelete,
   onComplete,
+  onPauseTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onSave,
 }: TaskDetailsDrawerProps) => {
   useEffect(() => {
@@ -330,6 +378,9 @@ const TaskDetailsDrawer = ({
             onClose={onClose}
             onDelete={onDelete}
             onComplete={onComplete}
+            onPauseTracking={onPauseTracking}
+            isTaskTracking={isTaskTracking}
+            getTaskLiveMinutes={getTaskLiveMinutes}
             onSave={onSave}
           />
         </div>

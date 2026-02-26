@@ -45,6 +45,7 @@ function App() {
     updateTaskTitle,
     updateTaskDetails,
     toggleTracking,
+    pauseTracking,
     isTaskTracking,
     getTaskLiveMinutes,
     todayStats,
@@ -247,6 +248,9 @@ function App() {
           onClose={() => setSelectedTaskId(null)}
           onDelete={deleteTask}
           onComplete={completeTask}
+          onPauseTracking={pauseTracking}
+          isTaskTracking={isTaskTracking}
+          getTaskLiveMinutes={getTaskLiveMinutes}
           onSave={updateTaskDetails}
         />
         {!isZen ? (

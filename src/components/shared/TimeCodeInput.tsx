@@ -34,11 +34,15 @@ const TimeCodeInput = ({
   disabled = false,
   className = '',
 }: TimeCodeInputProps) => {
-  const initial = splitSeconds(valueSeconds)
+  const current = splitSeconds(valueSeconds)
+  const initial = current
   const [hoursText, setHoursText] = useState(toTwoDigits(initial.hours))
   const [minutesText, setMinutesText] = useState(toTwoDigits(initial.minutes))
   const [secondsText, setSecondsText] = useState(toTwoDigits(initial.seconds))
   const [focusedSegment, setFocusedSegment] = useState<Segment | null>(null)
+  const displayHours = focusedSegment ? hoursText : toTwoDigits(current.hours)
+  const displayMinutes = focusedSegment ? minutesText : toTwoDigits(current.minutes)
+  const displaySeconds = focusedSegment ? secondsText : toTwoDigits(current.seconds)
 
   const hoursRef = useRef<HTMLInputElement | null>(null)
   const minutesRef = useRef<HTMLInputElement | null>(null)
@@ -147,14 +151,20 @@ const TimeCodeInput = ({
     >
       <input
         ref={hoursRef}
-        value={hoursText}
+        value={displayHours}
         onChange={(event) => handleChange('hours', event.target.value)}
         onKeyDown={(event) => handleKeyDown('hours', event)}
         onFocus={(event) => {
+          setHoursText(toTwoDigits(current.hours))
+          setMinutesText(toTwoDigits(current.minutes))
+          setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('hours')
           event.currentTarget.select()
         }}
-        onBlur={() => normalizeSegment('hours')}
+        onBlur={() => {
+          normalizeSegment('hours')
+          setFocusedSegment(null)
+        }}
         inputMode="numeric"
         aria-label="Hours"
         disabled={disabled}
@@ -163,14 +173,20 @@ const TimeCodeInput = ({
       <span className="px-0.5 font-mono text-sm text-slate-500 dark:text-slate-400">:</span>
       <input
         ref={minutesRef}
-        value={minutesText}
+        value={displayMinutes}
         onChange={(event) => handleChange('minutes', event.target.value)}
         onKeyDown={(event) => handleKeyDown('minutes', event)}
         onFocus={(event) => {
+          setHoursText(toTwoDigits(current.hours))
+          setMinutesText(toTwoDigits(current.minutes))
+          setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('minutes')
           event.currentTarget.select()
         }}
-        onBlur={() => normalizeSegment('minutes')}
+        onBlur={() => {
+          normalizeSegment('minutes')
+          setFocusedSegment(null)
+        }}
         inputMode="numeric"
         aria-label="Minutes"
         disabled={disabled}
@@ -179,14 +195,20 @@ const TimeCodeInput = ({
       <span className="px-0.5 font-mono text-sm text-slate-500 dark:text-slate-400">:</span>
       <input
         ref={secondsRef}
-        value={secondsText}
+        value={displaySeconds}
         onChange={(event) => handleChange('seconds', event.target.value)}
         onKeyDown={(event) => handleKeyDown('seconds', event)}
         onFocus={(event) => {
+          setHoursText(toTwoDigits(current.hours))
+          setMinutesText(toTwoDigits(current.minutes))
+          setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('seconds')
           event.currentTarget.select()
         }}
-        onBlur={() => normalizeSegment('seconds')}
+        onBlur={() => {
+          normalizeSegment('seconds')
+          setFocusedSegment(null)
+        }}
         inputMode="numeric"
         aria-label="Seconds"
         disabled={disabled}
