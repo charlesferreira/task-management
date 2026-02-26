@@ -65,6 +65,7 @@ function App() {
   const activeView: AppView = isAppView(params.view) ? params.view : "board";
   const selectedTaskId = params.taskId ?? null;
   const isZen = activeView === "zen";
+  const isBoard = activeView === "board";
 
   const [filter, setFilter] = useState<"all" | "active" | "completed">(() => {
     const stored = localStorage.getItem("taskOrganizer.filter");
@@ -283,10 +284,16 @@ function App() {
   }, [isZen, navigate, selectedTaskId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div
+      className={`bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 ${
+        isBoard ? "h-screen overflow-hidden" : "min-h-screen"
+      }`}
+    >
       <div
-        className={`group relative flex min-h-screen w-full flex-col ${
-          isZen ? "px-6 py-0" : "gap-6 px-6 py-8"
+        className={`group relative flex w-full flex-col ${
+          isZen ? "min-h-screen px-6 py-0" : "gap-6 px-6 py-8"
+        } ${
+          isBoard ? "h-full overflow-hidden" : "min-h-screen"
         }`}
       >
         {isZen ? (
@@ -346,7 +353,7 @@ function App() {
           </header>
         )}
 
-        <div className={isZen ? "flex flex-1" : ""}>
+        <div className={isZen || isBoard ? "flex flex-1 min-h-0 min-w-0" : ""}>
           {activeView === "zen" ? (
             <ZenView
               rows={zenRows}

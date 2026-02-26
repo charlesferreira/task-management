@@ -10,7 +10,7 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  rectSortingStrategy,
+  horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
@@ -258,57 +258,59 @@ const ProjectBoard = ({
         setActiveProjectId(null);
       }}
     >
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
-        <SortableContext
-          items={orderedProjects.map((project) => project.id)}
-          strategy={rectSortingStrategy}
-        >
-          {orderedProjects.map((project) => {
-            const projectTasks = tasks.filter(
-              (task) => task.projectId === project.id,
-            );
-            const activeCount = allTasks.filter(
-              (task) => task.projectId === project.id && !task.completedAt,
-            ).length;
-            return (
-              <SortableProjectColumn
-                key={project.id}
-                project={project}
-                tasks={projectTasks}
-                activeCount={activeCount}
-                onCreateTask={onCreateTask}
-                onDeleteProject={onDeleteProject}
-                onToggleComplete={onToggleComplete}
-                onToggleTracking={onToggleTracking}
-                isTaskTracking={isTaskTracking}
-                getTaskLiveMinutes={getTaskLiveMinutes}
-                onDeleteTask={onDeleteTask}
-                onUpdateTaskTitle={onUpdateTaskTitle}
-                onOpenTaskDetails={onOpenTaskDetails}
-                onUpdateProject={onUpdateProject}
-              />
-            );
-          })}
-        </SortableContext>
-        <ProjectColumn
-          project={unassignedProject}
-          tasks={tasks.filter((task) => task.projectId === null)}
-          isUnassigned
-          activeCount={
-            allTasks.filter(
-              (task) => task.projectId === null && !task.completedAt,
-            ).length
-          }
-          onCreateTask={onCreateTask}
-          onToggleComplete={onToggleComplete}
-          onToggleTracking={onToggleTracking}
-          isTaskTracking={isTaskTracking}
-          getTaskLiveMinutes={getTaskLiveMinutes}
-          onDeleteTask={onDeleteTask}
-          onUpdateTaskTitle={onUpdateTaskTitle}
-          onOpenTaskDetails={onOpenTaskDetails}
-          onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
-        />
+      <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden pb-2">
+        <div className="flex h-full min-h-0 w-max items-stretch gap-5 pr-2">
+          <SortableContext
+            items={orderedProjects.map((project) => project.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            {orderedProjects.map((project) => {
+              const projectTasks = tasks.filter(
+                (task) => task.projectId === project.id,
+              );
+              const activeCount = allTasks.filter(
+                (task) => task.projectId === project.id && !task.completedAt,
+              ).length;
+              return (
+                <SortableProjectColumn
+                  key={project.id}
+                  project={project}
+                  tasks={projectTasks}
+                  activeCount={activeCount}
+                  onCreateTask={onCreateTask}
+                  onDeleteProject={onDeleteProject}
+                  onToggleComplete={onToggleComplete}
+                  onToggleTracking={onToggleTracking}
+                  isTaskTracking={isTaskTracking}
+                  getTaskLiveMinutes={getTaskLiveMinutes}
+                  onDeleteTask={onDeleteTask}
+                  onUpdateTaskTitle={onUpdateTaskTitle}
+                  onOpenTaskDetails={onOpenTaskDetails}
+                  onUpdateProject={onUpdateProject}
+                />
+              );
+            })}
+          </SortableContext>
+          <ProjectColumn
+            project={unassignedProject}
+            tasks={tasks.filter((task) => task.projectId === null)}
+            isUnassigned
+            activeCount={
+              allTasks.filter(
+                (task) => task.projectId === null && !task.completedAt,
+              ).length
+            }
+            onCreateTask={onCreateTask}
+            onToggleComplete={onToggleComplete}
+            onToggleTracking={onToggleTracking}
+            isTaskTracking={isTaskTracking}
+            getTaskLiveMinutes={getTaskLiveMinutes}
+            onDeleteTask={onDeleteTask}
+            onUpdateTaskTitle={onUpdateTaskTitle}
+            onOpenTaskDetails={onOpenTaskDetails}
+            onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
+          />
+        </div>
       </div>
       <DragOverlay adjustScale={false}>
         {activeTask && activeProject ? (

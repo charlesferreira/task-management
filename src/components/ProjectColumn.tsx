@@ -163,7 +163,7 @@ const ProjectColumn = ({
       ref={setCombinedRef}
       {...headerDragProps?.attributes}
       {...headerDragProps?.listeners}
-      className={`group/column relative flex h-105 flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+      className={`group/column relative flex h-full min-h-0 w-96 shrink-0 flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
         isOver
           ? "border-sky-400 bg-sky-50/60 ring-1 ring-sky-400/35 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:ring-sky-300/35 dark:ring-offset-slate-950"
           : ""
@@ -274,7 +274,7 @@ const ProjectColumn = ({
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="duration-200˝ flex h-full flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding]">
+            <div className="flex h-full min-h-0 flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding] duration-200">
               {tasks.map((task) => (
                 <SortableTaskCard
                   key={task.id}

@@ -86,26 +86,28 @@ const BoardView = ({
   }, [showProjectForm]);
 
   return (
-    <section className="space-y-6 pb-24">
-      <ProjectBoard
-        projects={projects}
-        unassignedProject={unassignedProject}
-        tasks={tasks}
-        allTasks={allTasks}
-        onCreateTask={onCreateTask}
-        onDeleteProject={onDeleteProject}
-        onReorderProjects={onReorderProjects}
-        onReorderProjectTasks={onReorderProjectTasks}
-        onToggleComplete={onToggleComplete}
-        onToggleTracking={onToggleTracking}
-        isTaskTracking={isTaskTracking}
-        getTaskLiveMinutes={getTaskLiveMinutes}
-        onDeleteTask={onDeleteTask}
-        onUpdateTaskTitle={onUpdateTaskTitle}
-        onOpenTaskDetails={onOpenTaskDetails}
-        onUpdateProject={onUpdateProject}
-        onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
-      />
+    <section className="flex h-full min-h-0 min-w-0 flex-col pb-24">
+      <div className="min-h-0 min-w-0 flex-1">
+        <ProjectBoard
+          projects={projects}
+          unassignedProject={unassignedProject}
+          tasks={tasks}
+          allTasks={allTasks}
+          onCreateTask={onCreateTask}
+          onDeleteProject={onDeleteProject}
+          onReorderProjects={onReorderProjects}
+          onReorderProjectTasks={onReorderProjectTasks}
+          onToggleComplete={onToggleComplete}
+          onToggleTracking={onToggleTracking}
+          isTaskTracking={isTaskTracking}
+          getTaskLiveMinutes={getTaskLiveMinutes}
+          onDeleteTask={onDeleteTask}
+          onUpdateTaskTitle={onUpdateTaskTitle}
+          onOpenTaskDetails={onOpenTaskDetails}
+          onUpdateProject={onUpdateProject}
+          onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
+        />
+      </div>
       {showProjectForm ? (
         <div
           ref={panelRef}
