@@ -19,7 +19,9 @@ import {
   type Project,
   type Task,
 } from '../models/types'
-import TaskItem from './TaskItem'
+import ProjectBadge from './ProjectBadge'
+import StoryPointsBadge from './StoryPointsBadge'
+import TaskTimerButton from './TaskTimerButton'
 
 type GlobalTaskListProps = {
   tasks: Task[]
@@ -31,9 +33,6 @@ type GlobalTaskListProps = {
   completedCount?: number
   onDeleteCompleted?: () => void
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void
-  onToggleComplete: (taskId: string) => void
-  onDeleteTask: (taskId: string) => void
-  onUpdateTaskTitle: (taskId: string, title: string) => void
   onOpenTaskDetails: (taskId: string) => void
   onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
@@ -43,9 +42,6 @@ type GlobalTaskListProps = {
 type SortableTaskItemProps = {
   task: Task
   project: Project
-  onToggleComplete: (taskId: string) => void
-  onDeleteTask: (taskId: string) => void
-  onUpdateTaskTitle: (taskId: string, title: string) => void
   onOpenTaskDetails: (taskId: string) => void
   onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
@@ -55,9 +51,6 @@ type SortableTaskItemProps = {
 const SortableTaskItem = ({
   task,
   project,
-  onToggleComplete,
-  onDeleteTask,
-  onUpdateTaskTitle,
   onOpenTaskDetails,
   onToggleTracking,
   isTaskTracking,
@@ -78,31 +71,50 @@ const SortableTaskItem = ({
     transition,
   }
 
+  const isTracking = isTaskTracking(task.id)
+  const liveMinutes = getTaskLiveMinutes(task.id)
+  const hasTrackedTime = task.actualTimeMinutes > 0 || isTracking
+
   return (
-    <div
+    <tr
       ref={setNodeRef}
       style={style}
-      className={`transition-shadow ${isDragging ? 'shadow-md' : ''}`}
+      {...attributes}
+      {...listeners}
+      onClick={() => onOpenTaskDetails(task.id)}
+      className={`group/task cursor-pointer border-b border-slate-200/70 transition last:border-b-0 hover:bg-white/30 dark:border-slate-800/70 dark:hover:bg-slate-800/30 ${
+        isDragging ? 'opacity-60' : ''
+      }`}
     >
-      <TaskItem
-        task={task}
-        project={project}
-        isDragging={isDragging}
-        actionsVariant="inline"
-        dragHandleProps={{
-          attributes,
-          listeners,
-          setActivatorNodeRef,
-        }}
-        onToggleComplete={onToggleComplete}
-        onDelete={onDeleteTask}
-        onUpdateTitle={onUpdateTaskTitle}
-        onOpenDetails={onOpenTaskDetails}
-        onToggleTracking={onToggleTracking}
-        isTaskTracking={isTaskTracking}
-        getTaskLiveMinutes={getTaskLiveMinutes}
-      />
-    </div>
+      <td ref={setActivatorNodeRef} className="w-full px-2 py-3 align-middle">
+        <span
+          className={`block truncate text-sm font-medium ${
+            task.completedAt
+              ? 'text-slate-400 line-through dark:text-slate-500'
+              : 'text-slate-900 dark:text-slate-100'
+          }`}
+        >
+          {task.title}
+        </span>
+      </td>
+      <td className="w-px px-1 py-3 align-middle">
+        <StoryPointsBadge storyPoints={task.storyPoints} />
+      </td>
+      <td className="w-px px-1 py-3 align-middle">
+        <TaskTimerButton
+          taskId={task.id}
+          minutes={liveMinutes}
+          isRunning={isTracking}
+          getTaskLiveMinutes={getTaskLiveMinutes}
+          onToggle={() => onToggleTracking(task.id)}
+          alwaysVisible={hasTrackedTime}
+          compact
+        />
+      </td>
+      <td className="w-px px-2 py-3 align-middle">
+        <ProjectBadge project={project} />
+      </td>
+    </tr>
   )
 }
 
@@ -116,9 +128,6 @@ const GlobalTaskList = ({
   completedCount = 0,
   onDeleteCompleted,
   onReorder,
-  onToggleComplete,
-  onDeleteTask,
-  onUpdateTaskTitle,
   onOpenTaskDetails,
   onToggleTracking,
   isTaskTracking,
@@ -183,33 +192,27 @@ const GlobalTaskList = ({
       ) : null}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
-          <div
-            className={`${
-              hideHeader && !(filter && onFilterChange) ? '' : 'mt-4'
-            } flex flex-col divide-y divide-slate-200/70 dark:divide-slate-800/70`}
-          >
-            {tasks.map((task) => {
-              const project =
-                task.projectId === null
-                  ? unassignedProject
-                  : projectMap.get(task.projectId) ?? unassignedProject
-              return (
-                <div key={task.id} className="py-1">
+          <table className={`${hideHeader && !(filter && onFilterChange) ? '' : 'mt-4'} w-full table-auto`}>
+            <tbody>
+              {tasks.map((task) => {
+                const project =
+                  task.projectId === null
+                    ? unassignedProject
+                    : projectMap.get(task.projectId) ?? unassignedProject
+                return (
                   <SortableTaskItem
+                    key={task.id}
                     task={task}
                     project={project}
-                    onToggleComplete={onToggleComplete}
-                    onDeleteTask={onDeleteTask}
-                    onUpdateTaskTitle={onUpdateTaskTitle}
                     onOpenTaskDetails={onOpenTaskDetails}
                     onToggleTracking={onToggleTracking}
                     isTaskTracking={isTaskTracking}
                     getTaskLiveMinutes={getTaskLiveMinutes}
                   />
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </tbody>
+          </table>
         </SortableContext>
       </DndContext>
     </div>

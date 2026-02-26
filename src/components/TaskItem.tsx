@@ -22,6 +22,7 @@ type TaskItemProps = {
   onToggleTracking?: (taskId: string) => void
   isTaskTracking?: (taskId: string) => boolean
   getTaskLiveMinutes?: (taskId: string) => number
+  showCompleteToggle?: boolean
 }
 
 const isInteractiveElement = (target: EventTarget | null) => {
@@ -40,6 +41,7 @@ const TaskItem = ({
   onToggleTracking,
   isTaskTracking,
   getTaskLiveMinutes,
+  showCompleteToggle = true,
 }: TaskItemProps) => {
   const isTracking = isTaskTracking?.(task.id) ?? false
   const liveMinutes = getTaskLiveMinutes?.(task.id) ?? task.actualTimeMinutes
@@ -68,49 +70,65 @@ const TaskItem = ({
         </p>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation()
-                onToggleComplete?.(task.id)
-              }}
-              className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none transition ${
-                task.completedAt
-                  ? 'border-emerald-500 bg-emerald-500 text-white'
-                  : 'border-slate-300 text-transparent hover:text-slate-300 dark:border-slate-600 dark:hover:text-slate-500'
-              }`}
-              aria-label={
-                task.completedAt ? 'Mark task incomplete' : 'Mark task complete'
-              }
-            >
-              ✓
-            </button>
-            <p
-              className={`text-sm font-medium ${
-                task.completedAt
-                  ? 'text-slate-400 line-through dark:text-slate-500'
-                  : 'text-slate-900 dark:text-slate-100'
-              }`}
-            >
-              {task.title}
-            </p>
+          <div
+            className={`grid min-w-0 flex-1 items-center gap-2 ${
+              onToggleTracking && showProjectBadge
+                ? 'grid-cols-[minmax(0,1fr)_auto_auto_auto]'
+                : onToggleTracking || showProjectBadge
+                  ? 'grid-cols-[minmax(0,1fr)_auto_auto]'
+                  : 'grid-cols-[minmax(0,1fr)_auto]'
+            }`}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              {showCompleteToggle ? (
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleComplete?.(task.id)
+                  }}
+                  className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none transition ${
+                    task.completedAt
+                      ? 'border-emerald-500 bg-emerald-500 text-white'
+                      : 'border-slate-300 text-transparent hover:text-slate-300 dark:border-slate-600 dark:hover:text-slate-500'
+                  }`}
+                  aria-label={
+                    task.completedAt ? 'Mark task incomplete' : 'Mark task complete'
+                  }
+                >
+                  ✓
+                </button>
+              ) : null}
+              <p
+                className={`min-w-0 truncate text-sm font-medium ${
+                  task.completedAt
+                    ? 'text-slate-400 line-through dark:text-slate-500'
+                    : 'text-slate-900 dark:text-slate-100'
+                }`}
+              >
+                {task.title}
+              </p>
+            </div>
             <StoryPointsBadge storyPoints={task.storyPoints} />
-          </div>
-          <div className="flex items-center gap-2">
             {onToggleTracking ? (
-              <TaskTimerButton
-                taskId={task.id}
-                minutes={liveMinutes}
-                isRunning={isTracking}
-                getTaskLiveMinutes={getTaskLiveMinutes}
-                onToggle={() => onToggleTracking(task.id)}
-                alwaysVisible={hasTrackedTime}
-                compact
-              />
+              <div className="justify-self-end">
+                <TaskTimerButton
+                  taskId={task.id}
+                  minutes={liveMinutes}
+                  isRunning={isTracking}
+                  getTaskLiveMinutes={getTaskLiveMinutes}
+                  onToggle={() => onToggleTracking(task.id)}
+                  alwaysVisible={hasTrackedTime}
+                  compact
+                />
+              </div>
             ) : null}
-            {showProjectBadge ? <ProjectBadge project={project} /> : null}
+            {showProjectBadge ? (
+              <div className="justify-self-end">
+                <ProjectBadge project={project} />
+              </div>
+            ) : null}
           </div>
         </>
       )}
