@@ -25,7 +25,7 @@ type ProjectBoardProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onAddTask: (title: string, projectId: string | null) => void;
+  onCreateTask: (projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
@@ -52,7 +52,7 @@ type SortableProjectColumnProps = {
   project: Project;
   tasks: Task[];
   activeCount: number;
-  onAddTask: (title: string, projectId: string | null) => void;
+  onCreateTask: (projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
@@ -71,7 +71,7 @@ const SortableProjectColumn = ({
   project,
   tasks,
   activeCount,
-  onAddTask,
+  onCreateTask,
   onDeleteProject,
   onToggleComplete,
   onToggleTracking,
@@ -110,7 +110,7 @@ const SortableProjectColumn = ({
         project={project}
         tasks={tasks}
         activeCount={activeCount}
-        onAddTask={onAddTask}
+        onCreateTask={onCreateTask}
         onDeleteProject={onDeleteProject}
         onUpdateProject={onUpdateProject}
         onToggleComplete={onToggleComplete}
@@ -135,7 +135,7 @@ const ProjectBoard = ({
   unassignedProject,
   tasks,
   allTasks,
-  onAddTask,
+  onCreateTask,
   onDeleteProject,
   onToggleComplete,
   onToggleTracking,
@@ -276,7 +276,7 @@ const ProjectBoard = ({
                 project={project}
                 tasks={projectTasks}
                 activeCount={activeCount}
-                onAddTask={onAddTask}
+                onCreateTask={onCreateTask}
                 onDeleteProject={onDeleteProject}
                 onToggleComplete={onToggleComplete}
                 onToggleTracking={onToggleTracking}
@@ -299,7 +299,7 @@ const ProjectBoard = ({
               (task) => task.projectId === null && !task.completedAt,
             ).length
           }
-          onAddTask={onAddTask}
+          onCreateTask={onCreateTask}
           onToggleComplete={onToggleComplete}
           onToggleTracking={onToggleTracking}
           isTaskTracking={isTaskTracking}

@@ -115,6 +115,16 @@ function App() {
 
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
+  const handleCreateTaskFromList = () => {
+    const nextTaskId = addTaskAtTop("New task", null);
+    navigate(`/list/task/${encodeURIComponent(nextTaskId)}`);
+  };
+
+  const handleCreateTaskFromBoard = (projectId: string | null) => {
+    const nextTaskId = addTaskAfterProject("New task", projectId);
+    navigate(`/board/task/${encodeURIComponent(nextTaskId)}`);
+  };
+
   const handleOpenTaskDetails = (taskId: string) => {
     navigate(`/${activeView}/task/${encodeURIComponent(taskId)}`);
   };
@@ -224,7 +234,7 @@ function App() {
               unassignedProject={unassignedProject}
               tasks={filteredTasks}
               allTasks={tasks}
-              onAddTask={addTaskAfterProject}
+              onCreateTask={handleCreateTaskFromBoard}
               onCreateProject={createProject}
               onDeleteProject={handleDeleteProject}
               onReorderProjects={reorderProjects}
@@ -249,7 +259,7 @@ function App() {
               completedCount={completedCount}
               onDeleteCompleted={deleteCompleted}
               onReorder={reorderVisibleTasks}
-              onAddTask={addTaskAtTop}
+              onCreateTask={handleCreateTaskFromList}
               onToggleComplete={toggleComplete}
               onToggleTracking={toggleTracking}
               isTaskTracking={isTaskTracking}

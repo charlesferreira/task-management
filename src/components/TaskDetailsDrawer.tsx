@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Pause, Play } from 'lucide-react'
+import { Pause, Play, X } from 'lucide-react'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
@@ -290,9 +290,10 @@ const TaskDetailsDrawerContent = ({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-300"
+          aria-label="Close"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200/70 text-slate-500 dark:border-slate-700 dark:text-slate-300"
         >
-          Close
+          <X className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
         </button>
       </div>
 

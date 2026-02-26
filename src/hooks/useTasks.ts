@@ -381,6 +381,7 @@ export const useTasks = () => {
     const updated = taskService.reorderTasks([next, ...tasks])
     setTasks(updated)
     addHistoryEvent(next, 'task_created', null, null)
+    return next.id
   }
 
   const addTaskAfterProject = (title: string, projectId: string | null) => {
@@ -407,6 +408,7 @@ export const useTasks = () => {
     const normalized = taskService.reorderTasks(updated)
     setTasks(normalized)
     addHistoryEvent(next, 'task_created', null, null)
+    return next.id
   }
 
   const reorderWithinProject = (

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Plus } from "lucide-react";
 import ProjectBoard from "../components/ProjectBoard";
 import type { Project, Task } from "../models/types";
 
@@ -7,7 +8,7 @@ type BoardViewProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onAddTask: (title: string, projectId: string | null) => void;
+  onCreateTask: (projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onCreateProject: (name: string, color: string) => void;
   onReorderProjects: (projects: Project[]) => void;
@@ -36,7 +37,7 @@ const BoardView = ({
   unassignedProject,
   tasks,
   allTasks,
-  onAddTask,
+  onCreateTask,
   onDeleteProject,
   onCreateProject,
   onReorderProjects,
@@ -84,7 +85,7 @@ const BoardView = ({
         unassignedProject={unassignedProject}
         tasks={tasks}
         allTasks={allTasks}
-        onAddTask={onAddTask}
+        onCreateTask={onCreateTask}
         onDeleteProject={onDeleteProject}
         onReorderProjects={onReorderProjects}
         onReorderProjectTasks={onReorderProjectTasks}
@@ -147,14 +148,7 @@ const BoardView = ({
           className="flex h-6 w-6 items-center justify-center transition-transform duration-300"
           aria-hidden="true"
         >
-          <svg viewBox="0 0 24 24" className="h-6 w-6">
-            <path
-              d="M12 5v14M5 12h14"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
+          <Plus className="h-6 w-6" strokeWidth={2.5} />
         </span>
         <span className="w-full max-w-0 min-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-150 group-hover/fab:max-w-40 group-hover/fab:opacity-100">
           Add project

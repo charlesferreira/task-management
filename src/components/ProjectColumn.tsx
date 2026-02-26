@@ -9,7 +9,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { Project, Task } from "../models/types";
 import TaskItem from "./TaskItem";
 
@@ -23,7 +23,7 @@ type ProjectColumnProps = {
     setActivatorNodeRef: (element: HTMLDivElement | null) => void;
   };
   activeCount: number;
-  onAddTask: (title: string, projectId: string | null) => void;
+  onCreateTask: (projectId: string | null) => void;
   onDeleteProject?: (projectId: string) => void;
   onUpdateProject?: (
     projectId: string,
@@ -114,7 +114,7 @@ const ProjectColumn = ({
   isUnassigned = false,
   headerDragProps,
   activeCount,
-  onAddTask,
+  onCreateTask,
   onDeleteProject,
   onUpdateProject,
   onUpdateUnassignedProjectName,
@@ -126,17 +126,9 @@ const ProjectColumn = ({
   onUpdateTaskTitle,
   onOpenTaskDetails,
 }: ProjectColumnProps) => {
-  const [isAdding, setIsAdding] = useState(false);
-  const [title, setTitle] = useState("");
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(project.name);
   const [draftColor, setDraftColor] = useState(project.color);
-
-  useEffect(() => {
-    setDraftName(project.name);
-    setDraftColor(project.color);
-  }, [project.color, project.name]);
 
   const droppableId = isUnassigned ? "drop:unassigned" : `drop:${project.id}`;
   const { setNodeRef, isOver } = useDroppable({
@@ -147,16 +139,6 @@ const ProjectColumn = ({
   const setCombinedRef = (element: HTMLDivElement | null) => {
     setNodeRef(element);
     headerDragProps?.setActivatorNodeRef(element);
-  };
-
-  const handleSubmit = () => {
-    const trimmed = title.trim();
-    if (!trimmed) return;
-    onAddTask(trimmed, isUnassigned ? null : project.id);
-    setTitle("");
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
   };
 
   const handleSaveProject = () => {
@@ -313,53 +295,13 @@ const ProjectColumn = ({
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 opacity-0 transition duration-200 group-focus-within/column:pointer-events-auto group-focus-within/column:translate-y-0 group-focus-within/column:opacity-100 group-hover/column:pointer-events-auto group-hover/column:translate-y-0 group-hover/column:opacity-100">
         <div className="rounded-b-xl bg-linear-to-t from-white/95 via-white/80 to-transparent px-5 pt-6 pb-4 shadow-[0_-10px_25px_rgba(0,0,0,0.12)] backdrop-blur dark:from-slate-900/95 dark:via-slate-900/80">
-          {isAdding ? (
-            <div className="flex flex-col gap-2">
-              <input
-                ref={inputRef}
-                autoFocus
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") handleSubmit();
-                  if (event.key === "Escape") {
-                    setIsAdding(false);
-                    setTitle("");
-                  }
-                }}
-                onPointerDown={(event) => event.stopPropagation()}
-                placeholder="Task title"
-                className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
-              />
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="min-w-max rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
-                >
-                  Add task
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAdding(false);
-                    setTitle("");
-                  }}
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsAdding(true)}
-              className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              Add task
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => onCreateTask(isUnassigned ? null : project.id)}
+            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            Add task
+          </button>
         </div>
       </div>
     </div>
