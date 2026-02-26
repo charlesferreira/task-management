@@ -258,8 +258,8 @@ const ProjectBoard = ({
         setActiveProjectId(null);
       }}
     >
-      <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden pb-2">
-        <div className="flex h-full min-h-0 w-max items-stretch gap-5 pr-2">
+      <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden">
+        <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6">
           <SortableContext
             items={orderedProjects.map((project) => project.id)}
             strategy={horizontalListSortingStrategy}

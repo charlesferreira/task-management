@@ -86,7 +86,7 @@ const BoardView = ({
   }, [showProjectForm]);
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col pb-24">
+    <section className="flex h-full min-h-0 min-w-0 flex-col">
       <div className="min-h-0 min-w-0 flex-1">
         <ProjectBoard
           projects={projects}

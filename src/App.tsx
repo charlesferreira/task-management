@@ -291,9 +291,13 @@ function App() {
     >
       <div
         className={`group relative flex w-full flex-col ${
-          isZen ? "min-h-screen px-6 py-0" : "gap-6 px-6 py-8"
+          isZen
+            ? "min-h-screen px-6 py-0"
+            : isBoard
+              ? "h-full gap-6 overflow-hidden py-8"
+              : "min-h-screen gap-6 px-6 py-8"
         } ${
-          isBoard ? "h-full overflow-hidden" : "min-h-screen"
+          isBoard ? "min-h-0" : ""
         }`}
       >
         {isZen ? (
@@ -310,7 +314,11 @@ function App() {
             </div>
           </div>
         ) : (
-          <header className="flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between">
+          <header
+            className={`flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between ${
+              isBoard ? "px-6" : ""
+            }`}
+          >
             <div>
               <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Task Organizer
