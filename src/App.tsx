@@ -70,19 +70,27 @@ function App() {
     [tasks],
   );
 
-  const focusedTask = useMemo(() => {
-    return tasks.find((task) => !task.completedAt) ?? tasks[0] ?? null;
-  }, [tasks]);
-
-  const focusedProject = useMemo(() => {
-    if (!focusedTask) return null;
-    if (focusedTask.projectId === null) return unassignedProject;
-
-    return (
-      projects.find((project) => project.id === focusedTask.projectId) ??
-      unassignedProject
-    );
-  }, [focusedTask, projects, unassignedProject]);
+  const zenRows = useMemo(() => {
+    const activeTasks = tasks.filter((task) => !task.completedAt);
+    return activeTasks
+      .map((task) => {
+        const isTracking = isTaskTracking(task.id);
+        const hasTrackedTime = task.actualTimeMinutes > 0 || isTracking;
+        return {
+          task,
+          project:
+            task.projectId === null
+              ? unassignedProject
+              : (projects.find((project) => project.id === task.projectId) ??
+                unassignedProject),
+          isTracking,
+          hasTrackedTime,
+          liveMinutes: getTaskLiveMinutes(task.id),
+          getTaskLiveMinutes,
+        };
+      })
+      .filter((row) => row.hasTrackedTime);
+  }, [tasks, projects, unassignedProject, isTaskTracking, getTaskLiveMinutes]);
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -119,7 +127,7 @@ function App() {
         }`}
       >
         {isZen ? (
-          <div className="absolute inset-x-0 top-0 z-20 h-20">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-20">
             <div className="flex justify-end px-6 pt-4">
               <button
                 type="button"
@@ -178,12 +186,10 @@ function App() {
         <div className={isZen ? "flex flex-1" : ""}>
           {activeView === "zen" ? (
             <ZenView
-              task={focusedTask}
-              project={focusedProject}
+              rows={zenRows}
+              onComplete={toggleComplete}
               onOpenDetails={setSelectedTaskId}
               onToggleTracking={toggleTracking}
-              isTaskTracking={isTaskTracking}
-              getTaskLiveMinutes={getTaskLiveMinutes}
             />
           ) : activeView === "board" ? (
             <BoardView
@@ -197,6 +203,9 @@ function App() {
               onReorderProjects={reorderProjects}
               onReorderProjectTasks={moveTaskInBoard}
               onToggleComplete={toggleComplete}
+              onToggleTracking={toggleTracking}
+              isTaskTracking={isTaskTracking}
+              getTaskLiveMinutes={getTaskLiveMinutes}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
               onOpenTaskDetails={setSelectedTaskId}
@@ -215,6 +224,9 @@ function App() {
               onReorder={reorderVisibleTasks}
               onAddTask={addTaskAtTop}
               onToggleComplete={toggleComplete}
+              onToggleTracking={toggleTracking}
+              isTaskTracking={isTaskTracking}
+              getTaskLiveMinutes={getTaskLiveMinutes}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
               onOpenTaskDetails={setSelectedTaskId}

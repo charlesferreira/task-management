@@ -31,6 +31,9 @@ type ProjectColumnProps = {
   ) => void;
   onUpdateUnassignedProjectName?: (name: string) => void;
   onToggleComplete: (taskId: string) => void;
+  onToggleTracking: (taskId: string) => void;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
@@ -40,6 +43,9 @@ type SortableTaskCardProps = {
   task: Task;
   project: Project;
   onToggleComplete: (taskId: string) => void;
+  onToggleTracking: (taskId: string) => void;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
@@ -49,6 +55,9 @@ const SortableTaskCard = ({
   task,
   project,
   onToggleComplete,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
@@ -83,6 +92,9 @@ const SortableTaskCard = ({
         isDragging={isDragging}
         showProjectBadge={false}
         onToggleComplete={onToggleComplete}
+        onToggleTracking={onToggleTracking}
+        isTaskTracking={isTaskTracking}
+        getTaskLiveMinutes={getTaskLiveMinutes}
         onDelete={onDeleteTask}
         onUpdateTitle={onUpdateTaskTitle}
         onOpenDetails={onOpenTaskDetails}
@@ -107,6 +119,9 @@ const ProjectColumn = ({
   onUpdateProject,
   onUpdateUnassignedProjectName,
   onToggleComplete,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
@@ -284,6 +299,9 @@ const ProjectColumn = ({
                   task={task}
                   project={project}
                   onToggleComplete={onToggleComplete}
+                  onToggleTracking={onToggleTracking}
+                  isTaskTracking={isTaskTracking}
+                  getTaskLiveMinutes={getTaskLiveMinutes}
                   onDeleteTask={onDeleteTask}
                   onUpdateTaskTitle={onUpdateTaskTitle}
                   onOpenTaskDetails={onOpenTaskDetails}

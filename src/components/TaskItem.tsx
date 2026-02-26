@@ -2,6 +2,7 @@ import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/
 import type { Project, Task } from '../models/types'
 import ProjectBadge from './ProjectBadge'
 import StoryPointsBadge from './StoryPointsBadge'
+import TaskTimerButton from './TaskTimerButton'
 
 type TaskItemProps = {
   task: Task
@@ -18,6 +19,9 @@ type TaskItemProps = {
   onDelete?: (taskId: string) => void
   onUpdateTitle?: (taskId: string, title: string) => void
   onOpenDetails?: (taskId: string) => void
+  onToggleTracking?: (taskId: string) => void
+  isTaskTracking?: (taskId: string) => boolean
+  getTaskLiveMinutes?: (taskId: string) => number
 }
 
 const isInteractiveElement = (target: EventTarget | null) => {
@@ -33,7 +37,14 @@ const TaskItem = ({
   showProjectBadge = true,
   onToggleComplete,
   onOpenDetails,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
 }: TaskItemProps) => {
+  const isTracking = isTaskTracking?.(task.id) ?? false
+  const liveMinutes = getTaskLiveMinutes?.(task.id) ?? task.actualTimeMinutes
+  const hasTrackedTime = task.actualTimeMinutes > 0 || isTracking
+
   return (
     <div
       data-task-card
@@ -88,6 +99,17 @@ const TaskItem = ({
             <StoryPointsBadge storyPoints={task.storyPoints} />
           </div>
           <div className="flex items-center gap-2">
+            {onToggleTracking ? (
+              <TaskTimerButton
+                taskId={task.id}
+                minutes={liveMinutes}
+                isRunning={isTracking}
+                getTaskLiveMinutes={getTaskLiveMinutes}
+                onToggle={() => onToggleTracking(task.id)}
+                alwaysVisible={hasTrackedTime}
+                compact
+              />
+            ) : null}
             {showProjectBadge ? <ProjectBadge project={project} /> : null}
           </div>
         </>

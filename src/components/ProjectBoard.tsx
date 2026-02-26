@@ -28,6 +28,9 @@ type ProjectBoardProps = {
   onAddTask: (title: string, projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onToggleComplete: (taskId: string) => void;
+  onToggleTracking: (taskId: string) => void;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
@@ -52,6 +55,9 @@ type SortableProjectColumnProps = {
   onAddTask: (title: string, projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
   onToggleComplete: (taskId: string) => void;
+  onToggleTracking: (taskId: string) => void;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
@@ -68,6 +74,9 @@ const SortableProjectColumn = ({
   onAddTask,
   onDeleteProject,
   onToggleComplete,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
@@ -105,6 +114,9 @@ const SortableProjectColumn = ({
         onDeleteProject={onDeleteProject}
         onUpdateProject={onUpdateProject}
         onToggleComplete={onToggleComplete}
+        onToggleTracking={onToggleTracking}
+        isTaskTracking={isTaskTracking}
+        getTaskLiveMinutes={getTaskLiveMinutes}
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
         onOpenTaskDetails={onOpenTaskDetails}
@@ -126,6 +138,9 @@ const ProjectBoard = ({
   onAddTask,
   onDeleteProject,
   onToggleComplete,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
@@ -264,6 +279,9 @@ const ProjectBoard = ({
                 onAddTask={onAddTask}
                 onDeleteProject={onDeleteProject}
                 onToggleComplete={onToggleComplete}
+                onToggleTracking={onToggleTracking}
+                isTaskTracking={isTaskTracking}
+                getTaskLiveMinutes={getTaskLiveMinutes}
                 onDeleteTask={onDeleteTask}
                 onUpdateTaskTitle={onUpdateTaskTitle}
                 onOpenTaskDetails={onOpenTaskDetails}
@@ -283,6 +301,9 @@ const ProjectBoard = ({
           }
           onAddTask={onAddTask}
           onToggleComplete={onToggleComplete}
+          onToggleTracking={onToggleTracking}
+          isTaskTracking={isTaskTracking}
+          getTaskLiveMinutes={getTaskLiveMinutes}
           onDeleteTask={onDeleteTask}
           onUpdateTaskTitle={onUpdateTaskTitle}
           onOpenTaskDetails={onOpenTaskDetails}

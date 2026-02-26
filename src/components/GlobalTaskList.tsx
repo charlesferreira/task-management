@@ -35,6 +35,9 @@ type GlobalTaskListProps = {
   onDeleteTask: (taskId: string) => void
   onUpdateTaskTitle: (taskId: string, title: string) => void
   onOpenTaskDetails: (taskId: string) => void
+  onToggleTracking: (taskId: string) => void
+  isTaskTracking: (taskId: string) => boolean
+  getTaskLiveMinutes: (taskId: string) => number
 }
 
 type SortableTaskItemProps = {
@@ -44,6 +47,9 @@ type SortableTaskItemProps = {
   onDeleteTask: (taskId: string) => void
   onUpdateTaskTitle: (taskId: string, title: string) => void
   onOpenTaskDetails: (taskId: string) => void
+  onToggleTracking: (taskId: string) => void
+  isTaskTracking: (taskId: string) => boolean
+  getTaskLiveMinutes: (taskId: string) => number
 }
 
 const SortableTaskItem = ({
@@ -53,6 +59,9 @@ const SortableTaskItem = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
 }: SortableTaskItemProps) => {
   const {
     attributes,
@@ -89,6 +98,9 @@ const SortableTaskItem = ({
         onDelete={onDeleteTask}
         onUpdateTitle={onUpdateTaskTitle}
         onOpenDetails={onOpenTaskDetails}
+        onToggleTracking={onToggleTracking}
+        isTaskTracking={isTaskTracking}
+        getTaskLiveMinutes={getTaskLiveMinutes}
       />
     </div>
   )
@@ -108,6 +120,9 @@ const GlobalTaskList = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
 }: GlobalTaskListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -187,6 +202,9 @@ const GlobalTaskList = ({
                     onDeleteTask={onDeleteTask}
                     onUpdateTaskTitle={onUpdateTaskTitle}
                     onOpenTaskDetails={onOpenTaskDetails}
+                    onToggleTracking={onToggleTracking}
+                    isTaskTracking={isTaskTracking}
+                    getTaskLiveMinutes={getTaskLiveMinutes}
                   />
                 </div>
               )

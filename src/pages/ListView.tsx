@@ -20,6 +20,9 @@ type ListViewProps = {
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
+  onToggleTracking: (taskId: string) => void;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
 };
 
 const ListView = ({
@@ -36,6 +39,9 @@ const ListView = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
+  onToggleTracking,
+  isTaskTracking,
+  getTaskLiveMinutes,
 }: ListViewProps) => {
   const [title, setTitle] = useState("");
   const [selectedProject, setSelectedProject] = useState(UNASSIGNED_PROJECT_ID);
@@ -88,6 +94,9 @@ const ListView = ({
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
         onOpenTaskDetails={onOpenTaskDetails}
+        onToggleTracking={onToggleTracking}
+        isTaskTracking={isTaskTracking}
+        getTaskLiveMinutes={getTaskLiveMinutes}
       />
       {showCreate ? (
         <div

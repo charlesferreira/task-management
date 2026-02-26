@@ -39,3 +39,15 @@ export const formatMinutesAsHoursMinutes = (totalMinutes: number) => {
   if (hours > 0) return `${hours}h`
   return `${minutes}m`
 }
+
+export const formatMinutesAsClock = (minutes: number) => {
+  const totalSeconds = Math.max(0, Math.floor(minutes * 60))
+  const hours = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, '0')
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0')
+  const secs = (totalSeconds % 60).toString().padStart(2, '0')
+  return `${hours}:${mins}:${secs}`
+}
