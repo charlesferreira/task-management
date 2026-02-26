@@ -97,6 +97,12 @@ function App() {
     [selectedTaskId, tasks],
   );
 
+  const completeTask = (taskId: string) => {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task || task.completedAt) return;
+    toggleComplete(taskId);
+  };
+
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
   const handleDeleteProject = (projectId: string) => {
@@ -240,6 +246,7 @@ function App() {
           unassignedProject={unassignedProject}
           onClose={() => setSelectedTaskId(null)}
           onDelete={deleteTask}
+          onComplete={completeTask}
           onSave={updateTaskDetails}
         />
         {!isZen ? (
