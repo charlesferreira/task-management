@@ -94,7 +94,7 @@ const TaskDetailsDrawerContent = ({
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
   const projectOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const titleInputRef = useRef<HTMLInputElement | null>(null)
-  const [titleDraft, setTitleDraft] = useState(task?.title ?? '')
+  const [titleDraft, setTitleDraft] = useState(() => task?.title ?? '')
   const [, setRenderSecond] = useState(0)
   const animationFrameRef = useRef<number | null>(null)
   const lastSecondRef = useRef<number>(0)
@@ -127,11 +127,7 @@ const TaskDetailsDrawerContent = ({
   )
 
   useEffect(() => {
-    setTitleDraft(task?.title ?? '')
-  }, [task?.id])
-
-  useEffect(() => {
-    if (!autoSelectTitle || !task) return
+    if (!autoSelectTitle || !task?.id) return
     const frame = window.requestAnimationFrame(() => {
       titleInputRef.current?.focus()
       titleInputRef.current?.select()

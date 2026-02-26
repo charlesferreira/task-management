@@ -181,14 +181,6 @@ function App() {
     [selectedTaskId, tasks],
   );
 
-  useEffect(() => {
-    if (!pendingNewTaskDraft) return;
-    const exists = tasks.some((task) => task.id === pendingNewTaskDraft.id);
-    if (!exists) {
-      setPendingNewTaskDraft(null);
-    }
-  }, [pendingNewTaskDraft, tasks]);
-
   const completeTask = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task || task.completedAt) return;
