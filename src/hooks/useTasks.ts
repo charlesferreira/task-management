@@ -9,6 +9,12 @@ type TimeTrackerState = {
   runningByTaskId: Record<string, string>
 }
 
+export type TasksSnapshot = {
+  tasks: Task[]
+  history: TaskHistoryEvent[]
+  tracker: TimeTrackerState
+}
+
 const readTrackerState = (): TimeTrackerState => {
   const raw = localStorage.getItem(TRACKER_STORAGE_KEY)
   if (!raw) return { runningByTaskId: {} }
@@ -100,6 +106,27 @@ export const useTasks = () => {
   const saveTracker = (next: TimeTrackerState) => {
     setTracker(next)
     localStorage.setItem(TRACKER_STORAGE_KEY, JSON.stringify(next))
+  }
+
+  const getSnapshot = (): TasksSnapshot => ({
+    tasks: tasks.map((task) => ({ ...task })),
+    history: history.map((event) => ({ ...event })),
+    tracker: {
+      runningByTaskId: { ...tracker.runningByTaskId },
+    },
+  })
+
+  const restoreSnapshot = (snapshot: TasksSnapshot) => {
+    const nextTasks = snapshot.tasks.map((task) => ({ ...task }))
+    const nextHistory = snapshot.history.map((event) => ({ ...event }))
+    const nextTracker = {
+      runningByTaskId: { ...snapshot.tracker.runningByTaskId },
+    }
+    setTasks(nextTasks)
+    taskService.saveTasks(nextTasks)
+    setHistory(nextHistory)
+    taskHistoryService.saveEvents(nextHistory)
+    saveTracker(nextTracker)
   }
 
   const addHistoryEvent = (
@@ -206,7 +233,7 @@ export const useTasks = () => {
   const toggleComplete = (taskId: string) => {
     const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const target = sourceTasks.find((task) => task.id === taskId)
-    if (!target) return
+    if (!target) return false
 
     const nextCompletedAt = target.completedAt ? null : new Date().toISOString()
     const updated = sourceTasks.map((task) =>
@@ -222,16 +249,19 @@ export const useTasks = () => {
     setTasks(normalized)
 
     const updatedTask = normalized.find((task) => task.id === taskId)
-    if (!updatedTask) return
+    if (!updatedTask) return false
     addHistoryEvent(
       updatedTask,
       nextCompletedAt ? 'task_completed' : 'task_reopened',
       target.completedAt,
       nextCompletedAt,
     )
+    return true
   }
 
   const deleteTask = (taskId: string) => {
+    const exists = tasks.some((task) => task.id === taskId)
+    if (!exists) return false
     const sourceTasks = isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
     const updated = sourceTasks.filter((task) => task.id !== taskId)
     if (tracker.runningByTaskId[taskId]) {
@@ -240,6 +270,7 @@ export const useTasks = () => {
       saveTracker({ runningByTaskId: nextRunning })
     }
     setTasks(taskService.reorderTasks(updated))
+    return true
   }
 
   const updateTaskTitle = (taskId: string, title: string) => {
@@ -338,7 +369,7 @@ export const useTasks = () => {
     overId: string,
     visibleTaskIds: string[],
   ) => {
-    if (activeId === overId) return
+    if (activeId === overId) return false
     const visibleIndices = tasks
       .map((task, index) => ({
         index,
@@ -349,7 +380,7 @@ export const useTasks = () => {
     const visibleTasks = visibleIndices.map((index) => tasks[index])
     const oldIndex = visibleTasks.findIndex((task) => task.id === activeId)
     const newIndex = visibleTasks.findIndex((task) => task.id === overId)
-    if (oldIndex === -1 || newIndex === -1) return
+    if (oldIndex === -1 || newIndex === -1) return false
     const reordered = [...visibleTasks]
     const [moved] = reordered.splice(oldIndex, 1)
     reordered.splice(newIndex, 0, moved)
@@ -358,6 +389,7 @@ export const useTasks = () => {
       updated[index] = reordered[slot]
     })
     setTasks(taskService.reorderTasks(updated))
+    return true
   }
 
   const moveTaskInBoard = (
@@ -379,12 +411,12 @@ export const useTasks = () => {
       .map((entry) => entry.index)
     const visibleTasks = visibleIndices.map((index) => updatedTasks[index])
     const fromIndex = visibleTasks.findIndex((task) => task.id === activeId)
-    if (fromIndex === -1) return
+    if (fromIndex === -1) return false
 
     let toIndex = 0
     if (overId) {
       toIndex = visibleTasks.findIndex((task) => task.id === overId)
-      if (toIndex === -1) return
+      if (toIndex === -1) return false
     } else {
       const lastIndex = [...visibleTasks]
         .reverse()
@@ -406,6 +438,7 @@ export const useTasks = () => {
       updated[index] = reordered[slot]
     })
     setTasks(taskService.reorderTasks(updated))
+    return true
   }
 
   const addTaskAtTop = (title: string, projectId: string | null) => {
@@ -460,7 +493,7 @@ export const useTasks = () => {
     activeId: string,
     overId: string,
   ) => {
-    if (activeId === overId) return
+    if (activeId === overId) return false
     const projectIndices = tasks
       .map((task, index) => ({
         index,
@@ -474,7 +507,7 @@ export const useTasks = () => {
     const projectTasks = visibleIndices.map((index) => tasks[index])
     const oldIndex = projectTasks.findIndex((task) => task.id === activeId)
     const newIndex = projectTasks.findIndex((task) => task.id === overId)
-    if (oldIndex === -1 || newIndex === -1) return
+    if (oldIndex === -1 || newIndex === -1) return false
     const reordered = [...projectTasks]
     const [moved] = reordered.splice(oldIndex, 1)
     reordered.splice(newIndex, 0, moved)
@@ -484,6 +517,7 @@ export const useTasks = () => {
     })
     const normalized = taskService.reorderTasks(updated)
     setTasks(normalized)
+    return true
   }
 
   const setTaskZenVisibility = (taskId: string, showInZen: boolean) => {
@@ -555,5 +589,7 @@ export const useTasks = () => {
     deleteCompleted,
     updateTaskTitle,
     updateTaskDetails,
+    getSnapshot,
+    restoreSnapshot,
   }
 }

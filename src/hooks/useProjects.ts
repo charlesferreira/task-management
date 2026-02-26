@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { UNASSIGNED_PROJECT_ID, type Project } from '../models/types'
 import { projectService } from '../services/projectService'
 
+export type ProjectsSnapshot = {
+  projects: Project[]
+  unassignedProjectName: string
+  unassignedProjectOrder: number
+}
+
 const generateId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()
@@ -16,6 +22,9 @@ export const useProjects = () => {
   const [unassignedProjectName, setUnassignedProjectName] = useState(() =>
     projectService.getUnassignedProjectName(),
   )
+  const [unassignedProjectOrder, setUnassignedProjectOrder] = useState(() =>
+    projectService.getUnassignedProjectOrder(),
+  )
 
   const saveProjects = (next: Project[]) => {
     setProjects(next)
@@ -25,7 +34,7 @@ export const useProjects = () => {
   const createProject = (name: string, color: string) => {
     const maxOrder = projects.reduce(
       (max, project) => Math.max(max, project.order),
-      -1,
+      unassignedProjectOrder,
     )
     const next: Project = {
       id: generateId(),
@@ -38,9 +47,12 @@ export const useProjects = () => {
     return updated
   }
 
-  const reorderProjects = (next: Project[]) => {
-    const normalized = projectService.reorderProjects(next)
+  const reorderProjects = (next: Project[], nextUnassignedOrder?: number) => {
+    const normalized = projectService.reorderProjects(next, nextUnassignedOrder)
     setProjects(normalized)
+    if (typeof nextUnassignedOrder === 'number') {
+      setUnassignedProjectOrder(nextUnassignedOrder)
+    }
     return normalized
   }
 
@@ -66,7 +78,21 @@ export const useProjects = () => {
     id: UNASSIGNED_PROJECT_ID,
     name: unassignedProjectName,
     color: '#94a3b8',
-    order: Number.MAX_SAFE_INTEGER,
+    order: unassignedProjectOrder,
+  }
+
+  const getSnapshot = (): ProjectsSnapshot => ({
+    projects: projects.map((project) => ({ ...project })),
+    unassignedProjectName,
+    unassignedProjectOrder,
+  })
+
+  const restoreSnapshot = (snapshot: ProjectsSnapshot) => {
+    saveProjects(snapshot.projects.map((project) => ({ ...project })))
+    setUnassignedProjectName(snapshot.unassignedProjectName)
+    projectService.saveUnassignedProjectName(snapshot.unassignedProjectName)
+    setUnassignedProjectOrder(snapshot.unassignedProjectOrder)
+    projectService.saveUnassignedProjectOrder(snapshot.unassignedProjectOrder)
   }
 
   return {
@@ -77,5 +103,7 @@ export const useProjects = () => {
     reorderProjects,
     updateProject,
     updateUnassignedProjectName,
+    getSnapshot,
+    restoreSnapshot,
   }
 }

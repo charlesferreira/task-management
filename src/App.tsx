@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
+import UndoToast from "./components/UndoToast";
+import ProjectDetailsDrawer from "./components/ProjectDetailsDrawer";
 import type { ThemeMode } from "./components/ThemeToggleButton";
+import { UNASSIGNED_PROJECT_ID } from "./models/types";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
 import BoardView from "./pages/BoardView";
@@ -11,6 +14,14 @@ import ListView from "./pages/ListView";
 import ZenView from "./pages/ZenView";
 
 type AppView = "board" | "list" | "zen";
+type UndoToastState = {
+  id: number;
+  message: string;
+  onUndo: () => void;
+  isClosing: boolean;
+};
+const UNASSIGNED_PROJECT_DRAWER_KEY = "__unassigned__";
+
 type NewTaskDraftSnapshot = {
   id: string;
   initial: {
@@ -83,6 +94,12 @@ function App() {
   });
   const [pendingNewTaskDraft, setPendingNewTaskDraft] =
     useState<NewTaskDraftSnapshot | null>(null);
+  const [selectedProjectKey, setSelectedProjectKey] = useState<string | null>(
+    null,
+  );
+  const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
+  const undoTimeoutRef = useRef<number | null>(null);
+  const undoCloseTimeoutRef = useRef<number | null>(null);
 
   const {
     projects,
@@ -91,13 +108,15 @@ function App() {
     reorderProjects,
     updateProject,
     updateUnassignedProjectName,
+    getSnapshot: getProjectsSnapshot,
+    restoreSnapshot: restoreProjectsSnapshot,
   } = useProjects();
   const {
     tasks,
     reorderVisibleTasks,
-    addTaskAfterProject,
     addTaskAtTop,
     moveTaskInBoard,
+    reorderWithinProject,
     toggleComplete,
     deleteTask,
     deleteCompleted,
@@ -110,6 +129,8 @@ function App() {
     getTaskLiveMinutes,
     todayStats,
     setTasks,
+    getSnapshot: getTasksSnapshot,
+    restoreSnapshot: restoreTasksSnapshot,
   } = useTasks();
 
   useEffect(() => {
@@ -119,6 +140,17 @@ function App() {
   useEffect(() => {
     localStorage.setItem("taskOrganizer.themeMode", themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    return () => {
+      if (undoTimeoutRef.current !== null) {
+        window.clearTimeout(undoTimeoutRef.current);
+      }
+      if (undoCloseTimeoutRef.current !== null) {
+        window.clearTimeout(undoCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isAppView(params.view)) return;
@@ -179,11 +211,25 @@ function App() {
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
     [selectedTaskId, tasks],
   );
+  const selectedProject = useMemo(() => {
+    if (!selectedProjectKey) return null;
+    if (selectedProjectKey === UNASSIGNED_PROJECT_DRAWER_KEY) {
+      return unassignedProject;
+    }
+    return projects.find((project) => project.id === selectedProjectKey) ?? null;
+  }, [projects, selectedProjectKey, unassignedProject]);
+  const selectedProjectTasks = useMemo(() => {
+    if (!selectedProject) return [];
+    if (selectedProject.id === UNASSIGNED_PROJECT_ID) {
+      return tasks.filter((task) => task.projectId === null);
+    }
+    return tasks.filter((task) => task.projectId === selectedProject.id);
+  }, [selectedProject, tasks]);
 
   const completeTask = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task || task.completedAt) return;
-    toggleComplete(taskId);
+    handleToggleComplete(taskId);
   };
 
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
@@ -211,31 +257,18 @@ function App() {
     navigate(`/list/task/${encodeURIComponent(nextTaskId)}`);
   };
 
-  const handleCreateTaskFromBoard = (projectId: string | null) => {
-    if (pendingNewTaskDraft) {
-      const existingDraft = tasks.find((task) => task.id === pendingNewTaskDraft.id);
-      if (existingDraft && isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)) {
-        navigate(`/board/task/${encodeURIComponent(existingDraft.id)}`);
-        return;
-      }
-      setPendingNewTaskDraft(null);
-    }
-    const nextTaskId = addTaskAfterProject("New task", projectId);
-    setPendingNewTaskDraft(
-      buildNewTaskSnapshot({
-        id: nextTaskId,
-        title: "New task",
-        projectId,
-        description: "",
-        storyPoints: null,
-        actualTimeMinutes: 0,
-      }),
-    );
-    navigate(`/board/task/${encodeURIComponent(nextTaskId)}`);
-  };
-
   const handleOpenTaskDetails = (taskId: string) => {
     navigate(`/${activeView}/task/${encodeURIComponent(taskId)}`);
+  };
+
+  const handleOpenProjectDetails = (projectId: string | null) => {
+    setSelectedProjectKey(
+      projectId === null ? UNASSIGNED_PROJECT_DRAWER_KEY : projectId,
+    );
+  };
+
+  const handleCloseProjectDetails = () => {
+    setSelectedProjectKey(null);
   };
 
   const handleCloseTaskDetails = () => {
@@ -253,11 +286,19 @@ function App() {
   };
 
   const handleDeleteProject = (projectId: string) => {
+    const project = projects.find((entry) => entry.id === projectId);
+    if (!project) return;
+    const tasksSnapshot = getTasksSnapshot();
+    const projectsSnapshot = getProjectsSnapshot();
     reorderProjects(projects.filter((project) => project.id !== projectId));
     const updatedTasks = tasks.map((task) =>
       task.projectId === projectId ? { ...task, projectId: null } : task,
     );
     setTasks(updatedTasks);
+    showUndoToast("Project deleted", () => {
+      restoreProjectsSnapshot(projectsSnapshot);
+      restoreTasksSnapshot(tasksSnapshot);
+    });
   };
 
   const handleChangeView = (view: AppView) => {
@@ -270,6 +311,122 @@ function App() {
       if (current === "light") return "dark";
       return "system";
     });
+  };
+
+  const closeUndoToast = () => {
+    if (undoTimeoutRef.current !== null) {
+      window.clearTimeout(undoTimeoutRef.current);
+      undoTimeoutRef.current = null;
+    }
+    if (undoCloseTimeoutRef.current !== null) {
+      window.clearTimeout(undoCloseTimeoutRef.current);
+      undoCloseTimeoutRef.current = null;
+    }
+    setUndoToast((current) => {
+      if (!current) return null;
+      if (current.isClosing) return current;
+      return { ...current, isClosing: true };
+    });
+    undoCloseTimeoutRef.current = window.setTimeout(() => {
+      setUndoToast(null);
+      undoCloseTimeoutRef.current = null;
+    }, 220);
+  };
+
+  const dismissUndoToast = () => {
+    closeUndoToast();
+  };
+
+  const showUndoToast = (message: string, onUndo: () => void) => {
+    if (undoTimeoutRef.current !== null) {
+      window.clearTimeout(undoTimeoutRef.current);
+    }
+    if (undoCloseTimeoutRef.current !== null) {
+      window.clearTimeout(undoCloseTimeoutRef.current);
+      undoCloseTimeoutRef.current = null;
+    }
+    setUndoToast({
+      id: Date.now(),
+      message,
+      onUndo,
+      isClosing: false,
+    });
+    undoTimeoutRef.current = window.setTimeout(() => {
+      closeUndoToast();
+    }, 8000);
+  };
+
+  const handleUndo = () => {
+    if (!undoToast) return;
+    const undo = undoToast.onUndo;
+    closeUndoToast();
+    undo();
+  };
+
+  const handleToggleComplete = (taskId: string) => {
+    const task = tasks.find((entry) => entry.id === taskId);
+    if (!task) return;
+    const wasCompleted = Boolean(task.completedAt);
+    const snapshot = getTasksSnapshot();
+    const changed = toggleComplete(taskId);
+    if (!changed) return;
+    if (!wasCompleted) {
+      showUndoToast("Task completed", () => restoreTasksSnapshot(snapshot));
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    const task = tasks.find((entry) => entry.id === taskId);
+    if (!task) return;
+    const snapshot = getTasksSnapshot();
+    const changed = deleteTask(taskId);
+    if (!changed) return;
+    showUndoToast("Task deleted", () => restoreTasksSnapshot(snapshot));
+  };
+
+  const handleMoveTaskInBoard = (
+    activeId: string,
+    overId: string | null,
+    targetProjectId: string | null,
+    visibleTaskIds: string[],
+  ) => {
+    const snapshot = getTasksSnapshot();
+    const changed = moveTaskInBoard(
+      activeId,
+      overId,
+      targetProjectId,
+      visibleTaskIds,
+    );
+    if (!changed) return;
+    showUndoToast("Task moved", () => restoreTasksSnapshot(snapshot));
+  };
+
+  const handleReorderVisibleTasks = (
+    activeId: string,
+    overId: string,
+    visibleTaskIds: string[],
+  ) => {
+    const snapshot = getTasksSnapshot();
+    const changed = reorderVisibleTasks(activeId, overId, visibleTaskIds);
+    if (!changed) return;
+    showUndoToast("Task moved", () => restoreTasksSnapshot(snapshot));
+  };
+
+  const handleReorderWithinProject = (
+    projectId: string | null,
+    activeId: string,
+    overId: string,
+    visibleTaskIds: string[],
+  ) => {
+    const snapshot = getTasksSnapshot();
+    const changed = reorderWithinProject(
+      projectId,
+      visibleTaskIds,
+      activeId,
+      overId,
+    );
+    if (!changed) return;
+    showUndoToast("Task moved", () => restoreTasksSnapshot(snapshot));
   };
 
   useEffect(() => {
@@ -294,7 +451,7 @@ function App() {
           isZen
             ? "min-h-screen px-6 py-0"
             : isBoard
-              ? "h-full gap-6 overflow-hidden py-8"
+              ? "h-full gap-6 overflow-hidden pt-8"
               : "min-h-screen gap-6 px-6 py-8"
         } ${
           isBoard ? "min-h-0" : ""
@@ -365,7 +522,7 @@ function App() {
           {activeView === "zen" ? (
             <ZenView
               rows={zenRows}
-              onComplete={toggleComplete}
+              onComplete={handleToggleComplete}
               onOpenDetails={handleOpenTaskDetails}
               onToggleTracking={toggleTracking}
             />
@@ -375,20 +532,18 @@ function App() {
               unassignedProject={unassignedProject}
               tasks={filteredTasks}
               allTasks={tasks}
-              onCreateTask={handleCreateTaskFromBoard}
               onCreateProject={createProject}
               onDeleteProject={handleDeleteProject}
+              onOpenProjectDetails={handleOpenProjectDetails}
               onReorderProjects={reorderProjects}
-              onReorderProjectTasks={moveTaskInBoard}
-              onToggleComplete={toggleComplete}
+              onReorderProjectTasks={handleMoveTaskInBoard}
+              onToggleComplete={handleToggleComplete}
               onToggleTracking={toggleTracking}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
-              onDeleteTask={deleteTask}
+              onDeleteTask={handleDeleteTask}
               onUpdateTaskTitle={updateTaskTitle}
               onOpenTaskDetails={handleOpenTaskDetails}
-              onUpdateProject={updateProject}
-              onUpdateUnassignedProjectName={updateUnassignedProjectName}
               themeMode={themeMode}
               onToggleTheme={cycleThemeMode}
             />
@@ -401,7 +556,7 @@ function App() {
               onFilterChange={setFilter}
               completedCount={completedCount}
               onDeleteCompleted={deleteCompleted}
-              onReorder={reorderVisibleTasks}
+              onReorder={handleReorderVisibleTasks}
               onCreateTask={handleCreateTaskFromList}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
@@ -425,7 +580,7 @@ function App() {
           projects={projects}
           unassignedProject={unassignedProject}
           onClose={handleCloseTaskDetails}
-          onDelete={deleteTask}
+          onDelete={handleDeleteTask}
           onComplete={completeTask}
           onPauseTracking={pauseTracking}
           onToggleTracking={toggleTracking}
@@ -433,11 +588,43 @@ function App() {
           getTaskLiveMinutes={getTaskLiveMinutes}
           onSave={updateTaskDetails}
         />
+        <ProjectDetailsDrawer
+          key={selectedProject?.id ?? "project-drawer-empty"}
+          isOpen={selectedProject !== null}
+          project={selectedProject}
+          tasks={selectedProjectTasks}
+          onClose={handleCloseProjectDetails}
+          onOpenTaskDetails={handleOpenTaskDetails}
+          onSave={updateProject}
+          onReorderTasks={(activeId, overId, visibleIds) =>
+            handleReorderWithinProject(
+              selectedProject?.id === UNASSIGNED_PROJECT_ID
+                ? null
+                : (selectedProject?.id ?? null),
+              activeId,
+              overId,
+              visibleIds,
+            )
+          }
+          isTaskTracking={isTaskTracking}
+          getTaskLiveMinutes={getTaskLiveMinutes}
+          onSaveUnassignedName={updateUnassignedProjectName}
+          onDelete={handleDeleteProject}
+        />
         {!isZen ? (
           <TodayStatsWidget
             tasksCompleted={todayStats.tasksCompleted}
             pointsCompleted={todayStats.pointsCompleted}
             effortMinutes={todayStats.effortMinutes}
+          />
+        ) : null}
+        {undoToast ? (
+          <UndoToast
+            key={undoToast.id}
+            message={undoToast.message}
+            onUndo={handleUndo}
+            onDismiss={dismissUndoToast}
+            isClosing={undoToast.isClosing}
           />
         ) : null}
       </div>

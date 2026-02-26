@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
 import type { Project, Task } from "../models/types";
+import { UNASSIGNED_PROJECT_ID } from "../models/types";
 import ProjectColumn from "./ProjectColumn";
 import TaskItem from "./TaskItem";
 
@@ -25,8 +26,8 @@ type ProjectBoardProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onCreateTask: (projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
+  onOpenProjectDetails: (projectId: string | null) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
@@ -34,12 +35,7 @@ type ProjectBoardProps = {
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
-  onUpdateProject: (
-    projectId: string,
-    updates: { name: string; color: string },
-  ) => void;
-  onUpdateUnassignedProjectName: (name: string) => void;
-  onReorderProjects: (projects: Project[]) => void;
+  onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
   onReorderProjectTasks: (
     activeId: string,
     overId: string | null,
@@ -52,8 +48,9 @@ type SortableProjectColumnProps = {
   project: Project;
   tasks: Task[];
   activeCount: number;
-  onCreateTask: (projectId: string | null) => void;
-  onDeleteProject: (projectId: string) => void;
+  isUnassigned?: boolean;
+  onDeleteProject?: (projectId: string) => void;
+  onOpenProjectDetails: (projectId: string | null) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
@@ -61,18 +58,15 @@ type SortableProjectColumnProps = {
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
-  onUpdateProject: (
-    projectId: string,
-    updates: { name: string; color: string },
-  ) => void;
 };
 
 const SortableProjectColumn = ({
   project,
   tasks,
   activeCount,
-  onCreateTask,
+  isUnassigned = false,
   onDeleteProject,
+  onOpenProjectDetails,
   onToggleComplete,
   onToggleTracking,
   isTaskTracking,
@@ -80,12 +74,10 @@ const SortableProjectColumn = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
-  onUpdateProject,
 }: SortableProjectColumnProps) => {
   const {
     attributes,
     listeners,
-    setActivatorNodeRef,
     setNodeRef,
     transform,
     transition,
@@ -104,15 +96,17 @@ const SortableProjectColumn = ({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={`transition ${isDragging ? "opacity-40" : ""}`}
     >
       <ProjectColumn
         project={project}
         tasks={tasks}
+        isUnassigned={isUnassigned}
         activeCount={activeCount}
-        onCreateTask={onCreateTask}
         onDeleteProject={onDeleteProject}
-        onUpdateProject={onUpdateProject}
+        onOpenProjectDetails={onOpenProjectDetails}
         onToggleComplete={onToggleComplete}
         onToggleTracking={onToggleTracking}
         isTaskTracking={isTaskTracking}
@@ -120,11 +114,6 @@ const SortableProjectColumn = ({
         onDeleteTask={onDeleteTask}
         onUpdateTaskTitle={onUpdateTaskTitle}
         onOpenTaskDetails={onOpenTaskDetails}
-        headerDragProps={{
-          attributes,
-          listeners,
-          setActivatorNodeRef,
-        }}
       />
     </div>
   );
@@ -135,8 +124,8 @@ const ProjectBoard = ({
   unassignedProject,
   tasks,
   allTasks,
-  onCreateTask,
   onDeleteProject,
+  onOpenProjectDetails,
   onToggleComplete,
   onToggleTracking,
   isTaskTracking,
@@ -144,8 +133,6 @@ const ProjectBoard = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
-  onUpdateProject,
-  onUpdateUnassignedProjectName,
   onReorderProjects,
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
@@ -159,6 +146,12 @@ const ProjectBoard = ({
   );
 
   const orderedProjects = [...projects].sort((a, b) => a.order - b.order);
+  const unassignedIndex = Math.max(
+    0,
+    Math.min(unassignedProject.order, orderedProjects.length),
+  );
+  const orderedColumns = [...orderedProjects];
+  orderedColumns.splice(unassignedIndex, 0, unassignedProject);
   const visibleTaskIds = tasks.map((task) => task.id);
   const projectMap = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -174,7 +167,9 @@ const ProjectBoard = ({
         ? (projectMap.get(activeTask.projectId) ?? unassignedProject)
         : null;
   const activeColumnProject = activeProjectId
-    ? (projectMap.get(activeProjectId) ?? null)
+    ? activeProjectId === UNASSIGNED_PROJECT_ID
+      ? unassignedProject
+      : (projectMap.get(activeProjectId) ?? null)
     : null;
 
   return (
@@ -219,19 +214,28 @@ const ProjectBoard = ({
         if (activeType === "column") {
           const targetProjectId =
             overType === "column-drop"
-              ? over.data.current?.projectId
+              ? ((over.data.current?.projectId ?? UNASSIGNED_PROJECT_ID) as
+                  | string
+                  | null)
               : String(over.id);
-          const oldIndex = orderedProjects.findIndex(
-            (project) => project.id === active.id,
-          );
-          const newIndex = orderedProjects.findIndex(
-            (project) => project.id === targetProjectId,
+          const currentIds = orderedColumns.map((column) => column.id);
+          const oldIndex = currentIds.findIndex((id) => id === String(active.id));
+          const newIndex = currentIds.findIndex(
+            (id) => id === String(targetProjectId),
           );
           if (oldIndex === -1 || newIndex === -1) return;
-          const updated = [...orderedProjects];
-          const [moved] = updated.splice(oldIndex, 1);
-          updated.splice(newIndex, 0, moved);
-          onReorderProjects(updated);
+          const updatedIds = [...currentIds];
+          const [movedId] = updatedIds.splice(oldIndex, 1);
+          updatedIds.splice(newIndex, 0, movedId);
+
+          const reorderedProjects = updatedIds
+            .filter((id) => id !== UNASSIGNED_PROJECT_ID)
+            .map((id) => orderedProjects.find((project) => project.id === id))
+            .filter((project): project is Project => Boolean(project));
+          const unassignedOrder = updatedIds.findIndex(
+            (id) => id === UNASSIGNED_PROJECT_ID,
+          );
+          onReorderProjects(reorderedProjects, unassignedOrder);
           setActiveTaskId(null);
           setActiveProjectId(null);
           return;
@@ -261,15 +265,19 @@ const ProjectBoard = ({
       <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden">
         <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6">
           <SortableContext
-            items={orderedProjects.map((project) => project.id)}
+            items={orderedColumns.map((project) => project.id)}
             strategy={horizontalListSortingStrategy}
           >
-            {orderedProjects.map((project) => {
+            {orderedColumns.map((project) => {
+              const isUnassigned = project.id === UNASSIGNED_PROJECT_ID;
               const projectTasks = tasks.filter(
-                (task) => task.projectId === project.id,
+                (task) =>
+                  isUnassigned ? task.projectId === null : task.projectId === project.id,
               );
               const activeCount = allTasks.filter(
-                (task) => task.projectId === project.id && !task.completedAt,
+                (task) =>
+                  (isUnassigned ? task.projectId === null : task.projectId === project.id) &&
+                  !task.completedAt,
               ).length;
               return (
                 <SortableProjectColumn
@@ -277,8 +285,9 @@ const ProjectBoard = ({
                   project={project}
                   tasks={projectTasks}
                   activeCount={activeCount}
-                  onCreateTask={onCreateTask}
-                  onDeleteProject={onDeleteProject}
+                  isUnassigned={isUnassigned}
+                  onDeleteProject={isUnassigned ? undefined : onDeleteProject}
+                  onOpenProjectDetails={onOpenProjectDetails}
                   onToggleComplete={onToggleComplete}
                   onToggleTracking={onToggleTracking}
                   isTaskTracking={isTaskTracking}
@@ -286,30 +295,10 @@ const ProjectBoard = ({
                   onDeleteTask={onDeleteTask}
                   onUpdateTaskTitle={onUpdateTaskTitle}
                   onOpenTaskDetails={onOpenTaskDetails}
-                  onUpdateProject={onUpdateProject}
                 />
               );
             })}
           </SortableContext>
-          <ProjectColumn
-            project={unassignedProject}
-            tasks={tasks.filter((task) => task.projectId === null)}
-            isUnassigned
-            activeCount={
-              allTasks.filter(
-                (task) => task.projectId === null && !task.completedAt,
-              ).length
-            }
-            onCreateTask={onCreateTask}
-            onToggleComplete={onToggleComplete}
-            onToggleTracking={onToggleTracking}
-            isTaskTracking={isTaskTracking}
-            getTaskLiveMinutes={getTaskLiveMinutes}
-            onDeleteTask={onDeleteTask}
-            onUpdateTaskTitle={onUpdateTaskTitle}
-            onOpenTaskDetails={onOpenTaskDetails}
-            onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
-          />
         </div>
       </div>
       <DragOverlay adjustScale={false}>

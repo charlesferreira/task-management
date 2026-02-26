@@ -11,10 +11,10 @@ type BoardViewProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onCreateTask: (projectId: string | null) => void;
   onDeleteProject: (projectId: string) => void;
+  onOpenProjectDetails: (projectId: string | null) => void;
   onCreateProject: (name: string, color: string) => void;
-  onReorderProjects: (projects: Project[]) => void;
+  onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
   onReorderProjectTasks: (
     activeId: string,
     overId: string | null,
@@ -28,11 +28,6 @@ type BoardViewProps = {
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskTitle: (taskId: string, title: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
-  onUpdateProject: (
-    projectId: string,
-    updates: { name: string; color: string },
-  ) => void;
-  onUpdateUnassignedProjectName: (name: string) => void;
   themeMode: ThemeMode;
   onToggleTheme: () => void;
 };
@@ -42,8 +37,8 @@ const BoardView = ({
   unassignedProject,
   tasks,
   allTasks,
-  onCreateTask,
   onDeleteProject,
+  onOpenProjectDetails,
   onCreateProject,
   onReorderProjects,
   onReorderProjectTasks,
@@ -54,8 +49,6 @@ const BoardView = ({
   onDeleteTask,
   onUpdateTaskTitle,
   onOpenTaskDetails,
-  onUpdateProject,
-  onUpdateUnassignedProjectName,
   themeMode,
   onToggleTheme,
 }: BoardViewProps) => {
@@ -93,8 +86,8 @@ const BoardView = ({
           unassignedProject={unassignedProject}
           tasks={tasks}
           allTasks={allTasks}
-          onCreateTask={onCreateTask}
           onDeleteProject={onDeleteProject}
+          onOpenProjectDetails={onOpenProjectDetails}
           onReorderProjects={onReorderProjects}
           onReorderProjectTasks={onReorderProjectTasks}
           onToggleComplete={onToggleComplete}
@@ -104,8 +97,6 @@ const BoardView = ({
           onDeleteTask={onDeleteTask}
           onUpdateTaskTitle={onUpdateTaskTitle}
           onOpenTaskDetails={onOpenTaskDetails}
-          onUpdateProject={onUpdateProject}
-          onUpdateUnassignedProjectName={onUpdateUnassignedProjectName}
         />
       </div>
       {showProjectForm ? (

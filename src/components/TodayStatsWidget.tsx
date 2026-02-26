@@ -12,6 +12,9 @@ const TodayStatsWidget = ({
   effortMinutes,
 }: TodayStatsWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false)
+  const formattedEffortMinutes = Number.isInteger(effortMinutes)
+    ? String(effortMinutes)
+    : String(Math.round(effortMinutes * 100) / 100)
 
   return (
     <div className="fixed bottom-6 left-6 z-30">
@@ -39,7 +42,7 @@ const TodayStatsWidget = ({
             </div>
             <div>
               <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                {effortMinutes}
+                {formattedEffortMinutes}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">minutes</p>
             </div>

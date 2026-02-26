@@ -2,6 +2,7 @@ import type { Project } from '../models/types'
 
 const STORAGE_KEY = 'taskOrganizer.projects'
 const UNASSIGNED_NAME_KEY = 'taskOrganizer.unassignedProjectName'
+const UNASSIGNED_ORDER_KEY = 'taskOrganizer.unassignedProjectOrder'
 const DEFAULT_UNASSIGNED_NAME = 'Unassigned'
 
 const sampleProjects: Project[] = [
@@ -52,6 +53,18 @@ const writeUnassignedProjectName = (name: string) => {
   localStorage.setItem(UNASSIGNED_NAME_KEY, name.trim() || DEFAULT_UNASSIGNED_NAME)
 }
 
+const readUnassignedProjectOrder = () => {
+  const raw = localStorage.getItem(UNASSIGNED_ORDER_KEY)
+  if (!raw) return sampleProjects.length
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : sampleProjects.length
+}
+
+const writeUnassignedProjectOrder = (order: number) => {
+  const normalized = Number.isFinite(order) && order >= 0 ? Math.floor(order) : 0
+  localStorage.setItem(UNASSIGNED_ORDER_KEY, String(normalized))
+}
+
 export const projectService = {
   getProjects() {
     return readProjects()
@@ -59,12 +72,15 @@ export const projectService = {
   saveProjects(projects: Project[]) {
     writeProjects(projects)
   },
-  reorderProjects(projects: Project[]) {
+  reorderProjects(projects: Project[], unassignedOrder?: number) {
     const normalized = projects.map((project, index) => ({
       ...project,
       order: index,
     }))
     writeProjects(normalized)
+    if (typeof unassignedOrder === 'number') {
+      writeUnassignedProjectOrder(unassignedOrder)
+    }
     return normalized
   },
   getOrInitializeProjects() {
@@ -78,5 +94,11 @@ export const projectService = {
   },
   saveUnassignedProjectName(name: string) {
     writeUnassignedProjectName(name)
+  },
+  getUnassignedProjectOrder() {
+    return readUnassignedProjectOrder()
+  },
+  saveUnassignedProjectOrder(order: number) {
+    writeUnassignedProjectOrder(order)
   },
 }

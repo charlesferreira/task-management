@@ -1,15 +1,12 @@
-import type {
-  DraggableAttributes,
-  DraggableSyntheticListeners,
-} from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
+import { MoreVertical } from "lucide-react";
 import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Project, Task } from "../models/types";
 import TaskItem from "./TaskItem";
 
@@ -17,19 +14,9 @@ type ProjectColumnProps = {
   project: Project;
   tasks: Task[];
   isUnassigned?: boolean;
-  headerDragProps?: {
-    attributes: DraggableAttributes;
-    listeners?: DraggableSyntheticListeners;
-    setActivatorNodeRef: (element: HTMLDivElement | null) => void;
-  };
   activeCount: number;
-  onCreateTask: (projectId: string | null) => void;
   onDeleteProject?: (projectId: string) => void;
-  onUpdateProject?: (
-    projectId: string,
-    updates: { name: string; color: string },
-  ) => void;
-  onUpdateUnassignedProjectName?: (name: string) => void;
+  onOpenProjectDetails: (projectId: string | null) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
@@ -112,12 +99,9 @@ const ProjectColumn = ({
   project,
   tasks,
   isUnassigned = false,
-  headerDragProps,
   activeCount,
-  onCreateTask,
   onDeleteProject,
-  onUpdateProject,
-  onUpdateUnassignedProjectName,
+  onOpenProjectDetails,
   onToggleComplete,
   onToggleTracking,
   isTaskTracking,
@@ -126,9 +110,8 @@ const ProjectColumn = ({
   onUpdateTaskTitle,
   onOpenTaskDetails,
 }: ProjectColumnProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftName, setDraftName] = useState(project.name);
-  const [draftColor, setDraftColor] = useState(project.color);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const droppableId = isUnassigned ? "drop:unassigned" : `drop:${project.id}`;
   const { setNodeRef, isOver } = useDroppable({
@@ -138,170 +121,134 @@ const ProjectColumn = ({
 
   const setCombinedRef = (element: HTMLDivElement | null) => {
     setNodeRef(element);
-    headerDragProps?.setActivatorNodeRef(element);
   };
 
-  const handleSaveProject = () => {
-    const trimmed = draftName.trim();
-    if (!trimmed) {
-      setIsEditing(false);
-      return;
-    }
-    if (isUnassigned) {
-      onUpdateUnassignedProjectName?.(trimmed);
-    } else if (onUpdateProject) {
-      onUpdateProject(project.id, {
-        name: trimmed,
-        color: draftColor || project.color,
-      });
-    }
-    setIsEditing(false);
-  };
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target)) return;
+      setIsMenuOpen(false);
+    };
+    window.addEventListener("mousedown", handleOutside);
+    return () => window.removeEventListener("mousedown", handleOutside);
+  }, [isMenuOpen]);
 
   return (
     <div
       ref={setCombinedRef}
-      {...headerDragProps?.attributes}
-      {...headerDragProps?.listeners}
-      className={`group/column relative flex h-full min-h-0 w-96 shrink-0 flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
-        isOver
-          ? "border-sky-400 bg-sky-50/60 ring-1 ring-sky-400/35 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:ring-sky-300/35 dark:ring-offset-slate-950"
-          : ""
-      }`}
+      className="relative flex h-full min-h-0 w-96 shrink-0 items-start"
     >
       <div
-        className={`flex items-center justify-between ${
-          headerDragProps ? "cursor-grab active:cursor-grabbing" : ""
+        className={`group/column relative flex max-h-full w-full flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+          isOver
+            ? "border-sky-400 bg-sky-50/60 ring-1 ring-sky-400/35 dark:border-sky-300 dark:bg-sky-900/30 dark:ring-sky-300/35"
+            : ""
         }`}
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: project.color }}
-          />
-          {isEditing && !isUnassigned ? (
-            <input
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") handleSaveProject();
-                if (event.key === "Escape") setIsEditing(false);
-              }}
-              onPointerDown={(event) => event.stopPropagation()}
-              className="w-full min-w-0 rounded-lg border border-slate-200/70 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
-            />
-          ) : (
-            <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {project.name} ({activeCount})
-            </h3>
-          )}
-        </div>
         <div
-          className="flex items-center gap-2"
-          onPointerDown={(event) => event.stopPropagation()}
+          className="flex cursor-pointer items-center justify-between"
+          onClick={() => onOpenProjectDetails(isUnassigned ? null : project.id)}
         >
-          {(isUnassigned ? Boolean(onUpdateUnassignedProjectName) : Boolean(onUpdateProject)) ? (
-            <div className="flex items-center gap-1">
-              {isEditing ? (
-                <>
-                  {!isUnassigned ? (
-                    <div className="h-7 w-7 rounded-full border border-slate-200/70 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                      <input
-                        type="color"
-                        value={draftColor}
-                        onChange={(event) => setDraftColor(event.target.value)}
-                        className="h-full w-full cursor-pointer appearance-none overflow-hidden rounded-full border-0 p-0"
-                        aria-label="Project color"
-                      />
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={handleSaveProject}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-700 dark:text-slate-300"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDraftName(project.name);
-                      setDraftColor(project.color);
-                      setIsEditing(false);
-                    }}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase dark:border-slate-700 dark:text-slate-500"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
+          <div className="flex min-w-0 items-center gap-2">
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onOpenProjectDetails(isUnassigned ? null : project.id);
+                }
+              }}
+              className="flex min-w-0 items-center gap-2 text-left"
+            >
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: project.color }}
+              />
+              <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {project.name} ({activeCount})
+              </h3>
+            </div>
+          </div>
+          <div
+            ref={menuRef}
+            className="relative"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((open) => !open)}
+              className="rounded-md p-1.5 text-slate-400 opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              aria-label="Project actions"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {isMenuOpen ? (
+              <div className="absolute top-full right-0 z-20 mt-1 flex min-w-32 flex-col rounded-lg border border-slate-200/70 bg-white p-1 shadow-md dark:border-slate-700 dark:bg-slate-900">
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onOpenProjectDetails(isUnassigned ? null : project.id);
+                  }}
+                  className="rounded-md px-2 py-1.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Edit
                 </button>
-              )}
-            </div>
-          ) : null}
-          {!isUnassigned && onDeleteProject ? (
-            <button
-              type="button"
-              onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
-            >
-              Delete
-            </button>
-          ) : null}
+                {!isUnassigned && onDeleteProject ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onDeleteProject(project.id);
+                    }}
+                    className="rounded-md px-2 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/50"
+                  >
+                    Delete
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
-      <div
-        className="flex-1 overflow-hidden"
-        onPointerDown={(event) => {
-          const target = event.target as HTMLElement | null;
-          if (target?.closest?.("[data-task-card]")) {
-            event.stopPropagation();
-          }
-        }}
-      >
-        {tasks.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900 dark:text-slate-400">
-            No tasks to show
-          </p>
-        ) : (
-          <SortableContext
-            items={tasks.map((task) => task.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="flex h-full min-h-0 flex-col gap-2.5 overflow-y-auto pr-1 pb-20 transition-[padding] duration-200">
-              {tasks.map((task) => (
-                <SortableTaskCard
-                  key={task.id}
-                  task={task}
-                  project={project}
-                  onToggleComplete={onToggleComplete}
-                  onToggleTracking={onToggleTracking}
-                  isTaskTracking={isTaskTracking}
-                  getTaskLiveMinutes={getTaskLiveMinutes}
-                  onDeleteTask={onDeleteTask}
-                  onUpdateTaskTitle={onUpdateTaskTitle}
-                  onOpenTaskDetails={onOpenTaskDetails}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        )}
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 opacity-0 transition duration-200 group-focus-within/column:pointer-events-auto group-focus-within/column:translate-y-0 group-focus-within/column:opacity-100 group-hover/column:pointer-events-auto group-hover/column:translate-y-0 group-hover/column:opacity-100">
-        <div className="rounded-b-xl bg-linear-to-t from-white/95 via-white/80 to-transparent px-5 pt-6 pb-4 shadow-[0_-10px_25px_rgba(0,0,0,0.12)] backdrop-blur dark:from-slate-900/95 dark:via-slate-900/80">
-          <button
-            type="button"
-            onClick={() => onCreateTask(isUnassigned ? null : project.id)}
-            className="min-w-max rounded-lg border border-slate-200/70 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-slate-800/70 dark:text-slate-400 dark:hover:text-slate-100"
-          >
-            Add task
-          </button>
+        <div
+          className="min-h-0"
+          onPointerDown={(event) => {
+            const target = event.target as HTMLElement | null;
+            if (target?.closest?.("[data-task-card]")) {
+              event.stopPropagation();
+            }
+          }}
+        >
+          {tasks.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-slate-200/70 bg-white px-3 py-5 text-center text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900 dark:text-slate-400">
+              No tasks to show
+            </p>
+          ) : (
+            <SortableContext
+              items={tasks.map((task) => task.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex max-h-[calc(100vh-18rem)] flex-col gap-2.5 overflow-y-auto pr-1 transition-[padding] duration-200">
+                {tasks.map((task) => (
+                  <SortableTaskCard
+                    key={task.id}
+                    task={task}
+                    project={project}
+                    onToggleComplete={onToggleComplete}
+                    onToggleTracking={onToggleTracking}
+                    isTaskTracking={isTaskTracking}
+                    getTaskLiveMinutes={getTaskLiveMinutes}
+                    onDeleteTask={onDeleteTask}
+                    onUpdateTaskTitle={onUpdateTaskTitle}
+                    onOpenTaskDetails={onOpenTaskDetails}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          )}
         </div>
       </div>
     </div>
