@@ -3,7 +3,6 @@ import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
 import { getStoryPointsTextTone } from '../utils/storyPoints'
-import { formatMinutesAsClock } from '../utils/timeFormat'
 import ProjectBadge from './ProjectBadge'
 import TimeCodeInput from './shared/TimeCodeInput'
 
@@ -73,13 +72,7 @@ const TaskDetailsDrawerContent = ({
 }: DrawerContentProps) => {
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false)
   const projectPickerRef = useRef<HTMLDivElement | null>(null)
-  const [timeSeconds, setTimeSeconds] = useState(
-    Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60)),
-  )
-
-  useEffect(() => {
-    setTimeSeconds(Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60)))
-  }, [task?.id, task?.actualTimeMinutes])
+  const timeSeconds = Math.max(0, Math.floor((task?.actualTimeMinutes ?? 0) * 60))
 
   const orderedProjects = useMemo(
     () => [...projects].sort((a, b) => a.order - b.order),
@@ -247,22 +240,16 @@ const TaskDetailsDrawerContent = ({
           <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
             Time tracked
           </p>
-          <div className="flex items-center gap-3">
+          <div>
             <TimeCodeInput
+              key={task?.id ?? 'no-task'}
               valueSeconds={timeSeconds}
               onChange={(nextSeconds) => {
-                setTimeSeconds(nextSeconds)
                 saveTaskPatch({ actualTimeMinutes: nextSeconds / 60 })
               }}
               disabled={!task}
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Tab alterna bloco, setas ↑↓ ajustam valor.
-            </p>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Total: {formatMinutesAsClock(timeSeconds / 60)}
-          </p>
         </div>
       </div>
 

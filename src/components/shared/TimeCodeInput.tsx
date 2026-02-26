@@ -1,0 +1,199 @@
+import { type KeyboardEvent, useRef, useState } from 'react'
+
+type TimeCodeInputProps = {
+  valueSeconds: number
+  onChange: (nextSeconds: number) => void
+  disabled?: boolean
+  className?: string
+}
+
+type Segment = 'hours' | 'minutes' | 'seconds'
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value))
+
+const toTwoDigits = (value: number) => value.toString().padStart(2, '0')
+
+const parseSegment = (raw: string, max: number) => {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return 0
+  return clamp(Number.parseInt(digits.slice(0, 2), 10) || 0, 0, max)
+}
+
+const splitSeconds = (valueSeconds: number) => {
+  const safeTotal = Math.max(0, Math.floor(valueSeconds))
+  const hours = clamp(Math.floor(safeTotal / 3600), 0, 99)
+  const minutes = Math.floor((safeTotal % 3600) / 60)
+  const seconds = safeTotal % 60
+  return { hours, minutes, seconds }
+}
+
+const TimeCodeInput = ({
+  valueSeconds,
+  onChange,
+  disabled = false,
+  className = '',
+}: TimeCodeInputProps) => {
+  const initial = splitSeconds(valueSeconds)
+  const [hoursText, setHoursText] = useState(toTwoDigits(initial.hours))
+  const [minutesText, setMinutesText] = useState(toTwoDigits(initial.minutes))
+  const [secondsText, setSecondsText] = useState(toTwoDigits(initial.seconds))
+  const [focusedSegment, setFocusedSegment] = useState<Segment | null>(null)
+
+  const hoursRef = useRef<HTMLInputElement | null>(null)
+  const minutesRef = useRef<HTMLInputElement | null>(null)
+  const secondsRef = useRef<HTMLInputElement | null>(null)
+
+  const emit = (nextHoursText: string, nextMinutesText: string, nextSecondsText: string) => {
+    const hours = parseSegment(nextHoursText, 99)
+    const minutes = parseSegment(nextMinutesText, 59)
+    const seconds = parseSegment(nextSecondsText, 59)
+    onChange(hours * 3600 + minutes * 60 + seconds)
+  }
+
+  const normalizeSegment = (segment: Segment) => {
+    if (segment === 'hours') {
+      const normalized = toTwoDigits(parseSegment(hoursText, 99))
+      setHoursText(normalized)
+      emit(normalized, minutesText, secondsText)
+      return
+    }
+    if (segment === 'minutes') {
+      const normalized = toTwoDigits(parseSegment(minutesText, 59))
+      setMinutesText(normalized)
+      emit(hoursText, normalized, secondsText)
+      return
+    }
+    const normalized = toTwoDigits(parseSegment(secondsText, 59))
+    setSecondsText(normalized)
+    emit(hoursText, minutesText, normalized)
+  }
+
+  const getRef = (segment: Segment) => {
+    if (segment === 'hours') return hoursRef
+    if (segment === 'minutes') return minutesRef
+    return secondsRef
+  }
+
+  const focusSegment = (segment: Segment) => {
+    const target = getRef(segment).current
+    if (!target) return
+    target.focus()
+    target.select()
+  }
+
+  const adjustSegment = (segment: Segment, delta: number) => {
+    if (segment === 'hours') {
+      const next = clamp(parseSegment(hoursText, 99) + delta, 0, 99)
+      const asText = toTwoDigits(next)
+      setHoursText(asText)
+      emit(asText, minutesText, secondsText)
+      return
+    }
+    if (segment === 'minutes') {
+      const next = clamp(parseSegment(minutesText, 59) + delta, 0, 59)
+      const asText = toTwoDigits(next)
+      setMinutesText(asText)
+      emit(hoursText, asText, secondsText)
+      return
+    }
+    const next = clamp(parseSegment(secondsText, 59) + delta, 0, 59)
+    const asText = toTwoDigits(next)
+    setSecondsText(asText)
+    emit(hoursText, minutesText, asText)
+  }
+
+  const handleChange = (segment: Segment, value: string) => {
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 2)
+
+    if (segment === 'hours') {
+      setHoursText(digitsOnly)
+      emit(digitsOnly, minutesText, secondsText)
+      if (digitsOnly.length === 2) focusSegment('minutes')
+      return
+    }
+    if (segment === 'minutes') {
+      setMinutesText(digitsOnly)
+      emit(hoursText, digitsOnly, secondsText)
+      if (digitsOnly.length === 2) focusSegment('seconds')
+      return
+    }
+    setSecondsText(digitsOnly)
+    emit(hoursText, minutesText, digitsOnly)
+  }
+
+  const handleKeyDown = (segment: Segment, event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      adjustSegment(segment, 1)
+      focusSegment(segment)
+      return
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      adjustSegment(segment, -1)
+      focusSegment(segment)
+    }
+  }
+
+  const segmentClass = (segment: Segment) =>
+    `w-8 bg-transparent text-center font-mono text-sm text-slate-900 outline-none dark:text-slate-100 ${
+      focusedSegment === segment ? 'text-slate-900 dark:text-slate-100' : ''
+    }`
+
+  return (
+    <div
+      className={`inline-flex items-center rounded-lg border border-slate-200/70 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900 ${className}`}
+    >
+      <input
+        ref={hoursRef}
+        value={hoursText}
+        onChange={(event) => handleChange('hours', event.target.value)}
+        onKeyDown={(event) => handleKeyDown('hours', event)}
+        onFocus={(event) => {
+          setFocusedSegment('hours')
+          event.currentTarget.select()
+        }}
+        onBlur={() => normalizeSegment('hours')}
+        inputMode="numeric"
+        aria-label="Hours"
+        disabled={disabled}
+        className={segmentClass('hours')}
+      />
+      <span className="px-0.5 font-mono text-sm text-slate-500 dark:text-slate-400">:</span>
+      <input
+        ref={minutesRef}
+        value={minutesText}
+        onChange={(event) => handleChange('minutes', event.target.value)}
+        onKeyDown={(event) => handleKeyDown('minutes', event)}
+        onFocus={(event) => {
+          setFocusedSegment('minutes')
+          event.currentTarget.select()
+        }}
+        onBlur={() => normalizeSegment('minutes')}
+        inputMode="numeric"
+        aria-label="Minutes"
+        disabled={disabled}
+        className={segmentClass('minutes')}
+      />
+      <span className="px-0.5 font-mono text-sm text-slate-500 dark:text-slate-400">:</span>
+      <input
+        ref={secondsRef}
+        value={secondsText}
+        onChange={(event) => handleChange('seconds', event.target.value)}
+        onKeyDown={(event) => handleKeyDown('seconds', event)}
+        onFocus={(event) => {
+          setFocusedSegment('seconds')
+          event.currentTarget.select()
+        }}
+        onBlur={() => normalizeSegment('seconds')}
+        inputMode="numeric"
+        aria-label="Seconds"
+        disabled={disabled}
+        className={segmentClass('seconds')}
+      />
+    </div>
+  )
+}
+
+export default TimeCodeInput
