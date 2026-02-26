@@ -249,6 +249,7 @@ function App() {
           onDelete={deleteTask}
           onComplete={completeTask}
           onPauseTracking={pauseTracking}
+          onToggleTracking={toggleTracking}
           isTaskTracking={isTaskTracking}
           getTaskLiveMinutes={getTaskLiveMinutes}
           onSave={updateTaskDetails}

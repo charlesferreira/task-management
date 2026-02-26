@@ -15,6 +15,7 @@ type TaskDetailsDrawerProps = {
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
   onPauseTracking: () => void
+  onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
   getTaskLiveMinutes: (taskId: string) => number
   onSave: (
@@ -37,6 +38,7 @@ type DrawerContentProps = {
   onDelete: (taskId: string) => void
   onComplete: (taskId: string) => void
   onPauseTracking: () => void
+  onToggleTracking: (taskId: string) => void
   isTaskTracking: (taskId: string) => boolean
   getTaskLiveMinutes: (taskId: string) => number
   onSave: (
@@ -78,6 +80,7 @@ const TaskDetailsDrawerContent = ({
   onDelete,
   onComplete,
   onPauseTracking,
+  onToggleTracking,
   isTaskTracking,
   getTaskLiveMinutes,
   onSave,
@@ -286,10 +289,12 @@ const TaskDetailsDrawerContent = ({
           <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
             Time tracked
           </p>
-          <div>
+          <div className="flex items-stretch gap-2">
             <TimeCodeInput
               valueSeconds={timeSeconds}
               onChange={(nextSeconds) => {
+                if (!task) return
+                if (nextSeconds === timeSeconds) return
                 if (task && isTaskTracking(task.id)) {
                   onPauseTracking()
                 }
@@ -297,6 +302,27 @@ const TaskDetailsDrawerContent = ({
               }}
               disabled={!task}
             />
+            <button
+              type="button"
+              onClick={() => {
+                if (!task) return
+                onToggleTracking(task.id)
+              }}
+              disabled={!task}
+              className="inline-flex h-[44px] min-w-[52px] items-center justify-center rounded-lg border border-slate-200/70 bg-white px-3 text-slate-600 transition hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+              aria-label={trackingThisTask ? 'Pause timer' : 'Start timer'}
+            >
+              {trackingThisTask ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
+                  <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <path d="M7 5.5v13c0 .9 1 1.5 1.8 1l9.7-6.5a1.2 1.2 0 0 0 0-2L8.8 4.5A1.2 1.2 0 0 0 7 5.5Z" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -340,6 +366,7 @@ const TaskDetailsDrawer = ({
   onDelete,
   onComplete,
   onPauseTracking,
+  onToggleTracking,
   isTaskTracking,
   getTaskLiveMinutes,
   onSave,
@@ -379,6 +406,7 @@ const TaskDetailsDrawer = ({
             onDelete={onDelete}
             onComplete={onComplete}
             onPauseTracking={onPauseTracking}
+            onToggleTracking={onToggleTracking}
             isTaskTracking={isTaskTracking}
             getTaskLiveMinutes={getTaskLiveMinutes}
             onSave={onSave}

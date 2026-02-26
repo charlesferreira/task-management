@@ -40,13 +40,29 @@ const TimeCodeInput = ({
   const [minutesText, setMinutesText] = useState(toTwoDigits(initial.minutes))
   const [secondsText, setSecondsText] = useState(toTwoDigits(initial.seconds))
   const [focusedSegment, setFocusedSegment] = useState<Segment | null>(null)
-  const displayHours = focusedSegment ? hoursText : toTwoDigits(current.hours)
-  const displayMinutes = focusedSegment ? minutesText : toTwoDigits(current.minutes)
-  const displaySeconds = focusedSegment ? secondsText : toTwoDigits(current.seconds)
+  const [editedSegment, setEditedSegment] = useState<Segment | null>(null)
+  const displayHours =
+    focusedSegment === 'hours' && editedSegment === 'hours'
+      ? hoursText
+      : toTwoDigits(current.hours)
+  const displayMinutes =
+    focusedSegment === 'minutes' && editedSegment === 'minutes'
+      ? minutesText
+      : toTwoDigits(current.minutes)
+  const displaySeconds =
+    focusedSegment === 'seconds' && editedSegment === 'seconds'
+      ? secondsText
+      : toTwoDigits(current.seconds)
 
   const hoursRef = useRef<HTMLInputElement | null>(null)
   const minutesRef = useRef<HTMLInputElement | null>(null)
   const secondsRef = useRef<HTMLInputElement | null>(null)
+
+  const resolvedHoursText = editedSegment === 'hours' ? hoursText : toTwoDigits(current.hours)
+  const resolvedMinutesText =
+    editedSegment === 'minutes' ? minutesText : toTwoDigits(current.minutes)
+  const resolvedSecondsText =
+    editedSegment === 'seconds' ? secondsText : toTwoDigits(current.seconds)
 
   const emit = (nextHoursText: string, nextMinutesText: string, nextSecondsText: string) => {
     const hours = parseSegment(nextHoursText, 99)
@@ -59,18 +75,15 @@ const TimeCodeInput = ({
     if (segment === 'hours') {
       const normalized = toTwoDigits(parseSegment(hoursText, 99))
       setHoursText(normalized)
-      emit(normalized, minutesText, secondsText)
       return
     }
     if (segment === 'minutes') {
       const normalized = toTwoDigits(parseSegment(minutesText, 59))
       setMinutesText(normalized)
-      emit(hoursText, normalized, secondsText)
       return
     }
     const normalized = toTwoDigits(parseSegment(secondsText, 59))
     setSecondsText(normalized)
-    emit(hoursText, minutesText, normalized)
   }
 
   const getRef = (segment: Segment) => {
@@ -88,23 +101,26 @@ const TimeCodeInput = ({
 
   const adjustSegment = (segment: Segment, delta: number) => {
     if (segment === 'hours') {
-      const next = clamp(parseSegment(hoursText, 99) + delta, 0, 99)
+      const next = clamp(parseSegment(resolvedHoursText, 99) + delta, 0, 99)
       const asText = toTwoDigits(next)
       setHoursText(asText)
-      emit(asText, minutesText, secondsText)
+      setEditedSegment('hours')
+      emit(asText, resolvedMinutesText, resolvedSecondsText)
       return
     }
     if (segment === 'minutes') {
-      const next = clamp(parseSegment(minutesText, 59) + delta, 0, 59)
+      const next = clamp(parseSegment(resolvedMinutesText, 59) + delta, 0, 59)
       const asText = toTwoDigits(next)
       setMinutesText(asText)
-      emit(hoursText, asText, secondsText)
+      setEditedSegment('minutes')
+      emit(resolvedHoursText, asText, resolvedSecondsText)
       return
     }
-    const next = clamp(parseSegment(secondsText, 59) + delta, 0, 59)
+    const next = clamp(parseSegment(resolvedSecondsText, 59) + delta, 0, 59)
     const asText = toTwoDigits(next)
     setSecondsText(asText)
-    emit(hoursText, minutesText, asText)
+    setEditedSegment('seconds')
+    emit(resolvedHoursText, resolvedMinutesText, asText)
   }
 
   const handleChange = (segment: Segment, value: string) => {
@@ -112,18 +128,21 @@ const TimeCodeInput = ({
 
     if (segment === 'hours') {
       setHoursText(digitsOnly)
-      emit(digitsOnly, minutesText, secondsText)
+      setEditedSegment('hours')
+      emit(digitsOnly, resolvedMinutesText, resolvedSecondsText)
       if (digitsOnly.length === 2) focusSegment('minutes')
       return
     }
     if (segment === 'minutes') {
       setMinutesText(digitsOnly)
-      emit(hoursText, digitsOnly, secondsText)
+      setEditedSegment('minutes')
+      emit(resolvedHoursText, digitsOnly, resolvedSecondsText)
       if (digitsOnly.length === 2) focusSegment('seconds')
       return
     }
     setSecondsText(digitsOnly)
-    emit(hoursText, minutesText, digitsOnly)
+    setEditedSegment('seconds')
+    emit(resolvedHoursText, resolvedMinutesText, digitsOnly)
   }
 
   const handleKeyDown = (segment: Segment, event: KeyboardEvent<HTMLInputElement>) => {
@@ -159,11 +178,13 @@ const TimeCodeInput = ({
           setMinutesText(toTwoDigits(current.minutes))
           setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('hours')
+          setEditedSegment(null)
           event.currentTarget.select()
         }}
         onBlur={() => {
           normalizeSegment('hours')
           setFocusedSegment(null)
+          setEditedSegment(null)
         }}
         inputMode="numeric"
         aria-label="Hours"
@@ -181,11 +202,13 @@ const TimeCodeInput = ({
           setMinutesText(toTwoDigits(current.minutes))
           setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('minutes')
+          setEditedSegment(null)
           event.currentTarget.select()
         }}
         onBlur={() => {
           normalizeSegment('minutes')
           setFocusedSegment(null)
+          setEditedSegment(null)
         }}
         inputMode="numeric"
         aria-label="Minutes"
@@ -203,11 +226,13 @@ const TimeCodeInput = ({
           setMinutesText(toTwoDigits(current.minutes))
           setSecondsText(toTwoDigits(current.seconds))
           setFocusedSegment('seconds')
+          setEditedSegment(null)
           event.currentTarget.select()
         }}
         onBlur={() => {
           normalizeSegment('seconds')
           setFocusedSegment(null)
+          setEditedSegment(null)
         }}
         inputMode="numeric"
         aria-label="Seconds"
