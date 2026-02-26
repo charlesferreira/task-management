@@ -7,6 +7,7 @@ export type Task = {
   description: string
   storyPoints: 1 | 2 | 3 | 5 | 8 | null
   actualTimeMinutes: number
+  showInZen: boolean
 }
 
 export type TaskHistoryEventType =

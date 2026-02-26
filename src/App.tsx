@@ -103,6 +103,7 @@ function App() {
     updateTaskTitle,
     updateTaskDetails,
     toggleTracking,
+    setTaskZenVisibility,
     pauseTracking,
     isTaskTracking,
     getTaskLiveMinutes,
@@ -158,8 +159,6 @@ function App() {
     const activeTasks = tasks.filter((task) => !task.completedAt);
     return activeTasks
       .map((task) => {
-        const isTracking = isTaskTracking(task.id);
-        const hasTrackedTime = task.actualTimeMinutes > 0 || isTracking;
         return {
           task,
           project:
@@ -167,13 +166,12 @@ function App() {
               ? unassignedProject
               : (projects.find((project) => project.id === task.projectId) ??
                 unassignedProject),
-          isTracking,
-          hasTrackedTime,
+          isTracking: isTaskTracking(task.id),
           liveMinutes: getTaskLiveMinutes(task.id),
           getTaskLiveMinutes,
         };
       })
-      .filter((row) => row.hasTrackedTime);
+      .filter((row) => row.task.showInZen);
   }, [tasks, projects, unassignedProject, isTaskTracking, getTaskLiveMinutes]);
 
   const selectedTask = useMemo(
@@ -392,6 +390,7 @@ function App() {
               onCreateTask={handleCreateTaskFromList}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
+              onSetZenVisibility={setTaskZenVisibility}
               onOpenTaskDetails={handleOpenTaskDetails}
               themeMode={themeMode}
               onToggleTheme={cycleThemeMode}

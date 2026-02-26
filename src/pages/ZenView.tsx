@@ -118,7 +118,7 @@ const ZenView = ({
         </div>
       ) : (
         <p className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
-          No tasks started
+          No tasks selected for Zen mode
         </p>
       )}
     </section>

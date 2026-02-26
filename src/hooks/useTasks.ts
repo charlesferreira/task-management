@@ -165,6 +165,15 @@ export const useTasks = () => {
 
   const startTracking = (taskId: string) => {
     if (tracker.runningByTaskId[taskId]) return
+    const task = tasks.find((entry) => entry.id === taskId)
+    if (!task) return
+    if (!task.showInZen) {
+      const updatedTasks = tasks.map((entry) =>
+        entry.id === taskId ? { ...entry, showInZen: true } : entry,
+      )
+      setTasks(updatedTasks)
+      taskService.saveTasks(updatedTasks)
+    }
     saveTracker({
       runningByTaskId: {
         ...tracker.runningByTaskId,
@@ -409,6 +418,7 @@ export const useTasks = () => {
       description: '',
       storyPoints: null,
       actualTimeMinutes: 0,
+      showInZen: false,
     }
     const updated = taskService.reorderTasks([next, ...tasks])
     setTasks(updated)
@@ -426,6 +436,7 @@ export const useTasks = () => {
       description: '',
       storyPoints: null,
       actualTimeMinutes: 0,
+      showInZen: false,
     }
     const indices = tasks
       .map((task, index) => ({
@@ -471,6 +482,18 @@ export const useTasks = () => {
     visibleIndices.forEach((index, slot) => {
       updated[index] = reordered[slot]
     })
+    const normalized = taskService.reorderTasks(updated)
+    setTasks(normalized)
+  }
+
+  const setTaskZenVisibility = (taskId: string, showInZen: boolean) => {
+    const sourceTasks =
+      !showInZen && isTaskTracking(taskId) ? pauseTracking(taskId, tasks) : tasks
+    const target = sourceTasks.find((task) => task.id === taskId)
+    if (!target || target.showInZen === showInZen) return
+    const updated = sourceTasks.map((task) =>
+      task.id === taskId ? { ...task, showInZen } : task,
+    )
     const normalized = taskService.reorderTasks(updated)
     setTasks(normalized)
   }
@@ -523,6 +546,7 @@ export const useTasks = () => {
     toggleTracking,
     isTaskTracking,
     getTaskLiveMinutes,
+    setTaskZenVisibility,
     addTaskAtTop,
     addTaskAfterProject,
     reorderWithinProject,

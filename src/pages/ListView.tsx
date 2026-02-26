@@ -18,6 +18,7 @@ type ListViewProps = {
   onOpenTaskDetails: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
+  onSetZenVisibility: (taskId: string, showInZen: boolean) => void;
   themeMode: ThemeMode;
   onToggleTheme: () => void;
 };
@@ -35,6 +36,7 @@ const ListView = ({
   onOpenTaskDetails,
   isTaskTracking,
   getTaskLiveMinutes,
+  onSetZenVisibility,
   themeMode,
   onToggleTheme,
 }: ListViewProps) => {
@@ -53,6 +55,7 @@ const ListView = ({
         onOpenTaskDetails={onOpenTaskDetails}
         isTaskTracking={isTaskTracking}
         getTaskLiveMinutes={getTaskLiveMinutes}
+        onSetZenVisibility={onSetZenVisibility}
       />
       <div className="fixed right-6 bottom-6 z-40 flex items-center gap-2">
         <ThemeToggleButton mode={themeMode} onToggle={onToggleTheme} />

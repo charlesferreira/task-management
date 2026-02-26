@@ -31,22 +31,27 @@ type GlobalTaskListProps = {
   onDeleteCompleted?: () => void;
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onOpenTaskDetails: (taskId: string) => void;
+  onSetZenVisibility: (taskId: string, showInZen: boolean) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
 };
 
 type SortableTaskItemProps = {
+  index: number;
   task: Task;
   project: Project;
   onOpenTaskDetails: (taskId: string) => void;
+  onSetZenVisibility: (taskId: string, showInZen: boolean) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
 };
 
 const SortableTaskItem = ({
+  index,
   task,
   project,
   onOpenTaskDetails,
+  onSetZenVisibility,
   isTaskTracking,
   getTaskLiveMinutes,
 }: SortableTaskItemProps) => {
@@ -83,7 +88,40 @@ const SortableTaskItem = ({
         isDragging ? "opacity-60" : ""
       }`}
     >
-      <td ref={setActivatorNodeRef} className="w-full px-2 py-3 align-middle">
+      <td className="w-px px-3 py-3 align-middle">
+        <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+          {index}
+        </span>
+      </td>
+      <td className="w-px px-3 py-3 align-middle">
+        <div className="flex items-center justify-center">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={task.showInZen}
+            aria-label={
+              task.showInZen ? "Hide task from zen mode" : "Show task in zen mode"
+            }
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSetZenVisibility(task.id, !task.showInZen);
+            }}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full border transition ${
+              task.showInZen
+                ? "border-emerald-500 bg-emerald-500/90"
+                : "border-slate-300 bg-slate-200 dark:border-slate-700 dark:bg-slate-800"
+            }`}
+          >
+            <span
+              className={`block h-3.5 w-3.5 rounded-full bg-white transition ${
+                task.showInZen ? "translate-x-4" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+      </td>
+      <td ref={setActivatorNodeRef} className="w-full px-3 py-3 align-middle">
         <span
           className={`block truncate text-sm font-medium ${
             task.completedAt
@@ -94,12 +132,12 @@ const SortableTaskItem = ({
           {task.title}
         </span>
       </td>
-      <td className="w-px px-1 py-3 align-middle">
+      <td className="w-px px-3 py-3 align-middle">
         <div className="flex items-center justify-center">
           <StoryPointsBadge storyPoints={task.storyPoints} />
         </div>
       </td>
-      <td className="w-px px-1 py-3 align-middle">
+      <td className="w-px px-3 py-3 align-middle">
         <div className="flex items-center justify-center">
           {hasTrackedTime ? (
             <span
@@ -116,7 +154,7 @@ const SortableTaskItem = ({
           )}
         </div>
       </td>
-      <td className="w-px px-2 py-3 align-middle">
+      <td className="w-px px-3 py-3 align-middle">
         <div className="flex items-center justify-center">
           <ProjectBadge project={project} />
         </div>
@@ -136,6 +174,7 @@ const GlobalTaskList = ({
   onDeleteCompleted,
   onReorder,
   onOpenTaskDetails,
+  onSetZenVisibility,
   isTaskTracking,
   getTaskLiveMinutes,
 }: GlobalTaskListProps) => {
@@ -214,8 +253,30 @@ const GlobalTaskList = ({
           <table
             className={`${hideHeader && !(filter && onFilterChange) ? "" : "mt-4"} w-full table-auto`}
           >
+            <thead>
+              <tr className="border-b border-slate-200/70 dark:border-slate-800/70">
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  #
+                </th>
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  Track
+                </th>
+                <th className="px-3 py-2 text-left text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  Task
+                </th>
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  SP
+                </th>
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  Time
+                </th>
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  Project
+                </th>
+              </tr>
+            </thead>
             <tbody>
-              {tasks.map((task) => {
+              {tasks.map((task, index) => {
                 const project =
                   task.projectId === null
                     ? unassignedProject
@@ -223,9 +284,11 @@ const GlobalTaskList = ({
                 return (
                   <SortableTaskItem
                     key={task.id}
+                    index={index + 1}
                     task={task}
                     project={project}
                     onOpenTaskDetails={onOpenTaskDetails}
+                    onSetZenVisibility={onSetZenVisibility}
                     isTaskTracking={isTaskTracking}
                     getTaskLiveMinutes={getTaskLiveMinutes}
                   />

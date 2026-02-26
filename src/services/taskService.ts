@@ -12,6 +12,7 @@ const sampleTasks: Task[] = [
     description: '',
     storyPoints: 3,
     actualTimeMinutes: 0,
+    showInZen: false,
   },
   {
     id: 'task-2',
@@ -22,6 +23,7 @@ const sampleTasks: Task[] = [
     description: '',
     storyPoints: 2,
     actualTimeMinutes: 0,
+    showInZen: false,
   },
   {
     id: 'task-3',
@@ -32,6 +34,7 @@ const sampleTasks: Task[] = [
     description: '',
     storyPoints: 5,
     actualTimeMinutes: 0,
+    showInZen: false,
   },
   {
     id: 'task-4',
@@ -42,6 +45,7 @@ const sampleTasks: Task[] = [
     description: '',
     storyPoints: 1,
     actualTimeMinutes: 0,
+    showInZen: false,
   },
   {
     id: 'task-5',
@@ -52,6 +56,7 @@ const sampleTasks: Task[] = [
     description: '',
     storyPoints: 8,
     actualTimeMinutes: 0,
+    showInZen: false,
   },
 ]
 
@@ -74,13 +79,15 @@ const normalizeTasks = (tasks: Task[]) => {
       typeof task.actualTimeMinutes === 'number' && task.actualTimeMinutes > 0
         ? Math.round(task.actualTimeMinutes * 100) / 100
         : 0
+    const showInZen = typeof task.showInZen === 'boolean' ? task.showInZen : false
     if (
       order !== task.order ||
       projectId !== task.projectId ||
       completedAt !== task.completedAt ||
       description !== task.description ||
       storyPoints !== task.storyPoints ||
-      actualTimeMinutes !== task.actualTimeMinutes
+      actualTimeMinutes !== task.actualTimeMinutes ||
+      showInZen !== task.showInZen
     ) {
       changed = true
     }
@@ -92,6 +99,7 @@ const normalizeTasks = (tasks: Task[]) => {
       description,
       storyPoints,
       actualTimeMinutes,
+      showInZen,
     }
   })
   return { normalized, changed }
