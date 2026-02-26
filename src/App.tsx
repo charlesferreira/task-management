@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
 import { useProjects } from "./hooks/useProjects";
@@ -8,25 +9,15 @@ import ListView from "./pages/ListView";
 import ZenView from "./pages/ZenView";
 
 type AppView = "board" | "list" | "zen";
-type NonZenView = "board" | "list";
 
-const parseViewFromHash = (hash: string): AppView => {
-  if (hash === "#list") return "list";
-  if (hash === "#zen") return "zen";
-  return "board";
-};
+const isAppView = (value: string | undefined): value is AppView =>
+  value === "board" || value === "list" || value === "zen";
 
 function App() {
-  const [activeView, setActiveView] = useState<AppView>(() => {
-    if (typeof window === "undefined") return "board";
-    return parseViewFromHash(window.location.hash);
-  });
-  const [lastNonZenView, setLastNonZenView] = useState<NonZenView>(() => {
-    if (typeof window === "undefined") return "board";
-    const initialView = parseViewFromHash(window.location.hash);
-    return initialView === "zen" ? "board" : initialView;
-  });
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const params = useParams();
+  const navigate = useNavigate();
+  const activeView: AppView = isAppView(params.view) ? params.view : "board";
+  const selectedTaskId = params.taskId ?? null;
   const isZen = activeView === "zen";
 
   const [filter, setFilter] = useState<"all" | "active" | "completed">(() => {
@@ -69,27 +60,9 @@ function App() {
   }, [filter]);
 
   useEffect(() => {
-    const nextHash = `#${activeView}`;
-    if (window.location.hash !== nextHash) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}${nextHash}`,
-      );
-    }
-  }, [activeView]);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const nextView = parseViewFromHash(window.location.hash);
-      setActiveView(nextView);
-      if (nextView !== "zen") {
-        setLastNonZenView(nextView);
-      }
-    };
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    if (isAppView(params.view)) return;
+    navigate("/board", { replace: true });
+  }, [navigate, params.view]);
 
   const filteredTasks = useMemo(() => {
     if (filter === "active") {
@@ -141,6 +114,14 @@ function App() {
 
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
+  const handleOpenTaskDetails = (taskId: string) => {
+    navigate(`/${activeView}/task/${encodeURIComponent(taskId)}`);
+  };
+
+  const handleCloseTaskDetails = () => {
+    navigate(`/${activeView}`);
+  };
+
   const handleDeleteProject = (projectId: string) => {
     reorderProjects(projects.filter((project) => project.id !== projectId));
     const updatedTasks = tasks.map((task) =>
@@ -150,16 +131,19 @@ function App() {
   };
 
   const handleChangeView = (view: AppView) => {
-    if (view === "zen") {
-      if (activeView !== "zen") {
-        setLastNonZenView(activeView as "board" | "list");
-      }
-      setActiveView("zen");
-      return;
-    }
-    setLastNonZenView(view);
-    setActiveView(view);
+    navigate(`/${view}`);
   };
+
+  useEffect(() => {
+    if (!isZen || selectedTaskId) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        navigate("/list");
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isZen, navigate, selectedTaskId]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -173,7 +157,7 @@ function App() {
             <div className="flex justify-end px-6 pt-4">
               <button
                 type="button"
-                onClick={() => setActiveView(lastNonZenView)}
+                onClick={() => navigate("/list")}
                 className="pointer-events-auto p-0 text-4xl leading-none font-light text-white opacity-0 transition group-hover:opacity-100 hover:opacity-80"
                 aria-label="Exit zen mode"
               >
@@ -230,7 +214,7 @@ function App() {
             <ZenView
               rows={zenRows}
               onComplete={toggleComplete}
-              onOpenDetails={setSelectedTaskId}
+              onOpenDetails={handleOpenTaskDetails}
               onToggleTracking={toggleTracking}
             />
           ) : activeView === "board" ? (
@@ -250,7 +234,7 @@ function App() {
               getTaskLiveMinutes={getTaskLiveMinutes}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
-              onOpenTaskDetails={setSelectedTaskId}
+              onOpenTaskDetails={handleOpenTaskDetails}
               onUpdateProject={updateProject}
               onUpdateUnassignedProjectName={updateUnassignedProjectName}
             />
@@ -271,7 +255,7 @@ function App() {
               getTaskLiveMinutes={getTaskLiveMinutes}
               onDeleteTask={deleteTask}
               onUpdateTaskTitle={updateTaskTitle}
-              onOpenTaskDetails={setSelectedTaskId}
+              onOpenTaskDetails={handleOpenTaskDetails}
             />
           )}
         </div>
@@ -280,7 +264,7 @@ function App() {
           task={selectedTask}
           projects={projects}
           unassignedProject={unassignedProject}
-          onClose={() => setSelectedTaskId(null)}
+          onClose={handleCloseTaskDetails}
           onDelete={deleteTask}
           onComplete={completeTask}
           onPauseTracking={pauseTracking}

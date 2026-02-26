@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
@@ -371,49 +372,33 @@ const TaskDetailsDrawer = ({
   getTaskLiveMinutes,
   onSave,
 }: TaskDetailsDrawerProps) => {
-  useEffect(() => {
-    if (!isOpen) return
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
-
   return (
-    <>
-      <div
-        className={`fixed inset-0 z-40 bg-slate-950/35 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-        onClick={onClose}
-      />
-      <aside
-        className={`fixed top-0 right-0 z-50 h-screen w-full max-w-xl border-l border-slate-200/70 bg-white shadow-2xl transition-transform duration-300 ease-out dark:border-slate-800/70 dark:bg-slate-900 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Task details"
-      >
-        <div className="flex h-full flex-col">
-          <TaskDetailsDrawerContent
-            key={task?.id ?? 'no-task-selected'}
-            task={task}
-            projects={projects}
-            unassignedProject={unassignedProject}
-            onClose={onClose}
-            onDelete={onDelete}
-            onComplete={onComplete}
-            onPauseTracking={onPauseTracking}
-            onToggleTracking={onToggleTracking}
-            isTaskTracking={isTaskTracking}
-            getTaskLiveMinutes={getTaskLiveMinutes}
-            onSave={onSave}
-          />
-        </div>
-      </aside>
-    </>
+    <Dialog.Root open={isOpen} onOpenChange={(open) => (open ? null : onClose())}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/35 transition-opacity duration-200 data-[state=closed]:opacity-0 data-[state=open]:opacity-100" />
+        <Dialog.Content
+          className="fixed top-0 right-0 z-50 h-screen w-full max-w-xl border-l border-slate-200/70 bg-white shadow-2xl transition-transform duration-300 ease-out data-[state=closed]:translate-x-full data-[state=open]:translate-x-0 dark:border-slate-800/70 dark:bg-slate-900"
+          aria-label="Task details"
+        >
+          <div className="flex h-full flex-col">
+            <TaskDetailsDrawerContent
+              key={task?.id ?? 'no-task-selected'}
+              task={task}
+              projects={projects}
+              unassignedProject={unassignedProject}
+              onClose={onClose}
+              onDelete={onDelete}
+              onComplete={onComplete}
+              onPauseTracking={onPauseTracking}
+              onToggleTracking={onToggleTracking}
+              isTaskTracking={isTaskTracking}
+              getTaskLiveMinutes={getTaskLiveMinutes}
+              onSave={onSave}
+            />
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
