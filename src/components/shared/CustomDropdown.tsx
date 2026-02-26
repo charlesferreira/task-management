@@ -118,9 +118,7 @@ const CustomDropdown = <T extends string>({
         >
           {selected?.label ?? '-'}
         </span>
-        <span className={`text-slate-400 ${compact ? 'text-[10px]' : 'text-xs'}`}>
-          ▾
-        </span>
+        <span className="text-xs text-slate-400">▾</span>
       </button>
       {isOpen ? (
         <div

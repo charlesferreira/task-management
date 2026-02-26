@@ -181,9 +181,9 @@ const ProjectColumn = ({
       ref={setCombinedRef}
       {...headerDragProps?.attributes}
       {...headerDragProps?.listeners}
-      className={`group/column relative flex h-[420px] flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+      className={`group/column relative flex h-105 flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-0 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
         isOver
-          ? "border-sky-400 bg-sky-50/60 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.35)] dark:ring-sky-300 dark:ring-offset-slate-950"
+          ? "border-sky-400 bg-sky-50/60 ring-1 ring-sky-400/35 ring-offset-2 ring-offset-slate-50 dark:border-sky-300 dark:bg-sky-900/30 dark:ring-sky-300/35 dark:ring-offset-slate-950"
           : ""
       }`}
     >
@@ -236,7 +236,7 @@ const ProjectColumn = ({
                   <button
                     type="button"
                     onClick={handleSaveProject}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-700 dark:text-slate-300"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-700 dark:text-slate-300"
                   >
                     Save
                   </button>
@@ -247,7 +247,7 @@ const ProjectColumn = ({
                       setDraftColor(project.color);
                       setIsEditing(false);
                     }}
-                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase dark:border-slate-700 dark:text-slate-500"
+                    className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase dark:border-slate-700 dark:text-slate-500"
                   >
                     Cancel
                   </button>
@@ -256,7 +256,7 @@ const ProjectColumn = ({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                 >
                   Edit
                 </button>
@@ -267,7 +267,7 @@ const ProjectColumn = ({
             <button
               type="button"
               onClick={() => onDeleteProject(project.id)}
-              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
+              className="rounded-lg border border-slate-200/70 px-2 py-0.5 text-xs font-semibold tracking-wide text-slate-400 uppercase opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:text-rose-500 dark:border-slate-700 dark:text-slate-500 dark:hover:text-rose-400"
             >
               Delete
             </button>

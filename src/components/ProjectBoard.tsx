@@ -258,7 +258,7 @@ const ProjectBoard = ({
         setActiveProjectId(null);
       }}
     >
-      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))] gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
         <SortableContext
           items={orderedProjects.map((project) => project.id)}
           strategy={rectSortingStrategy}
@@ -312,7 +312,7 @@ const ProjectBoard = ({
       </div>
       <DragOverlay adjustScale={false}>
         {activeTask && activeProject ? (
-          <div className="w-[280px] rounded-lg bg-white shadow-md dark:bg-slate-900">
+          <div className="w-70 rounded-lg bg-white shadow-md dark:bg-slate-900">
             <TaskItem
               task={activeTask}
               project={activeProject}
@@ -321,7 +321,7 @@ const ProjectBoard = ({
             />
           </div>
         ) : activeColumnProject ? (
-          <div className="w-[320px] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md dark:border-slate-800/70 dark:bg-slate-900">
+          <div className="w-80 rounded-xl border border-slate-200/70 bg-white p-5 shadow-md dark:border-slate-800/70 dark:bg-slate-900">
             <div className="flex items-center gap-2">
               <span
                 className="h-3 w-3 rounded-full"

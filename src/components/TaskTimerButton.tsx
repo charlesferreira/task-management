@@ -72,7 +72,7 @@ const TaskTimerButton = ({
 
   const stateToneClass = dimWhenPaused
     ? isRunning
-      ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-100 shadow-[0_0_0_1px_rgba(16,185,129,0.22)] dark:border-emerald-400/60 dark:bg-emerald-500/10 dark:text-emerald-100'
+      ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-100 ring-1 ring-emerald-400/20 dark:border-emerald-400/60 dark:bg-emerald-500/10 dark:text-emerald-100 dark:ring-emerald-300/20'
       : 'border-slate-600/70 bg-slate-900/35 text-slate-400 opacity-70 dark:border-slate-700 dark:bg-slate-900/35 dark:text-slate-400'
     : ''
 

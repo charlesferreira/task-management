@@ -101,7 +101,7 @@ const BoardView = ({
       {showProjectForm ? (
         <div
           ref={panelRef}
-          className="fixed right-6 bottom-24 z-40 w-[min(420px,calc(100vw-3rem))] rounded-xl border border-slate-200/70 bg-white p-5 shadow-md dark:border-slate-800/70 dark:bg-slate-900"
+          className="fixed right-6 bottom-24 left-6 z-40 w-auto max-w-105 rounded-xl border border-slate-200/70 bg-white p-5 shadow-md sm:left-auto sm:w-105 dark:border-slate-800/70 dark:bg-slate-900"
         >
           <div className="flex flex-col gap-3">
             <input

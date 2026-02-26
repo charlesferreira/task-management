@@ -161,7 +161,7 @@ const GlobalTaskList = ({
                 key={mode}
                 type="button"
                 onClick={() => onFilterChange(mode)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold capitalize transition ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold capitalize transition ${
                   filter === mode
                     ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
@@ -175,7 +175,7 @@ const GlobalTaskList = ({
             type="button"
             onClick={onDeleteCompleted}
             disabled={completedCount === 0}
-            className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800/70 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+            className="rounded-lg border border-slate-200/70 px-2.5 py-1 text-xs font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800/70 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
           >
             Delete completed
           </button>
