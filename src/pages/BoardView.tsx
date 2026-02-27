@@ -16,8 +16,8 @@ type ProjectsViewProps = {
   onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
   onReorderProjectTasks: (
     activeId: string,
-    overId: string | null,
     targetProjectId: string | null,
+    targetIndex: number,
     visibleTaskIds: string[],
   ) => void;
   onToggleComplete: (taskId: string) => void;

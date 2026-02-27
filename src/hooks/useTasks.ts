@@ -471,8 +471,8 @@ export const useTasks = () => {
 
   const moveTaskInBoard = (
     activeId: string,
-    overId: string | null,
     targetProjectId: string | null,
+    targetIndex: number,
     visibleTaskIds: string[],
   ) => {
     const visibleSet = new Set(visibleTaskIds)
@@ -490,24 +490,38 @@ export const useTasks = () => {
     const fromIndex = visibleTasks.findIndex((task) => task.id === activeId)
     if (fromIndex === -1) return false
 
-    let toIndex = 0
-    if (overId) {
-      toIndex = visibleTasks.findIndex((task) => task.id === overId)
-      if (toIndex === -1) return false
-    } else {
-      const lastIndex = [...visibleTasks]
-        .reverse()
-        .findIndex((task) => task.projectId === targetProjectId)
-      if (lastIndex === -1) {
-        toIndex = visibleTasks.length
+    const moved = visibleTasks[fromIndex]
+    const withoutActive = visibleTasks.filter((task) => task.id !== activeId)
+    const targetProjectCount = withoutActive.filter(
+      (task) => task.projectId === targetProjectId,
+    ).length
+    const clampedTargetIndex = Math.max(0, Math.min(targetIndex, targetProjectCount))
+
+    let insertIndex = withoutActive.length
+    if (targetProjectCount > 0) {
+      if (clampedTargetIndex === targetProjectCount) {
+        let lastProjectIndex = -1
+        withoutActive.forEach((task, index) => {
+          if (task.projectId === targetProjectId) {
+            lastProjectIndex = index
+          }
+        })
+        insertIndex = lastProjectIndex + 1
       } else {
-        toIndex = visibleTasks.length - lastIndex
+        let projectCursor = 0
+        for (let index = 0; index < withoutActive.length; index += 1) {
+          if (withoutActive[index].projectId !== targetProjectId) continue
+          if (projectCursor === clampedTargetIndex) {
+            insertIndex = index
+            break
+          }
+          projectCursor += 1
+        }
       }
     }
 
-    const reordered = [...visibleTasks]
-    const [moved] = reordered.splice(fromIndex, 1)
-    reordered.splice(toIndex, 0, moved)
+    const reordered = [...withoutActive]
+    reordered.splice(insertIndex, 0, moved)
 
     const updated = [...updatedTasks]
     visibleIndices.forEach((index, slot) => {

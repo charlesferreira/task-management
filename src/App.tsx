@@ -731,15 +731,15 @@ function App() {
 
   const handleMoveTaskInBoard = (
     activeId: string,
-    overId: string | null,
     targetProjectId: string | null,
+    targetIndex: number,
     visibleTaskIds: string[],
   ) => {
     const snapshot = getTasksSnapshot();
     const changed = moveTaskInBoard(
       activeId,
-      overId,
       targetProjectId,
+      targetIndex,
       visibleTaskIds,
     );
     if (!changed) return;
