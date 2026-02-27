@@ -2,6 +2,14 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+  --breakpoint-5xl: 225rem;
+  --breakpoint-6xl: 262.5rem;
+  --breakpoint-7xl: 300rem;
+}
+
 body {
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;

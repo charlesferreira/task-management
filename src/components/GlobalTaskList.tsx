@@ -1,5 +1,4 @@
-import { Archive } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { type Project, type Task } from "../models/types";
 import TaskTable from "./TaskTable";
 
@@ -7,6 +6,7 @@ type GlobalTaskListProps = {
   tasks: Task[];
   projects: Project[];
   unassignedProject: Project;
+  showArchivedOnly: boolean;
   hideHeader?: boolean;
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onArchiveTasks: (taskIds: string[]) => void;
@@ -23,6 +23,7 @@ const GlobalTaskList = ({
   tasks,
   projects,
   unassignedProject,
+  showArchivedOnly,
   hideHeader = false,
   onReorder,
   onArchiveTasks,
@@ -34,36 +35,26 @@ const GlobalTaskList = ({
   isTaskTracking,
   getTaskLiveMinutes,
 }: GlobalTaskListProps) => {
-  const [showArchived, setShowArchived] = useState(false);
-
   const projectMap = useMemo(() => {
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
-
-  const activeTasks = useMemo(
-    () => tasks.filter((task) => !task.archivedAt),
-    [tasks],
-  );
-  const archivedTasks = useMemo(
-    () => tasks.filter((task) => Boolean(task.archivedAt)),
-    [tasks],
-  );
-
-  const visibleTasks = showArchived ? archivedTasks : activeTasks;
   const completedActiveTaskIds = useMemo(
-    () => activeTasks.filter((task) => task.completedAt).map((task) => task.id),
-    [activeTasks],
+    () =>
+      showArchivedOnly
+        ? []
+        : tasks.filter((task) => task.completedAt).map((task) => task.id),
+    [showArchivedOnly, tasks],
   );
 
   const taskTableClass = "mt-3";
-  const emptyMessage = showArchived ? "No archived tasks." : "No tasks.";
+  const emptyMessage = showArchivedOnly ? "No archived tasks." : "No tasks.";
 
   return (
     <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3">
         {hideHeader ? (
           <p className="pt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {showArchived ? "Archived tasks" : "All tasks"}
+            {showArchivedOnly ? "Archived tasks" : "All tasks"}
           </p>
         ) : (
           <div>
@@ -74,40 +65,14 @@ const GlobalTaskList = ({
               Drag tasks to reorder across all projects.
             </p>
             <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {showArchived ? "Archived tasks" : "All tasks"}
+              {showArchivedOnly ? "Archived tasks" : "All tasks"}
             </p>
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => {
-            setShowArchived((prev) => !prev);
-          }}
-          className={`group/archive inline-flex h-9 items-center justify-center rounded-lg border text-xs font-semibold transition ${
-            showArchived
-              ? "gap-1.5 border-slate-300 bg-slate-900 px-3 text-white dark:border-slate-600 dark:bg-slate-100 dark:text-slate-900"
-              : "w-9 border-slate-200/70 bg-white text-slate-600 hover:w-auto hover:gap-1.5 hover:bg-slate-50 hover:px-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-          aria-label={
-            showArchived ? "Show active tasks" : "Show archived tasks"
-          }
-          aria-pressed={showArchived}
-        >
-          <Archive className="h-4 w-4" />
-          <span
-            className={`overflow-hidden whitespace-nowrap transition-all duration-150 ${
-              showArchived
-                ? "max-w-20 opacity-100"
-                : "max-w-0 opacity-0 group-hover/archive:max-w-20 group-hover/archive:opacity-100"
-            }`}
-          >
-            Archived
-          </span>
-        </button>
       </div>
 
-      {showArchived ? (
-        visibleTasks.length === 0 ? (
+      {showArchivedOnly ? (
+        tasks.length === 0 ? (
           <div
             className={`${taskTableClass} rounded-lg border border-dashed border-slate-200/70 px-3 py-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400`}
           >
@@ -124,7 +89,7 @@ const GlobalTaskList = ({
                   <th className="px-3 py-2 text-left text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                     Task
                   </th>
-                  {showArchived ? (
+                  {showArchivedOnly ? (
                     <th className="w-px px-3 py-2 text-right text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                       Action
                     </th>
@@ -132,7 +97,7 @@ const GlobalTaskList = ({
                 </tr>
               </thead>
               <tbody>
-                {visibleTasks.map((task, index) => {
+                {tasks.map((task, index) => {
                   return (
                     <tr
                       key={task.id}
@@ -154,7 +119,7 @@ const GlobalTaskList = ({
                           {task.title}
                         </span>
                       </td>
-                      {showArchived ? (
+                      {showArchivedOnly ? (
                         <td className="w-px px-3 py-3 text-right align-middle">
                           <div className="flex items-center justify-end gap-2">
                             <button
@@ -181,7 +146,7 @@ const GlobalTaskList = ({
             </table>
           </div>
         )
-      ) : activeTasks.length === 0 ? (
+      ) : tasks.length === 0 ? (
         <div
           className={`${taskTableClass} rounded-lg border border-dashed border-slate-200/70 px-3 py-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400`}
         >
@@ -189,7 +154,7 @@ const GlobalTaskList = ({
         </div>
       ) : (
         <TaskTable
-          tasks={activeTasks}
+          tasks={tasks}
           onReorder={onReorder}
           onOpenTaskDetails={onOpenTaskDetails}
           isTaskTracking={isTaskTracking}
@@ -210,7 +175,7 @@ const GlobalTaskList = ({
 
       <div className="mt-4 flex items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          {!showArchived && completedActiveTaskIds.length > 0 ? (
+          {!showArchivedOnly && completedActiveTaskIds.length > 0 ? (
             <button
               type="button"
               onClick={() => onArchiveTasks(completedActiveTaskIds)}

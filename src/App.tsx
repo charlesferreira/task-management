@@ -4,17 +4,18 @@ import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
 import BoardSettingsWidget from "./components/BoardSettingsWidget";
+import ArchivedFilterWidget from "./components/ArchivedFilterWidget";
 import UndoToast from "./components/UndoToast";
 import ProjectDetailsDrawer from "./components/ProjectDetailsDrawer";
 import type { ThemeMode } from "./components/ThemeToggleButton";
 import { UNASSIGNED_PROJECT_ID } from "./models/types";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
-import BoardView from "./pages/BoardView";
-import ListView from "./pages/ListView";
-import ZenView from "./pages/ZenView";
+import ProjectsView from "./pages/BoardView";
+import TasksView from "./pages/ListView";
+import TrackerView from "./pages/ZenView";
 
-type AppView = "board" | "list" | "zen";
+type AppView = "projects" | "tasks" | "tracker";
 type UndoToastState = {
   id: number;
   message: string;
@@ -36,7 +37,7 @@ type NewTaskDraftSnapshot = {
 };
 
 const isAppView = (value: string | undefined): value is AppView =>
-  value === "board" || value === "list" || value === "zen";
+  value === "projects" || value === "tasks" || value === "tracker";
 
 const buildNewTaskSnapshot = (task: {
   id: string;
@@ -84,10 +85,10 @@ const generateEntityId = (prefix: string) => {
 function App() {
   const params = useParams();
   const navigate = useNavigate();
-  const activeView: AppView = isAppView(params.view) ? params.view : "board";
+  const activeView: AppView = isAppView(params.view) ? params.view : "projects";
   const selectedTaskId = params.taskId ?? null;
-  const isZen = activeView === "zen";
-  const isBoard = activeView === "board";
+  const isTracker = activeView === "tracker";
+  const isProjects = activeView === "projects";
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const stored = localStorage.getItem("taskOrganizer.themeMode");
@@ -111,6 +112,7 @@ function App() {
   const [openBottomPanel, setOpenBottomPanel] = useState<BottomPanel | null>(
     null,
   );
+  const [showArchivedOnly, setShowArchivedOnly] = useState(false);
   const undoTimeoutRef = useRef<number | null>(null);
   const undoCloseTimeoutRef = useRef<number | null>(null);
 
@@ -169,8 +171,24 @@ function App() {
 
   useEffect(() => {
     if (isAppView(params.view)) return;
-    navigate("/board", { replace: true });
-  }, [navigate, params.view]);
+    const legacyViewMap: Record<string, AppView> = {
+      board: "projects",
+      list: "tasks",
+      zen: "tracker",
+    };
+    const mapped = params.view ? legacyViewMap[params.view] : null;
+    if (mapped) {
+      if (params.taskId) {
+        navigate(`/${mapped}/task/${encodeURIComponent(params.taskId)}`, {
+          replace: true,
+        });
+        return;
+      }
+      navigate(`/${mapped}`, { replace: true });
+      return;
+    }
+    navigate("/projects", { replace: true });
+  }, [navigate, params.taskId, params.view]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -188,9 +206,19 @@ function App() {
     return () => media.removeEventListener("change", applyTheme);
   }, [themeMode]);
 
-  const visibleBoardTasks = useMemo(
-    () => tasks.filter((task) => !task.archivedAt),
-    [tasks],
+  const filteredBoardTasks = useMemo(
+    () =>
+      tasks.filter((task) =>
+        showArchivedOnly ? Boolean(task.archivedAt) : !task.archivedAt,
+      ),
+    [showArchivedOnly, tasks],
+  );
+  const filteredListTasks = useMemo(
+    () =>
+      tasks.filter((task) =>
+        showArchivedOnly ? Boolean(task.archivedAt) : !task.archivedAt,
+      ),
+    [showArchivedOnly, tasks],
   );
 
   const zenRows = useMemo(() => {
@@ -226,12 +254,18 @@ function App() {
   const selectedProjectTasks = useMemo(() => {
     if (!selectedProject) return [];
     if (selectedProject.id === UNASSIGNED_PROJECT_ID) {
-      return tasks.filter((task) => task.projectId === null && !task.archivedAt);
+      return tasks.filter(
+        (task) =>
+          task.projectId === null &&
+          (showArchivedOnly ? Boolean(task.archivedAt) : !task.archivedAt),
+      );
     }
     return tasks.filter(
-      (task) => task.projectId === selectedProject.id && !task.archivedAt,
+      (task) =>
+        task.projectId === selectedProject.id &&
+        (showArchivedOnly ? Boolean(task.archivedAt) : !task.archivedAt),
     );
-  }, [selectedProject, tasks]);
+  }, [selectedProject, showArchivedOnly, tasks]);
 
   const completeTask = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
@@ -292,17 +326,17 @@ function App() {
   };
 
   const handleCreateTaskFromList = () => {
-    openNewTaskDraft("New task", null, "list");
+    openNewTaskDraft("New task", null, "tasks");
   };
 
   const handleCreateTaskFromBoardProject = (projectId: string | null) => {
     if (selectedProject) {
       handleCloseProjectDetails();
     }
-    if (activeView !== "board") {
-      navigate("/board");
+    if (activeView !== "projects") {
+      navigate("/projects");
     }
-    openNewTaskDraft("", projectId, "board");
+    openNewTaskDraft("", projectId, "projects");
   };
 
   const handleOpenTaskDetails = (taskId: string) => {
@@ -371,6 +405,11 @@ function App() {
     setOpenBottomPanel((current) =>
       current === "settings" ? null : current,
     );
+  };
+
+  const handleToggleArchivedFilter = () => {
+    setShowArchivedOnly((current) => !current);
+    setOpenBottomPanel(null);
   };
 
   const handleExportTasks = () => {
@@ -721,41 +760,41 @@ function App() {
   };
 
   useEffect(() => {
-    if (!isZen || selectedTaskId) return;
+    if (!isTracker || selectedTaskId) return;
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        navigate("/list");
+        navigate("/tasks");
       }
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isZen, navigate, selectedTaskId]);
+  }, [isTracker, navigate, selectedTaskId]);
 
   return (
     <div
       className={`bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 ${
-        isBoard ? "h-screen overflow-hidden" : "min-h-screen"
+        isProjects ? "h-screen overflow-hidden" : "min-h-screen"
       }`}
     >
       <div
         className={`group relative flex w-full flex-col ${
-          isZen
+          isTracker
             ? "min-h-screen px-6 py-0"
-            : isBoard
+            : isProjects
               ? "h-full gap-6 overflow-hidden pt-8"
               : "min-h-screen gap-6 px-6 py-8"
         } ${
-          isBoard ? "min-h-0" : ""
+          isProjects ? "min-h-0" : ""
         }`}
       >
-        {isZen ? (
+        {isTracker ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-20">
             <div className="flex justify-end px-6 pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/list")}
+                onClick={() => navigate("/tasks")}
                 className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-700 opacity-0 transition group-hover:opacity-100 hover:opacity-80 dark:text-white dark:focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
-                aria-label="Exit zen mode"
+                aria-label="Exit tracker mode"
               >
                 <X className="h-8 w-8" strokeWidth={2.75} aria-hidden="true" />
               </button>
@@ -764,7 +803,7 @@ function App() {
         ) : (
           <header
             className={`flex flex-col gap-4 transition md:flex-row md:items-center md:justify-between ${
-              isBoard ? "px-6" : ""
+              isProjects ? "px-6" : ""
             }`}
           >
             <div>
@@ -777,52 +816,52 @@ function App() {
               <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
                 <button
                   type="button"
-                  onClick={() => handleChangeView("board")}
+                  onClick={() => handleChangeView("tasks")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    activeView === "board"
+                    activeView === "tasks"
                       ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
                       : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                   }`}
                 >
-                  Board
+                  Tasks
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleChangeView("list")}
+                  onClick={() => handleChangeView("projects")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    activeView === "list"
+                    activeView === "projects"
                       ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
                       : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                   }`}
                 >
-                  Global list
+                  Projects
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleChangeView("zen")}
+                  onClick={() => handleChangeView("tracker")}
                   className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                 >
-                  Zen
+                  Tracker
                 </button>
               </div>
             </div>
           </header>
         )}
 
-        <div className={isZen || isBoard ? "flex flex-1 min-h-0 min-w-0" : ""}>
-          {activeView === "zen" ? (
-            <ZenView
+        <div className={isTracker || isProjects ? "flex flex-1 min-h-0 min-w-0" : ""}>
+          {activeView === "tracker" ? (
+            <TrackerView
               rows={zenRows}
               onComplete={handleToggleComplete}
               onOpenDetails={handleOpenTaskDetails}
               onToggleTracking={toggleTracking}
             />
-          ) : activeView === "board" ? (
-            <BoardView
+          ) : activeView === "projects" ? (
+            <ProjectsView
               projects={projects}
               unassignedProject={unassignedProject}
-              tasks={visibleBoardTasks}
-              allTasks={visibleBoardTasks}
+              tasks={filteredBoardTasks}
+              allTasks={filteredBoardTasks}
               layoutMode={boardLayoutMode}
               onCreateProject={createProject}
               onOpenProjectDetails={handleOpenProjectDetails}
@@ -835,10 +874,11 @@ function App() {
               onToggleTheme={cycleThemeMode}
             />
           ) : (
-            <ListView
+            <TasksView
               projects={projects}
               unassignedProject={unassignedProject}
-              tasks={tasks}
+              tasks={filteredListTasks}
+              showArchivedOnly={showArchivedOnly}
               onReorder={handleReorderVisibleTasks}
               onCreateTask={handleCreateTaskFromList}
               onArchiveTasks={handleArchiveTasks}
@@ -901,7 +941,7 @@ function App() {
           }}
           onDelete={handleDeleteProject}
         />
-        {!isZen ? (
+        {!isTracker ? (
           <>
             <TodayStatsWidget
               tasksCompleted={todayStats.tasksCompleted}
@@ -919,6 +959,10 @@ function App() {
               onChangeLayoutMode={setBoardLayoutMode}
               onExportTasks={handleExportTasks}
               onImportTasks={handleImportTasks}
+            />
+            <ArchivedFilterWidget
+              isActive={showArchivedOnly}
+              onToggle={handleToggleArchivedFilter}
             />
           </>
         ) : null}

@@ -271,7 +271,7 @@ const ProjectBoard = ({
     >
       {layoutMode === "columns" ? (
         <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden">
-          <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6 pt-2 pb-1">
+          <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6 pb-1">
             <SortableContext
               items={orderedColumns.map((project) => project.id)}
               strategy={horizontalListSortingStrategy}
@@ -308,12 +308,12 @@ const ProjectBoard = ({
           </div>
         </div>
       ) : (
-        <div className="h-full min-h-0 min-w-0 overflow-y-auto px-6 pt-2 pb-6">
+        <div className="h-full min-h-0 min-w-0 overflow-y-auto px-6 pb-6">
           <SortableContext
             items={orderedColumns.map((project) => project.id)}
             strategy={rectSortingStrategy}
           >
-            <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 min-[1920px]:grid-cols-5">
+            <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 5xl:grid-cols-7 6xl:grid-cols-8">
               {orderedColumns.map((project) => {
                 const isUnassigned = project.id === UNASSIGNED_PROJECT_ID;
                 const projectTasks = tasks.filter((task) =>

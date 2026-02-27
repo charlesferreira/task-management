@@ -10,19 +10,19 @@ type ZenTaskRow = {
   getTaskLiveMinutes: (taskId: string) => number;
 };
 
-type ZenViewProps = {
+type TrackerViewProps = {
   rows: ZenTaskRow[];
   onOpenDetails: (taskId: string) => void;
   onToggleTracking: (taskId: string) => void;
   onComplete: (taskId: string) => void;
 };
 
-const ZenView = ({
+const TrackerView = ({
   rows,
   onOpenDetails,
   onToggleTracking,
   onComplete,
-}: ZenViewProps) => {
+}: TrackerViewProps) => {
   const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
 
@@ -118,11 +118,11 @@ const ZenView = ({
         </div>
       ) : (
         <p className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
-          No tasks selected for Zen mode
+          No tasks being tracked
         </p>
       )}
     </section>
   );
 };
 
-export default ZenView;
+export default TrackerView;

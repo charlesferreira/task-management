@@ -6,7 +6,7 @@ import ThemeToggleButton, {
 } from "../components/ThemeToggleButton";
 import type { Project, Task } from "../models/types";
 
-type BoardViewProps = {
+type ProjectsViewProps = {
   projects: Project[];
   unassignedProject: Project;
   tasks: Task[];
@@ -28,7 +28,7 @@ type BoardViewProps = {
   onToggleTheme: () => void;
 };
 
-const BoardView = ({
+const ProjectsView = ({
   projects,
   unassignedProject,
   tasks,
@@ -43,7 +43,7 @@ const BoardView = ({
   onQuickAddTask,
   themeMode,
   onToggleTheme,
-}: BoardViewProps) => {
+}: ProjectsViewProps) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#38bdf8");
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -149,4 +149,4 @@ const BoardView = ({
   );
 };
 
-export default BoardView;
+export default ProjectsView;

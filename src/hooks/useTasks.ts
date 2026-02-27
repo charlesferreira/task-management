@@ -238,7 +238,7 @@ export const useTasks = () => {
     if (target.archivedAt) return false
 
     const nextCompletedAt = target.completedAt ? null : new Date().toISOString()
-    const updated = sourceTasks.map((task) =>
+    let updated = sourceTasks.map((task) =>
       task.id === taskId
         ? {
             ...task,
@@ -247,9 +247,26 @@ export const useTasks = () => {
             completedEffortSnapshotMinutes: nextCompletedAt
               ? task.actualTimeMinutes
               : null,
+            showInZen: nextCompletedAt ? false : task.showInZen,
           }
         : task,
     )
+
+    if (nextCompletedAt && target.showInZen) {
+      const hasTrackedActiveTask = updated.some(
+        (task) => task.showInZen && !task.completedAt && !task.archivedAt,
+      )
+      if (!hasTrackedActiveTask) {
+        const fallbackTask = updated.find(
+          (task) => !task.completedAt && !task.archivedAt,
+        )
+        if (fallbackTask) {
+          updated = updated.map((task) =>
+            task.id === fallbackTask.id ? { ...task, showInZen: true } : task,
+          )
+        }
+      }
+    }
 
     const normalized = taskService.reorderTasks(updated)
     setTasks(normalized)

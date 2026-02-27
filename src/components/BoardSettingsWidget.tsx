@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Settings } from "lucide-react";
+import { Download, Settings, Upload } from "lucide-react";
 import BottomActionButton from "./BottomActionButton";
 
 type BoardSettingsWidgetProps = {
@@ -41,14 +41,21 @@ const BoardSettingsWidget = ({
       containerClassName="fixed bottom-6 left-20 z-30"
       panelClassName="absolute bottom-full left-0 mb-3 w-72 rounded-xl border border-slate-200/70 bg-white p-4 shadow-md dark:border-slate-800/70 dark:bg-slate-900"
     >
-      <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-        Settings
-      </p>
-      <div className="mt-3 space-y-1.5">
-        <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-          Layout
-        </p>
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Settings
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Customize your board experience
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Board layout
+          </p>
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
           <button
             type="button"
             onClick={() => onChangeLayoutMode("columns")}
@@ -72,21 +79,32 @@ const BoardSettingsWidget = ({
             Grid
           </button>
         </div>
-        <div className="mt-3 flex items-center gap-2">
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Data
+          </p>
+          <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onExportTasks}
-            className="rounded-md border border-slate-200/70 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200/70 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            aria-label="Export tasks"
+            title="Export tasks"
           >
-            Export tasks
+            <Download className="h-4.5 w-4.5" strokeWidth={2.25} />
           </button>
           <button
             type="button"
             onClick={() => importInputRef.current?.click()}
-            className="rounded-md border border-slate-200/70 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200/70 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            aria-label="Import tasks"
+            title="Import tasks"
           >
-            Import tasks
+            <Upload className="h-4.5 w-4.5" strokeWidth={2.25} />
           </button>
+        </div>
         </div>
         <input
           ref={importInputRef}
@@ -100,7 +118,7 @@ const BoardSettingsWidget = ({
           }}
         />
         {importFeedback ? (
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {importFeedback}
           </p>
         ) : null}

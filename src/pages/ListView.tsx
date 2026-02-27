@@ -5,10 +5,11 @@ import ThemeToggleButton, {
 } from "../components/ThemeToggleButton";
 import type { Project, Task } from "../models/types";
 
-type ListViewProps = {
+type TasksViewProps = {
   projects: Project[];
   unassignedProject: Project;
   tasks: Task[];
+  showArchivedOnly: boolean;
   onReorder: (activeId: string, overId: string, visibleIds: string[]) => void;
   onCreateTask: () => void;
   onArchiveTasks: (taskIds: string[]) => void;
@@ -23,10 +24,11 @@ type ListViewProps = {
   onToggleTheme: () => void;
 };
 
-const ListView = ({
+const TasksView = ({
   projects,
   unassignedProject,
   tasks,
+  showArchivedOnly,
   onReorder,
   onCreateTask,
   onArchiveTasks,
@@ -39,13 +41,14 @@ const ListView = ({
   onSetZenVisibility,
   themeMode,
   onToggleTheme,
-}: ListViewProps) => {
+}: TasksViewProps) => {
   return (
     <section className="space-y-6 pb-24">
       <GlobalTaskList
         projects={projects}
         unassignedProject={unassignedProject}
         tasks={tasks}
+        showArchivedOnly={showArchivedOnly}
         hideHeader
         onReorder={onReorder}
         onArchiveTasks={onArchiveTasks}
@@ -80,4 +83,4 @@ const ListView = ({
   );
 };
 
-export default ListView;
+export default TasksView;

@@ -8,10 +8,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/board" replace />} />
+        <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/board" element={<Navigate to="/projects" replace />} />
+        <Route path="/list" element={<Navigate to="/tasks" replace />} />
+        <Route path="/zen" element={<Navigate to="/tracker" replace />} />
         <Route path="/:view" element={<App />} />
         <Route path="/:view/task/:taskId" element={<App />} />
-        <Route path="*" element={<Navigate to="/board" replace />} />
+        <Route path="*" element={<Navigate to="/projects" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
