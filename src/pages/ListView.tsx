@@ -14,6 +14,7 @@ type ListViewProps = {
   onArchiveTasks: (taskIds: string[]) => void;
   onDeleteTasks: (taskIds: string[]) => void;
   onUnarchiveTasks: (taskIds: string[]) => void;
+  onToggleComplete: (taskId: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
@@ -31,6 +32,7 @@ const ListView = ({
   onArchiveTasks,
   onDeleteTasks,
   onUnarchiveTasks,
+  onToggleComplete,
   onOpenTaskDetails,
   isTaskTracking,
   getTaskLiveMinutes,
@@ -49,6 +51,7 @@ const ListView = ({
         onArchiveTasks={onArchiveTasks}
         onDeleteTasks={onDeleteTasks}
         onUnarchiveTasks={onUnarchiveTasks}
+        onToggleComplete={onToggleComplete}
         onOpenTaskDetails={onOpenTaskDetails}
         isTaskTracking={isTaskTracking}
         getTaskLiveMinutes={getTaskLiveMinutes}

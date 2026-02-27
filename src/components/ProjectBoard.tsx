@@ -4,6 +4,7 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCenter,
+  pointerWithin,
   rectIntersection,
   useSensor,
   useSensors,
@@ -11,6 +12,7 @@ import {
 import {
   SortableContext,
   horizontalListSortingStrategy,
+  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
@@ -26,9 +28,11 @@ type ProjectBoardProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onDeleteProject: (projectId: string) => void;
+  layoutMode: "columns" | "grid";
+  onToggleComplete: (taskId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
   onOpenTaskDetails: (taskId: string) => void;
+  onQuickAddTask: (projectId: string | null) => void;
   onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
   onReorderProjectTasks: (
     activeId: string,
@@ -43,9 +47,11 @@ type SortableProjectColumnProps = {
   tasks: Task[];
   activeCount: number;
   isUnassigned?: boolean;
-  onDeleteProject?: (projectId: string) => void;
+  fillWidth?: boolean;
+  onToggleComplete: (taskId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
   onOpenTaskDetails: (taskId: string) => void;
+  onQuickAddTask: (projectId: string | null) => void;
 };
 
 const SortableProjectColumn = ({
@@ -53,9 +59,11 @@ const SortableProjectColumn = ({
   tasks,
   activeCount,
   isUnassigned = false,
-  onDeleteProject,
+  fillWidth = false,
+  onToggleComplete,
   onOpenProjectDetails,
   onOpenTaskDetails,
+  onQuickAddTask,
 }: SortableProjectColumnProps) => {
   const {
     attributes,
@@ -80,16 +88,20 @@ const SortableProjectColumn = ({
       style={style}
       {...attributes}
       {...listeners}
-      className={`transition ${isDragging ? "opacity-40" : ""}`}
+      className={`transition ${fillWidth ? "w-full min-w-0" : ""} ${
+        isDragging ? "opacity-40" : ""
+      }`}
     >
       <ProjectColumn
         project={project}
         tasks={tasks}
         isUnassigned={isUnassigned}
+        fillWidth={fillWidth}
         activeCount={activeCount}
-        onDeleteProject={onDeleteProject}
+        onToggleComplete={onToggleComplete}
         onOpenProjectDetails={onOpenProjectDetails}
         onOpenTaskDetails={onOpenTaskDetails}
+        onQuickAddTask={onQuickAddTask}
       />
     </div>
   );
@@ -100,9 +112,11 @@ const ProjectBoard = ({
   unassignedProject,
   tasks,
   allTasks,
-  onDeleteProject,
+  layoutMode,
+  onToggleComplete,
   onOpenProjectDetails,
   onOpenTaskDetails,
+  onQuickAddTask,
   onReorderProjects,
   onReorderProjectTasks,
 }: ProjectBoardProps) => {
@@ -115,13 +129,19 @@ const ProjectBoard = ({
     }),
   );
 
-  const orderedProjects = [...projects].sort((a, b) => a.order - b.order);
-  const unassignedIndex = Math.max(
-    0,
-    Math.min(unassignedProject.order, orderedProjects.length),
+  const orderedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.order - b.order),
+    [projects],
   );
-  const orderedColumns = [...orderedProjects];
-  orderedColumns.splice(unassignedIndex, 0, unassignedProject);
+  const orderedColumns = useMemo(() => {
+    const unassignedIndex = Math.max(
+      0,
+      Math.min(unassignedProject.order, orderedProjects.length),
+    );
+    const columns = [...orderedProjects];
+    columns.splice(unassignedIndex, 0, unassignedProject);
+    return columns;
+  }, [orderedProjects, unassignedProject]);
   const visibleTaskIds = tasks.map((task) => task.id);
   const projectMap = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -147,7 +167,7 @@ const ProjectBoard = ({
       sensors={sensors}
       collisionDetection={(args) => {
         const activeType = args.active?.data.current?.type;
-        if (activeType === "column") {
+        if (activeType === "column" && layoutMode === "columns") {
           const columnDroppables = args.droppableContainers.filter(
             (container) => {
               const type = container.data.current?.type;
@@ -160,6 +180,23 @@ const ProjectBoard = ({
               columnDroppables.length > 0
                 ? columnDroppables
                 : args.droppableContainers,
+          });
+        }
+        if (activeType === "task") {
+          const taskDroppables = args.droppableContainers.filter((container) => {
+            const type = container.data.current?.type;
+            return type === "task" || type === "column-drop";
+          });
+          const pointerHits = pointerWithin({
+            ...args,
+            droppableContainers: taskDroppables,
+          });
+          if (pointerHits.length > 0) {
+            return pointerHits;
+          }
+          return closestCenter({
+            ...args,
+            droppableContainers: taskDroppables,
           });
         }
         return closestCenter(args);
@@ -232,39 +269,80 @@ const ProjectBoard = ({
         setActiveProjectId(null);
       }}
     >
-      <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden">
-        <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6">
+      {layoutMode === "columns" ? (
+        <div className="h-full min-h-0 min-w-0 overflow-x-auto overflow-y-hidden">
+          <div className="flex h-full min-h-0 min-w-full w-max items-stretch gap-5 px-6 pt-2 pb-1">
+            <SortableContext
+              items={orderedColumns.map((project) => project.id)}
+              strategy={horizontalListSortingStrategy}
+            >
+              {orderedColumns.map((project) => {
+                const isUnassigned = project.id === UNASSIGNED_PROJECT_ID;
+                const projectTasks = tasks.filter(
+                  (task) =>
+                    isUnassigned
+                      ? task.projectId === null
+                      : task.projectId === project.id,
+                );
+                const activeCount = allTasks.filter(
+                  (task) =>
+                    (isUnassigned
+                      ? task.projectId === null
+                      : task.projectId === project.id) && !task.completedAt,
+                ).length;
+                return (
+                  <SortableProjectColumn
+                    key={project.id}
+                    project={project}
+                    tasks={projectTasks}
+                    activeCount={activeCount}
+                    isUnassigned={isUnassigned}
+                    onToggleComplete={onToggleComplete}
+                    onOpenProjectDetails={onOpenProjectDetails}
+                    onOpenTaskDetails={onOpenTaskDetails}
+                    onQuickAddTask={onQuickAddTask}
+                  />
+                );
+              })}
+            </SortableContext>
+          </div>
+        </div>
+      ) : (
+        <div className="h-full min-h-0 min-w-0 overflow-y-auto px-6 pt-2 pb-6">
           <SortableContext
             items={orderedColumns.map((project) => project.id)}
-            strategy={horizontalListSortingStrategy}
+            strategy={rectSortingStrategy}
           >
-            {orderedColumns.map((project) => {
-              const isUnassigned = project.id === UNASSIGNED_PROJECT_ID;
-              const projectTasks = tasks.filter(
-                (task) =>
+            <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 min-[1920px]:grid-cols-5">
+              {orderedColumns.map((project) => {
+                const isUnassigned = project.id === UNASSIGNED_PROJECT_ID;
+                const projectTasks = tasks.filter((task) =>
                   isUnassigned ? task.projectId === null : task.projectId === project.id,
-              );
-              const activeCount = allTasks.filter(
-                (task) =>
-                  (isUnassigned ? task.projectId === null : task.projectId === project.id) &&
-                  !task.completedAt,
-              ).length;
-              return (
-                <SortableProjectColumn
-                  key={project.id}
-                  project={project}
-                  tasks={projectTasks}
-                  activeCount={activeCount}
-                  isUnassigned={isUnassigned}
-                  onDeleteProject={isUnassigned ? undefined : onDeleteProject}
-                  onOpenProjectDetails={onOpenProjectDetails}
-                  onOpenTaskDetails={onOpenTaskDetails}
-                />
-              );
-            })}
+                );
+                const activeCount = allTasks.filter(
+                  (task) =>
+                    (isUnassigned ? task.projectId === null : task.projectId === project.id) &&
+                    !task.completedAt,
+                ).length;
+                return (
+                  <SortableProjectColumn
+                    key={project.id}
+                    project={project}
+                    tasks={projectTasks}
+                    isUnassigned={isUnassigned}
+                    fillWidth
+                    activeCount={activeCount}
+                    onToggleComplete={onToggleComplete}
+                    onOpenProjectDetails={onOpenProjectDetails}
+                    onOpenTaskDetails={onOpenTaskDetails}
+                    onQuickAddTask={onQuickAddTask}
+                  />
+                );
+              })}
+            </div>
           </SortableContext>
         </div>
-      </div>
+      )}
       <DragOverlay adjustScale={false}>
         {activeTask && activeProject ? (
           <div className="w-70 rounded-lg bg-white shadow-md dark:bg-slate-900">

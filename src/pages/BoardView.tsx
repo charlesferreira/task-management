@@ -11,7 +11,6 @@ type BoardViewProps = {
   unassignedProject: Project;
   tasks: Task[];
   allTasks: Task[];
-  onDeleteProject: (projectId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
   onCreateProject: (name: string, color: string) => void;
   onReorderProjects: (projects: Project[], unassignedOrder?: number) => void;
@@ -21,7 +20,10 @@ type BoardViewProps = {
     targetProjectId: string | null,
     visibleTaskIds: string[],
   ) => void;
+  onToggleComplete: (taskId: string) => void;
+  layoutMode: "columns" | "grid";
   onOpenTaskDetails: (taskId: string) => void;
+  onQuickAddTask: (projectId: string | null) => void;
   themeMode: ThemeMode;
   onToggleTheme: () => void;
 };
@@ -31,12 +33,14 @@ const BoardView = ({
   unassignedProject,
   tasks,
   allTasks,
-  onDeleteProject,
   onOpenProjectDetails,
   onCreateProject,
   onReorderProjects,
   onReorderProjectTasks,
+  onToggleComplete,
+  layoutMode,
   onOpenTaskDetails,
+  onQuickAddTask,
   themeMode,
   onToggleTheme,
 }: BoardViewProps) => {
@@ -67,18 +71,20 @@ const BoardView = ({
   }, [showProjectForm]);
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 w-full flex-col">
       <div className="min-h-0 min-w-0 flex-1">
         <ProjectBoard
           projects={projects}
           unassignedProject={unassignedProject}
           tasks={tasks}
           allTasks={allTasks}
-          onDeleteProject={onDeleteProject}
+          layoutMode={layoutMode}
+          onToggleComplete={onToggleComplete}
           onOpenProjectDetails={onOpenProjectDetails}
           onReorderProjects={onReorderProjects}
           onReorderProjectTasks={onReorderProjectTasks}
           onOpenTaskDetails={onOpenTaskDetails}
+          onQuickAddTask={onQuickAddTask}
         />
       </div>
       {showProjectForm ? (

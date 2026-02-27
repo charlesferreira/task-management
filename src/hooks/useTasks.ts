@@ -243,6 +243,10 @@ export const useTasks = () => {
         ? {
             ...task,
             completedAt: nextCompletedAt,
+            completedPointsSnapshot: nextCompletedAt ? task.storyPoints : null,
+            completedEffortSnapshotMinutes: nextCompletedAt
+              ? task.actualTimeMinutes
+              : null,
           }
         : task,
     )
@@ -272,11 +276,16 @@ export const useTasks = () => {
     if (existingCount === 0) return 0
 
     const updated = tasks.filter((task) => !ids.has(task.id))
+    const nextHistory = history.filter((event) => !ids.has(event.taskId))
     const nextRunning = Object.fromEntries(
       Object.entries(tracker.runningByTaskId).filter(([taskId]) => !ids.has(taskId)),
     )
     if (Object.keys(nextRunning).length !== Object.keys(tracker.runningByTaskId).length) {
       saveTracker({ runningByTaskId: nextRunning })
+    }
+    if (nextHistory.length !== history.length) {
+      setHistory(nextHistory)
+      taskHistoryService.saveEvents(nextHistory)
     }
     setTasks(taskService.reorderTasks(updated))
     return existingCount
@@ -499,6 +508,8 @@ export const useTasks = () => {
       projectId,
       order: 0,
       completedAt: null,
+      completedPointsSnapshot: null,
+      completedEffortSnapshotMinutes: null,
       archivedAt: null,
       description: '',
       storyPoints: null,
@@ -518,6 +529,8 @@ export const useTasks = () => {
       projectId,
       order: tasks.length,
       completedAt: null,
+      completedPointsSnapshot: null,
+      completedEffortSnapshotMinutes: null,
       archivedAt: null,
       description: '',
       storyPoints: null,
@@ -588,9 +601,9 @@ export const useTasks = () => {
   const dailyCompletionStats = useMemo<DailyCompletionStat[]>(() => {
     const byDay = new Map<string, DailyCompletionStat>()
 
-    history.forEach((event) => {
-      if (event.eventType !== 'task_completed') return
-      const dayKey = toDayKey(event.occurredAt)
+    tasks.forEach((task) => {
+      if (!task.completedAt) return
+      const dayKey = toDayKey(task.completedAt)
       if (!dayKey) return
 
       const current = byDay.get(dayKey) ?? {
@@ -601,14 +614,14 @@ export const useTasks = () => {
       }
 
       current.tasksCompleted += 1
-      current.pointsCompleted += event.pointsSnapshot ?? 0
-      current.effortMinutes += event.effortSnapshotMinutes
+      current.pointsCompleted += task.completedPointsSnapshot ?? 0
+      current.effortMinutes += task.completedEffortSnapshotMinutes ?? 0
 
       byDay.set(dayKey, current)
     })
 
     return [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day))
-  }, [history])
+  }, [tasks])
 
   const today = toDayKey(new Date().toISOString())
   const todayStats =

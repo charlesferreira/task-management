@@ -4,6 +4,8 @@ export type Task = {
   projectId: string | null
   order: number
   completedAt: string | null
+  completedPointsSnapshot: 1 | 2 | 3 | 5 | 8 | null
+  completedEffortSnapshotMinutes: number | null
   archivedAt: string | null
   description: string
   storyPoints: 1 | 2 | 3 | 5 | 8 | null

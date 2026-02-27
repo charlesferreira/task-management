@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import TodayStatsWidget from "./components/TodayStatsWidget";
+import BoardSettingsWidget from "./components/BoardSettingsWidget";
 import UndoToast from "./components/UndoToast";
 import ProjectDetailsDrawer from "./components/ProjectDetailsDrawer";
 import type { ThemeMode } from "./components/ThemeToggleButton";
@@ -20,6 +21,7 @@ type UndoToastState = {
   onUndo: () => void;
   isClosing: boolean;
 };
+type BottomPanel = "today" | "settings";
 const UNASSIGNED_PROJECT_DRAWER_KEY = "__unassigned__";
 
 type NewTaskDraftSnapshot = {
@@ -70,6 +72,15 @@ const isTaskSameAsDraftInitial = (
   task.storyPoints === draft.initial.storyPoints &&
   task.actualTimeMinutes === draft.initial.actualTimeMinutes;
 
+const normalizeNameKey = (value: string) => value.trim().toLowerCase();
+
+const generateEntityId = (prefix: string) => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+};
+
 function App() {
   const params = useParams();
   const navigate = useNavigate();
@@ -85,18 +96,28 @@ function App() {
     }
     return "system";
   });
+  const [boardLayoutMode, setBoardLayoutMode] = useState<"columns" | "grid">(
+    () => {
+      const stored = localStorage.getItem("taskOrganizer.boardLayoutMode");
+      return stored === "grid" ? "grid" : "columns";
+    },
+  );
   const [pendingNewTaskDraft, setPendingNewTaskDraft] =
     useState<NewTaskDraftSnapshot | null>(null);
   const [selectedProjectKey, setSelectedProjectKey] = useState<string | null>(
     null,
   );
   const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
+  const [openBottomPanel, setOpenBottomPanel] = useState<BottomPanel | null>(
+    null,
+  );
   const undoTimeoutRef = useRef<number | null>(null);
   const undoCloseTimeoutRef = useRef<number | null>(null);
 
   const {
     projects,
     unassignedProject,
+    setProjects,
     createProject,
     reorderProjects,
     updateProject,
@@ -108,6 +129,7 @@ function App() {
     tasks,
     reorderVisibleTasks,
     addTaskAtTop,
+    addTaskAfterProject,
     moveTaskInBoard,
     reorderWithinProject,
     toggleComplete,
@@ -130,6 +152,9 @@ function App() {
   useEffect(() => {
     localStorage.setItem("taskOrganizer.themeMode", themeMode);
   }, [themeMode]);
+  useEffect(() => {
+    localStorage.setItem("taskOrganizer.boardLayoutMode", boardLayoutMode);
+  }, [boardLayoutMode]);
 
   useEffect(() => {
     return () => {
@@ -216,27 +241,68 @@ function App() {
 
   const isTaskDrawerOpen = selectedTaskId !== null && selectedTask !== null;
 
-  const handleCreateTaskFromList = () => {
+  const openNewTaskDraft = (
+    title: string,
+    projectId: string | null,
+    view: AppView,
+  ) => {
     if (pendingNewTaskDraft) {
       const existingDraft = tasks.find((task) => task.id === pendingNewTaskDraft.id);
-      if (existingDraft && isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)) {
-        navigate(`/list/task/${encodeURIComponent(existingDraft.id)}`);
+      if (
+        existingDraft &&
+        isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)
+      ) {
+        if (existingDraft.title !== title || existingDraft.projectId !== projectId) {
+          updateTaskDetails(existingDraft.id, {
+            title,
+            projectId,
+            description: existingDraft.description,
+            storyPoints: existingDraft.storyPoints,
+            actualTimeMinutes: existingDraft.actualTimeMinutes,
+          });
+          setPendingNewTaskDraft(
+            buildNewTaskSnapshot({
+              id: existingDraft.id,
+              title,
+              projectId,
+              description: existingDraft.description,
+              storyPoints: existingDraft.storyPoints,
+              actualTimeMinutes: existingDraft.actualTimeMinutes,
+            }),
+          );
+        }
+        navigate(`/${view}/task/${encodeURIComponent(existingDraft.id)}`);
         return;
       }
       setPendingNewTaskDraft(null);
     }
-    const nextTaskId = addTaskAtTop("New task", null);
+
+    const nextTaskId = addTaskAtTop(title, projectId);
     setPendingNewTaskDraft(
       buildNewTaskSnapshot({
         id: nextTaskId,
-        title: "New task",
-        projectId: null,
+        title,
+        projectId,
         description: "",
         storyPoints: null,
         actualTimeMinutes: 0,
       }),
     );
-    navigate(`/list/task/${encodeURIComponent(nextTaskId)}`);
+    navigate(`/${view}/task/${encodeURIComponent(nextTaskId)}`);
+  };
+
+  const handleCreateTaskFromList = () => {
+    openNewTaskDraft("New task", null, "list");
+  };
+
+  const handleCreateTaskFromBoardProject = (projectId: string | null) => {
+    if (selectedProject) {
+      handleCloseProjectDetails();
+    }
+    if (activeView !== "board") {
+      navigate("/board");
+    }
+    openNewTaskDraft("", projectId, "board");
   };
 
   const handleOpenTaskDetails = (taskId: string) => {
@@ -285,6 +351,216 @@ function App() {
 
   const handleChangeView = (view: AppView) => {
     navigate(`/${view}`);
+  };
+
+  const handleToggleTodayPanel = () => {
+    setOpenBottomPanel((current) => (current === "today" ? null : "today"));
+  };
+
+  const handleCloseTodayPanel = () => {
+    setOpenBottomPanel((current) => (current === "today" ? null : current));
+  };
+
+  const handleToggleSettingsPanel = () => {
+    setOpenBottomPanel((current) =>
+      current === "settings" ? null : "settings",
+    );
+  };
+
+  const handleCloseSettingsPanel = () => {
+    setOpenBottomPanel((current) =>
+      current === "settings" ? null : current,
+    );
+  };
+
+  const handleExportTasks = () => {
+    const projectMap = new Map(projects.map((project) => [project.id, project]));
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      projects: projects
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((project) => ({
+          name: project.name,
+          color: project.color,
+          order: project.order,
+        })),
+      tasks: tasks
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((task) => ({
+          title: task.title,
+          projectName:
+            task.projectId === null
+              ? null
+              : (projectMap.get(task.projectId)?.name ?? null),
+          completedAt: task.completedAt,
+          completedPointsSnapshot: task.completedPointsSnapshot,
+          completedEffortSnapshotMinutes: task.completedEffortSnapshotMinutes,
+          archivedAt: task.archivedAt,
+          description: task.description,
+          storyPoints: task.storyPoints,
+          actualTimeMinutes: task.actualTimeMinutes,
+          showInZen: task.showInZen,
+        })),
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    anchor.href = url;
+    anchor.download = `task-organizer-export-${dateStamp}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportTasks = async (file: File): Promise<string> => {
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw) as {
+        projects?: Array<{ name?: unknown; color?: unknown }>;
+        tasks?: Array<{
+          title?: unknown;
+          projectName?: unknown;
+          completedAt?: unknown;
+          completedPointsSnapshot?: unknown;
+          completedEffortSnapshotMinutes?: unknown;
+          archivedAt?: unknown;
+          description?: unknown;
+          storyPoints?: unknown;
+          actualTimeMinutes?: unknown;
+          showInZen?: unknown;
+        }>;
+      };
+
+      const importedProjects = Array.isArray(parsed.projects) ? parsed.projects : [];
+      const importedTasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
+
+      const nextProjects = [...projects].sort((a, b) => a.order - b.order);
+      const projectIdByName = new Map<string, string>();
+      nextProjects.forEach((project) => {
+        projectIdByName.set(normalizeNameKey(project.name), project.id);
+      });
+
+      let createdProjects = 0;
+      let matchedProjects = 0;
+      importedProjects.forEach((entry) => {
+        const name = typeof entry.name === "string" ? entry.name.trim() : "";
+        if (!name) return;
+        const key = normalizeNameKey(name);
+        if (projectIdByName.has(key)) {
+          matchedProjects += 1;
+          return;
+        }
+        const color =
+          typeof entry.color === "string" && entry.color.trim()
+            ? entry.color
+            : "#94a3b8";
+        const nextProject = {
+          id: generateEntityId("project"),
+          name,
+          color,
+          order: nextProjects.length,
+        };
+        nextProjects.push(nextProject);
+        projectIdByName.set(key, nextProject.id);
+        createdProjects += 1;
+      });
+
+      const allowedStoryPoints = new Set([1, 2, 3, 5, 8]);
+      const importedTaskEntries = importedTasks
+        .map((entry) => {
+          const title = typeof entry.title === "string" ? entry.title.trim() : "";
+          if (!title) return null;
+
+          const projectName =
+            typeof entry.projectName === "string" ? entry.projectName.trim() : "";
+          const mappedProjectId = projectName
+            ? (projectIdByName.get(normalizeNameKey(projectName)) ?? null)
+            : null;
+          const completedAt =
+            typeof entry.completedAt === "string" ? entry.completedAt : null;
+          const archivedAt =
+            typeof entry.archivedAt === "string" ? entry.archivedAt : null;
+          const description =
+            typeof entry.description === "string" ? entry.description : "";
+          const storyPoints =
+            typeof entry.storyPoints === "number" &&
+            allowedStoryPoints.has(entry.storyPoints)
+              ? (entry.storyPoints as 1 | 2 | 3 | 5 | 8)
+              : null;
+          const actualTimeMinutes =
+            typeof entry.actualTimeMinutes === "number" &&
+            Number.isFinite(entry.actualTimeMinutes) &&
+            entry.actualTimeMinutes > 0
+              ? Math.round(entry.actualTimeMinutes * 100) / 100
+              : 0;
+          const showInZen =
+            archivedAt === null && typeof entry.showInZen === "boolean"
+              ? entry.showInZen
+              : false;
+          const completedPointsSnapshot =
+            typeof entry.completedPointsSnapshot === "number" &&
+            allowedStoryPoints.has(entry.completedPointsSnapshot)
+              ? (entry.completedPointsSnapshot as 1 | 2 | 3 | 5 | 8)
+              : null;
+          const completedEffortSnapshotMinutes =
+            typeof entry.completedEffortSnapshotMinutes === "number" &&
+            Number.isFinite(entry.completedEffortSnapshotMinutes) &&
+            entry.completedEffortSnapshotMinutes >= 0
+              ? Math.round(entry.completedEffortSnapshotMinutes * 100) / 100
+              : null;
+
+          return {
+            id: generateEntityId("task"),
+            title,
+            projectId: mappedProjectId,
+            order: 0,
+            completedAt,
+            completedPointsSnapshot:
+              completedAt === null
+                ? null
+                : (completedPointsSnapshot ?? storyPoints),
+            completedEffortSnapshotMinutes:
+              completedAt === null
+                ? null
+                : (completedEffortSnapshotMinutes ?? actualTimeMinutes),
+            archivedAt,
+            description,
+            storyPoints,
+            actualTimeMinutes,
+            showInZen,
+          };
+        })
+        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+
+      if (importedTaskEntries.length === 0 && createdProjects === 0) {
+        return "No valid data found in this file.";
+      }
+
+      const nextTasks = [
+        ...tasks,
+        ...importedTaskEntries.map((task, index) => ({
+          ...task,
+          order: tasks.length + index,
+        })),
+      ];
+
+      if (createdProjects > 0) {
+        setProjects(nextProjects);
+      }
+      setTasks(nextTasks);
+
+      return `Imported ${importedTaskEntries.length} tasks. Created ${createdProjects} projects and matched ${matchedProjects}.`;
+    } catch {
+      return "Import failed: invalid JSON file.";
+    }
   };
 
   const cycleThemeMode = () => {
@@ -547,12 +823,14 @@ function App() {
               unassignedProject={unassignedProject}
               tasks={visibleBoardTasks}
               allTasks={visibleBoardTasks}
+              layoutMode={boardLayoutMode}
               onCreateProject={createProject}
-              onDeleteProject={handleDeleteProject}
               onOpenProjectDetails={handleOpenProjectDetails}
               onReorderProjects={reorderProjects}
               onReorderProjectTasks={handleMoveTaskInBoard}
+              onToggleComplete={handleToggleComplete}
               onOpenTaskDetails={handleOpenTaskDetails}
+              onQuickAddTask={handleCreateTaskFromBoardProject}
               themeMode={themeMode}
               onToggleTheme={cycleThemeMode}
             />
@@ -566,6 +844,7 @@ function App() {
               onArchiveTasks={handleArchiveTasks}
               onDeleteTasks={handleDeleteTasks}
               onUnarchiveTasks={handleUnarchiveTasks}
+              onToggleComplete={handleToggleComplete}
               isTaskTracking={isTaskTracking}
               getTaskLiveMinutes={getTaskLiveMinutes}
               onSetZenVisibility={setTaskZenVisibility}
@@ -617,14 +896,31 @@ function App() {
           isTaskTracking={isTaskTracking}
           getTaskLiveMinutes={getTaskLiveMinutes}
           onSaveUnassignedName={updateUnassignedProjectName}
+          onCreateTask={(projectId, title) => {
+            addTaskAfterProject(title, projectId);
+          }}
           onDelete={handleDeleteProject}
         />
         {!isZen ? (
-          <TodayStatsWidget
-            tasksCompleted={todayStats.tasksCompleted}
-            pointsCompleted={todayStats.pointsCompleted}
-            effortMinutes={todayStats.effortMinutes}
-          />
+          <>
+            <TodayStatsWidget
+              tasksCompleted={todayStats.tasksCompleted}
+              pointsCompleted={todayStats.pointsCompleted}
+              effortMinutes={todayStats.effortMinutes}
+              isOpen={openBottomPanel === "today"}
+              onToggle={handleToggleTodayPanel}
+              onClose={handleCloseTodayPanel}
+            />
+            <BoardSettingsWidget
+              isOpen={openBottomPanel === "settings"}
+              onToggle={handleToggleSettingsPanel}
+              onClose={handleCloseSettingsPanel}
+              layoutMode={boardLayoutMode}
+              onChangeLayoutMode={setBoardLayoutMode}
+              onExportTasks={handleExportTasks}
+              onImportTasks={handleImportTasks}
+            />
+          </>
         ) : null}
         {undoToast ? (
           <UndoToast

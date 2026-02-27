@@ -333,6 +333,13 @@ const TaskDetailsDrawerContent = ({
                   saveTaskPatch({ title: nextTitle })
                 }
               }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return
+                if (event.nativeEvent.isComposing) return
+                if (!titleDraft.trim()) return
+                event.preventDefault()
+                onClose()
+              }}
               disabled={!task}
               className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
             />

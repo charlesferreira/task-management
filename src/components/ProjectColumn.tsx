@@ -1,12 +1,11 @@
 import { useDroppable } from "@dnd-kit/core";
-import { MoreVertical } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useRef, useState } from "react";
 import type { Project, Task } from "../models/types";
 import TaskItem from "./TaskItem";
 
@@ -14,21 +13,25 @@ type ProjectColumnProps = {
   project: Project;
   tasks: Task[];
   isUnassigned?: boolean;
+  fillWidth?: boolean;
   activeCount: number;
-  onDeleteProject?: (projectId: string) => void;
+  onToggleComplete: (taskId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
   onOpenTaskDetails: (taskId: string) => void;
+  onQuickAddTask: (projectId: string | null) => void;
 };
 
 type SortableTaskCardProps = {
   task: Task;
   project: Project;
+  onToggleComplete: (taskId: string) => void;
   onOpenTaskDetails: (taskId: string) => void;
 };
 
 const SortableTaskCard = ({
   task,
   project,
+  onToggleComplete,
   onOpenTaskDetails,
 }: SortableTaskCardProps) => {
   const {
@@ -60,7 +63,8 @@ const SortableTaskCard = ({
         project={project}
         isDragging={isDragging}
         showProjectBadge={false}
-        showCompleteToggle={false}
+        showCompleteToggle
+        onToggleComplete={onToggleComplete}
         onOpenDetails={onOpenTaskDetails}
         dragHandleProps={{
           attributes,
@@ -76,14 +80,13 @@ const ProjectColumn = ({
   project,
   tasks,
   isUnassigned = false,
+  fillWidth = false,
   activeCount,
-  onDeleteProject,
+  onToggleComplete,
   onOpenProjectDetails,
   onOpenTaskDetails,
+  onQuickAddTask,
 }: ProjectColumnProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
   const droppableId = isUnassigned ? "drop:unassigned" : `drop:${project.id}`;
   const { setNodeRef, isOver } = useDroppable({
     id: droppableId,
@@ -94,21 +97,12 @@ const ProjectColumn = ({
     setNodeRef(element);
   };
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const handleOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (menuRef.current?.contains(target)) return;
-      setIsMenuOpen(false);
-    };
-    window.addEventListener("mousedown", handleOutside);
-    return () => window.removeEventListener("mousedown", handleOutside);
-  }, [isMenuOpen]);
-
   return (
     <div
       ref={setCombinedRef}
-      className="relative flex h-full min-h-0 w-96 shrink-0 items-start"
+      className={`relative flex h-full min-h-0 items-start ${
+        fillWidth ? "w-full" : "w-96 shrink-0"
+      }`}
     >
       <div
         className={`group/column relative flex max-h-full w-full flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
@@ -142,47 +136,18 @@ const ProjectColumn = ({
               </h3>
             </div>
           </div>
-          <div
-            ref={menuRef}
-            className="relative"
+          <button
+            type="button"
             onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onQuickAddTask(isUnassigned ? null : project.id);
+            }}
+            className="rounded-md p-1.5 text-slate-400 opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label={`Add task to ${project.name}`}
           >
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen((open) => !open)}
-              className="rounded-md p-1.5 text-slate-400 opacity-0 transition group-focus-within/column:opacity-100 group-hover/column:opacity-100 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              aria-label="Project actions"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </button>
-            {isMenuOpen ? (
-              <div className="absolute top-full right-0 z-20 mt-1 flex min-w-32 flex-col rounded-lg border border-slate-200/70 bg-white p-1 shadow-md dark:border-slate-700 dark:bg-slate-900">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onOpenProjectDetails(isUnassigned ? null : project.id);
-                  }}
-                  className="rounded-md px-2 py-1.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Edit
-                </button>
-                {!isUnassigned && onDeleteProject ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onDeleteProject(project.id);
-                    }}
-                    className="rounded-md px-2 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/50"
-                  >
-                    Delete
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
         <div
           className="min-h-0"
@@ -208,6 +173,7 @@ const ProjectColumn = ({
                     key={task.id}
                     task={task}
                     project={project}
+                    onToggleComplete={onToggleComplete}
                     onOpenTaskDetails={onOpenTaskDetails}
                   />
                 ))}

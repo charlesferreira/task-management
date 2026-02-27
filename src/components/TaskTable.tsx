@@ -26,7 +26,9 @@ type TaskTableProps = {
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
   showTrack?: boolean;
+  showCompleteToggle?: boolean;
   showProject?: boolean;
+  onToggleComplete?: (taskId: string) => void;
   onSetZenVisibility?: (taskId: string, showInZen: boolean) => void;
   resolveProject?: (task: Task) => Project | null;
   className?: string;
@@ -39,7 +41,9 @@ type SortableTaskRowProps = {
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
   showTrack: boolean;
+  showCompleteToggle: boolean;
   showProject: boolean;
+  onToggleComplete?: (taskId: string) => void;
   onSetZenVisibility?: (taskId: string, showInZen: boolean) => void;
   project: Project | null;
 };
@@ -51,7 +55,9 @@ const SortableTaskRow = ({
   isTaskTracking,
   getTaskLiveMinutes,
   showTrack,
+  showCompleteToggle,
   showProject,
+  onToggleComplete,
   onSetZenVisibility,
   project,
 }: SortableTaskRowProps) => {
@@ -88,6 +94,30 @@ const SortableTaskRow = ({
         isDragging ? "opacity-60" : ""
       }`}
     >
+      {showCompleteToggle ? (
+        <td className="w-px px-3 py-3 align-middle">
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleComplete?.(task.id);
+              }}
+              className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none transition ${
+                task.completedAt
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-slate-300 text-transparent hover:text-slate-300 dark:border-slate-600 dark:hover:text-slate-500"
+              }`}
+              aria-label={
+                task.completedAt ? "Mark task incomplete" : "Mark task complete"
+              }
+            >
+              ✓
+            </button>
+          </div>
+        </td>
+      ) : null}
       <td className="w-px px-3 py-3 align-middle">
         <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
           {index}
@@ -174,7 +204,9 @@ const TaskTable = ({
   isTaskTracking,
   getTaskLiveMinutes,
   showTrack = false,
+  showCompleteToggle = false,
   showProject = false,
+  onToggleComplete,
   onSetZenVisibility,
   resolveProject,
   className = "",
@@ -209,6 +241,11 @@ const TaskTable = ({
         <table className={`w-full table-auto ${className}`}>
           <thead>
             <tr className="border-b border-slate-200/70 dark:border-slate-800/70">
+              {showCompleteToggle ? (
+                <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  Done
+                </th>
+              ) : null}
               <th className="w-px px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                 #
               </th>
@@ -243,7 +280,9 @@ const TaskTable = ({
                 isTaskTracking={isTaskTracking}
                 getTaskLiveMinutes={getTaskLiveMinutes}
                 showTrack={showTrack}
+                showCompleteToggle={showCompleteToggle}
                 showProject={showProject}
+                onToggleComplete={onToggleComplete}
                 onSetZenVisibility={onSetZenVisibility}
                 project={resolveProject?.(task) ?? null}
               />

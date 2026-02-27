@@ -19,6 +19,7 @@ type ProjectDetailsDrawerProps = {
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
   onSaveUnassignedName: (name: string) => void;
+  onCreateTask: (projectId: string | null, title: string) => void;
   onDelete: (projectId: string) => void;
 };
 
@@ -33,10 +34,12 @@ const ProjectDetailsDrawer = ({
   isTaskTracking,
   getTaskLiveMinutes,
   onSaveUnassignedName,
+  onCreateTask,
   onDelete,
 }: ProjectDetailsDrawerProps) => {
   const [nameDraft, setNameDraft] = useState(project?.name ?? "");
   const [colorDraft, setColorDraft] = useState(project?.color ?? "#94a3b8");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
 
   const sortedTasks = useMemo(
     () => [...tasks].sort((a, b) => a.order - b.order),
@@ -44,6 +47,14 @@ const ProjectDetailsDrawer = ({
   );
 
   const isUnassigned = project?.id === UNASSIGNED_PROJECT_ID;
+
+  const handleAddTask = () => {
+    if (!project) return;
+    const trimmed = newTaskTitle.trim();
+    if (!trimmed) return;
+    onCreateTask(isUnassigned ? null : project.id, trimmed);
+    setNewTaskTitle("");
+  };
 
   const saveProjectPatch = (patch: { name?: string; color?: string }) => {
     if (!project) return;
@@ -134,9 +145,25 @@ const ProjectDetailsDrawer = ({
                 </div>
               </div>
               <div className="mt-6 min-h-0 flex-1">
-                <p className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                  Tasks ({sortedTasks.length})
-                </p>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                    Tasks ({sortedTasks.length})
+                  </p>
+                </div>
+                <div className="mb-3">
+                  <input
+                    value={newTaskTitle}
+                    onChange={(event) => setNewTaskTitle(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddTask();
+                      }
+                    }}
+                    placeholder="Add task and press Enter"
+                    className="w-full rounded-lg border border-slate-200/70 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-500"
+                  />
+                </div>
                 {sortedTasks.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-slate-200/70 px-3 py-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
                     No tasks in this project.

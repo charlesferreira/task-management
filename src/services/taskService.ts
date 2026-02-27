@@ -9,6 +9,8 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 0,
     completedAt: null,
+    completedPointsSnapshot: null,
+    completedEffortSnapshotMinutes: null,
     archivedAt: null,
     description: '',
     storyPoints: 3,
@@ -21,6 +23,8 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 1,
     completedAt: null,
+    completedPointsSnapshot: null,
+    completedEffortSnapshotMinutes: null,
     archivedAt: null,
     description: '',
     storyPoints: 2,
@@ -33,6 +37,8 @@ const sampleTasks: Task[] = [
     projectId: 'project-3',
     order: 2,
     completedAt: null,
+    completedPointsSnapshot: null,
+    completedEffortSnapshotMinutes: null,
     archivedAt: null,
     description: '',
     storyPoints: 5,
@@ -45,6 +51,8 @@ const sampleTasks: Task[] = [
     projectId: 'project-1',
     order: 3,
     completedAt: null,
+    completedPointsSnapshot: null,
+    completedEffortSnapshotMinutes: null,
     archivedAt: null,
     description: '',
     storyPoints: 1,
@@ -57,6 +65,8 @@ const sampleTasks: Task[] = [
     projectId: 'project-2',
     order: 4,
     completedAt: null,
+    completedPointsSnapshot: null,
+    completedEffortSnapshotMinutes: null,
     archivedAt: null,
     description: '',
     storyPoints: 8,
@@ -74,6 +84,17 @@ const normalizeTasks = (tasks: Task[]) => {
       typeof task.projectId === 'string' ? task.projectId : null
     const completedAt =
       typeof task.completedAt === 'string' ? task.completedAt : null
+    const completedPointsSnapshot =
+      typeof task.completedPointsSnapshot === 'number' &&
+      allowedStoryPoints.has(task.completedPointsSnapshot)
+        ? (task.completedPointsSnapshot as 1 | 2 | 3 | 5 | 8)
+        : null
+    const completedEffortSnapshotMinutes =
+      typeof task.completedEffortSnapshotMinutes === 'number' &&
+      Number.isFinite(task.completedEffortSnapshotMinutes) &&
+      task.completedEffortSnapshotMinutes >= 0
+        ? Math.round(task.completedEffortSnapshotMinutes * 100) / 100
+        : null
     const archivedAt =
       typeof task.archivedAt === 'string' ? task.archivedAt : null
     const description =
@@ -87,10 +108,20 @@ const normalizeTasks = (tasks: Task[]) => {
         ? Math.round(task.actualTimeMinutes * 100) / 100
         : 0
     const showInZen = typeof task.showInZen === 'boolean' ? task.showInZen : false
+    const resolvedCompletedPointsSnapshot =
+      completedAt === null ? null : (completedPointsSnapshot ?? storyPoints)
+    const resolvedCompletedEffortSnapshotMinutes =
+      completedAt === null
+        ? null
+        : (completedEffortSnapshotMinutes ?? actualTimeMinutes)
+
     if (
       order !== task.order ||
       projectId !== task.projectId ||
       completedAt !== task.completedAt ||
+      resolvedCompletedPointsSnapshot !== task.completedPointsSnapshot ||
+      resolvedCompletedEffortSnapshotMinutes !==
+        task.completedEffortSnapshotMinutes ||
       archivedAt !== task.archivedAt ||
       description !== task.description ||
       storyPoints !== task.storyPoints ||
@@ -104,6 +135,8 @@ const normalizeTasks = (tasks: Task[]) => {
       order,
       projectId,
       completedAt,
+      completedPointsSnapshot: resolvedCompletedPointsSnapshot,
+      completedEffortSnapshotMinutes: resolvedCompletedEffortSnapshotMinutes,
       archivedAt,
       description,
       storyPoints,
