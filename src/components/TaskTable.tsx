@@ -18,6 +18,7 @@ import type { Project, Task } from "../models/types";
 import { formatMinutesAsHourMinuteClock } from "../utils/timeFormat";
 import ProjectBadge from "./ProjectBadge";
 import StoryPointsBadge from "./StoryPointsBadge";
+import { TASK_ROW_BORDER_CLASS, TASK_ROW_HOVER_CLASS } from "./taskRowStyles";
 
 type TaskTableProps = {
   tasks: Task[];
@@ -90,7 +91,7 @@ const SortableTaskRow = ({
       {...attributes}
       {...listeners}
       onClick={() => onOpenTaskDetails(task.id)}
-      className={`group/task cursor-pointer border-b border-slate-200/70 transition-colors last:border-b-0 hover:bg-white/30 dark:border-slate-800/70 dark:hover:bg-slate-800/30 ${
+      className={`group/task cursor-pointer ${TASK_ROW_BORDER_CLASS} ${TASK_ROW_HOVER_CLASS} transition-colors last:border-b-0 ${
         isDragging ? "opacity-60" : ""
       }`}
     >

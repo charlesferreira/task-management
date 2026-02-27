@@ -167,19 +167,33 @@ const ProjectBoard = ({
       sensors={sensors}
       collisionDetection={(args) => {
         const activeType = args.active?.data.current?.type;
-        if (activeType === "column" && layoutMode === "columns") {
+        if (activeType === "column") {
           const columnDroppables = args.droppableContainers.filter(
             (container) => {
               const type = container.data.current?.type;
               return type === "column" || type === "column-drop";
             },
           );
-          return rectIntersection({
+          const eligibleDroppables =
+            columnDroppables.length > 0
+              ? columnDroppables
+              : args.droppableContainers;
+          const pointerHits = pointerWithin({
             ...args,
-            droppableContainers:
-              columnDroppables.length > 0
-                ? columnDroppables
-                : args.droppableContainers,
+            droppableContainers: eligibleDroppables,
+          });
+          if (pointerHits.length > 0) {
+            return pointerHits;
+          }
+          if (layoutMode === "columns") {
+            return rectIntersection({
+              ...args,
+              droppableContainers: eligibleDroppables,
+            });
+          }
+          return closestCenter({
+            ...args,
+            droppableContainers: eligibleDroppables,
           });
         }
         if (activeType === "task") {

@@ -8,6 +8,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Project, Task } from "../models/types";
 import TaskItem from "./TaskItem";
+import { TASK_ROW_DIVIDER_CLASS } from "./taskRowStyles";
 
 type ProjectColumnProps = {
   project: Project;
@@ -62,6 +63,7 @@ const SortableTaskCard = ({
         task={task}
         project={project}
         isDragging={isDragging}
+        styleVariant="row"
         showProjectBadge={false}
         showCompleteToggle
         onToggleComplete={onToggleComplete}
@@ -167,7 +169,9 @@ const ProjectColumn = ({
               items={tasks.map((task) => task.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="flex max-h-[calc(100vh-18rem)] flex-col gap-2.5 overflow-y-auto pr-1 transition-[padding] duration-200">
+              <div
+                className={`flex max-h-[calc(100vh-18rem)] flex-col overflow-y-auto pr-1 transition-[padding] duration-200 ${TASK_ROW_DIVIDER_CLASS}`}
+              >
                 {tasks.map((task) => (
                   <SortableTaskCard
                     key={task.id}

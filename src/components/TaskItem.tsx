@@ -3,11 +3,13 @@ import type { Project, Task } from '../models/types'
 import ProjectBadge from './ProjectBadge'
 import StoryPointsBadge from './StoryPointsBadge'
 import TaskTimerButton from './TaskTimerButton'
+import { TASK_ROW_HOVER_CLASS } from './taskRowStyles'
 
 type TaskItemProps = {
   task: Task
   project: Project
   isDragging?: boolean
+  styleVariant?: 'card' | 'row'
   actionsVariant?: 'floating' | 'inline'
   dragHandleProps?: {
     attributes: DraggableAttributes
@@ -34,6 +36,7 @@ const TaskItem = ({
   task,
   project,
   isDragging = false,
+  styleVariant = 'card',
   dragHandleProps,
   showProjectBadge = true,
   onToggleComplete,
@@ -51,9 +54,15 @@ const TaskItem = ({
     <div
       data-task-card
       ref={dragHandleProps?.setActivatorNodeRef}
-      className={`group/task relative flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 transition dark:bg-slate-900 ${
+      className={`group/task relative flex items-center justify-between gap-3 px-3 py-2.5 transition ${
+        styleVariant === 'card'
+          ? 'rounded-lg bg-white dark:bg-slate-900'
+          : 'rounded-none bg-transparent'
+      } ${
         dragHandleProps
-          ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800'
+          ? styleVariant === 'card'
+            ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800'
+            : `cursor-pointer ${TASK_ROW_HOVER_CLASS}`
           : ''
       }`}
       {...dragHandleProps?.attributes}

@@ -507,8 +507,7 @@ export const useTasks = () => {
 
     const reordered = [...visibleTasks]
     const [moved] = reordered.splice(fromIndex, 1)
-    const insertIndex = toIndex > fromIndex ? toIndex - 1 : toIndex
-    reordered.splice(insertIndex, 0, moved)
+    reordered.splice(toIndex, 0, moved)
 
     const updated = [...updatedTasks]
     visibleIndices.forEach((index, slot) => {
