@@ -38,7 +38,7 @@ const BoardSettingsWidget = ({
       icon={<Settings className="h-6 w-6" strokeWidth={2.25} />}
       ariaLabel="Open board settings"
       title="Board settings"
-      containerClassName="fixed bottom-6 left-20 z-30"
+      containerClassName="relative"
       panelClassName="absolute bottom-full left-0 mb-3 w-72 rounded-xl border border-slate-200/70 bg-white p-4 shadow-md dark:border-slate-800/70 dark:bg-slate-900"
     >
       <div className="space-y-3">

@@ -9,7 +9,7 @@ type BottomActionButtonProps = {
   activeLabel?: string;
   ariaLabel: string;
   title: string;
-  containerClassName: string;
+  containerClassName?: string;
   panelClassName?: string;
   children?: ReactNode;
 };
@@ -22,7 +22,7 @@ const BottomActionButton = ({
   activeLabel,
   ariaLabel,
   title,
-  containerClassName,
+  containerClassName = "relative",
   panelClassName,
   children,
 }: BottomActionButtonProps) => {

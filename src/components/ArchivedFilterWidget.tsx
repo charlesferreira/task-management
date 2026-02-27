@@ -19,7 +19,7 @@ const ArchivedFilterWidget = ({
       activeLabel="Archived"
       ariaLabel="Toggle archived tasks filter"
       title="Archived filter"
-      containerClassName="fixed bottom-6 left-34 z-30"
+      containerClassName="relative"
     />
   );
 };

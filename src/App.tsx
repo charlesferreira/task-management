@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
-import TodayStatsWidget from "./components/TodayStatsWidget";
-import BoardSettingsWidget from "./components/BoardSettingsWidget";
 import ArchivedFilterWidget from "./components/ArchivedFilterWidget";
-import UndoToast from "./components/UndoToast";
+import BoardSettingsWidget from "./components/BoardSettingsWidget";
 import ProjectDetailsDrawer from "./components/ProjectDetailsDrawer";
+import TaskDetailsDrawer from "./components/TaskDetailsDrawer";
 import type { ThemeMode } from "./components/ThemeToggleButton";
-import { UNASSIGNED_PROJECT_ID } from "./models/types";
+import TodayStatsWidget from "./components/TodayStatsWidget";
+import UndoToast from "./components/UndoToast";
 import { useProjects } from "./hooks/useProjects";
 import { useTasks } from "./hooks/useTasks";
+import { UNASSIGNED_PROJECT_ID } from "./models/types";
 import ProjectsView from "./pages/BoardView";
 import TasksView from "./pages/ListView";
 import TrackerView from "./pages/ZenView";
@@ -195,7 +195,8 @@ function App() {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const applyTheme = () => {
-      const useDark = themeMode === "dark" || (themeMode === "system" && media.matches);
+      const useDark =
+        themeMode === "dark" || (themeMode === "system" && media.matches);
       root.classList.toggle("dark", useDark);
       root.style.colorScheme =
         themeMode === "system" ? (media.matches ? "dark" : "light") : themeMode;
@@ -222,7 +223,9 @@ function App() {
   );
 
   const zenRows = useMemo(() => {
-    const activeTasks = tasks.filter((task) => !task.completedAt && !task.archivedAt);
+    const activeTasks = tasks.filter(
+      (task) => !task.completedAt && !task.archivedAt,
+    );
     return activeTasks
       .map((task) => {
         return {
@@ -249,7 +252,9 @@ function App() {
     if (selectedProjectKey === UNASSIGNED_PROJECT_DRAWER_KEY) {
       return unassignedProject;
     }
-    return projects.find((project) => project.id === selectedProjectKey) ?? null;
+    return (
+      projects.find((project) => project.id === selectedProjectKey) ?? null
+    );
   }, [projects, selectedProjectKey, unassignedProject]);
   const selectedProjectTasks = useMemo(() => {
     if (!selectedProject) return [];
@@ -281,12 +286,17 @@ function App() {
     view: AppView,
   ) => {
     if (pendingNewTaskDraft) {
-      const existingDraft = tasks.find((task) => task.id === pendingNewTaskDraft.id);
+      const existingDraft = tasks.find(
+        (task) => task.id === pendingNewTaskDraft.id,
+      );
       if (
         existingDraft &&
         isTaskSameAsDraftInitial(existingDraft, pendingNewTaskDraft)
       ) {
-        if (existingDraft.title !== title || existingDraft.projectId !== projectId) {
+        if (
+          existingDraft.title !== title ||
+          existingDraft.projectId !== projectId
+        ) {
           updateTaskDetails(existingDraft.id, {
             title,
             projectId,
@@ -402,9 +412,7 @@ function App() {
   };
 
   const handleCloseSettingsPanel = () => {
-    setOpenBottomPanel((current) =>
-      current === "settings" ? null : current,
-    );
+    setOpenBottomPanel((current) => (current === "settings" ? null : current));
   };
 
   const handleToggleArchivedFilter = () => {
@@ -413,7 +421,9 @@ function App() {
   };
 
   const handleExportTasks = () => {
-    const projectMap = new Map(projects.map((project) => [project.id, project]));
+    const projectMap = new Map(
+      projects.map((project) => [project.id, project]),
+    );
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -478,7 +488,9 @@ function App() {
         }>;
       };
 
-      const importedProjects = Array.isArray(parsed.projects) ? parsed.projects : [];
+      const importedProjects = Array.isArray(parsed.projects)
+        ? parsed.projects
+        : [];
       const importedTasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
 
       const nextProjects = [...projects].sort((a, b) => a.order - b.order);
@@ -515,11 +527,14 @@ function App() {
       const allowedStoryPoints = new Set([1, 2, 3, 5, 8]);
       const importedTaskEntries = importedTasks
         .map((entry) => {
-          const title = typeof entry.title === "string" ? entry.title.trim() : "";
+          const title =
+            typeof entry.title === "string" ? entry.title.trim() : "";
           if (!title) return null;
 
           const projectName =
-            typeof entry.projectName === "string" ? entry.projectName.trim() : "";
+            typeof entry.projectName === "string"
+              ? entry.projectName.trim()
+              : "";
           const mappedProjectId = projectName
             ? (projectIdByName.get(normalizeNameKey(projectName)) ?? null)
             : null;
@@ -783,9 +798,7 @@ function App() {
             : isProjects
               ? "h-full gap-6 overflow-hidden pt-8"
               : "min-h-screen gap-6 px-6 py-8"
-        } ${
-          isProjects ? "min-h-0" : ""
-        }`}
+        } ${isProjects ? "min-h-0" : ""}`}
       >
         {isTracker ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-20">
@@ -793,7 +806,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => navigate("/tasks")}
-                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-700 opacity-0 transition group-hover:opacity-100 hover:opacity-80 dark:text-white dark:focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+                className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-lg p-0 text-5xl leading-none font-light text-slate-700 opacity-0 transition group-hover:opacity-100 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 dark:text-white dark:focus-visible:outline-white"
                 aria-label="Exit tracker mode"
               >
                 <X className="h-8 w-8" strokeWidth={2.75} aria-hidden="true" />
@@ -848,7 +861,11 @@ function App() {
           </header>
         )}
 
-        <div className={isTracker || isProjects ? "flex flex-1 min-h-0 min-w-0" : ""}>
+        <div
+          className={
+            isTracker || isProjects ? "flex min-h-0 min-w-0 flex-1" : ""
+          }
+        >
           {activeView === "tracker" ? (
             <TrackerView
               rows={zenRows}
@@ -897,13 +914,11 @@ function App() {
         <TaskDetailsDrawer
           isOpen={isTaskDrawerOpen}
           task={selectedTask}
-          autoSelectTitle={
-            Boolean(
-              selectedTask &&
-                pendingNewTaskDraft &&
-                selectedTask.id === pendingNewTaskDraft.id,
-            )
-          }
+          autoSelectTitle={Boolean(
+            selectedTask &&
+            pendingNewTaskDraft &&
+            selectedTask.id === pendingNewTaskDraft.id,
+          )}
           projects={projects}
           unassignedProject={unassignedProject}
           onClose={handleCloseTaskDetails}
@@ -942,15 +957,7 @@ function App() {
           onDelete={handleDeleteProject}
         />
         {!isTracker ? (
-          <>
-            <TodayStatsWidget
-              tasksCompleted={todayStats.tasksCompleted}
-              pointsCompleted={todayStats.pointsCompleted}
-              effortMinutes={todayStats.effortMinutes}
-              isOpen={openBottomPanel === "today"}
-              onToggle={handleToggleTodayPanel}
-              onClose={handleCloseTodayPanel}
-            />
+          <div className="fixed bottom-6 left-6 z-30 flex items-end gap-2">
             <BoardSettingsWidget
               isOpen={openBottomPanel === "settings"}
               onToggle={handleToggleSettingsPanel}
@@ -960,11 +967,19 @@ function App() {
               onExportTasks={handleExportTasks}
               onImportTasks={handleImportTasks}
             />
+            <TodayStatsWidget
+              tasksCompleted={todayStats.tasksCompleted}
+              pointsCompleted={todayStats.pointsCompleted}
+              effortMinutes={todayStats.effortMinutes}
+              isOpen={openBottomPanel === "today"}
+              onToggle={handleToggleTodayPanel}
+              onClose={handleCloseTodayPanel}
+            />
             <ArchivedFilterWidget
               isActive={showArchivedOnly}
               onToggle={handleToggleArchivedFilter}
             />
-          </>
+          </div>
         ) : null}
         {undoToast ? (
           <UndoToast

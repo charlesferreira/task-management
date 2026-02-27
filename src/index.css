@@ -104,7 +104,7 @@ button {
 
 @keyframes undoToastIn {
   from {
-    transform: translate3d(26px, 0, 0);
+    transform: translate3d(0, -18px, 0);
     opacity: 0;
   }
   to {
@@ -119,7 +119,7 @@ button {
     opacity: 1;
   }
   to {
-    transform: translate3d(26px, 0, 0);
+    transform: translate3d(0, -12px, 0);
     opacity: 0;
   }
 }

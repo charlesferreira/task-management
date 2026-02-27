@@ -8,7 +8,7 @@ type UndoToastProps = {
 const UndoToast = ({ message, onUndo, onDismiss, isClosing }: UndoToastProps) => {
   return (
     <div
-      className={`fixed right-4 bottom-24 z-[70] flex w-[calc(100vw-2rem)] max-w-md items-center gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-xl shadow-slate-950/40 backdrop-blur sm:right-6 sm:w-auto ${
+      className={`fixed top-4 left-1/2 z-[70] flex w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 items-center gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-xl shadow-slate-950/40 backdrop-blur ${
         isClosing ? "undo-toast-exit" : "undo-toast-enter"
       }`}
     >
