@@ -1,23 +1,11 @@
-import type { DragEndEvent } from "@dnd-kit/core";
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import type { Project, Task } from "../models/types";
+import type { CSSProperties } from "react";
+import { useSortableTask } from "../hooks/useSortableTask";
 import { formatMinutesAsHourMinuteClock } from "../utils/timeFormat";
 import ProjectBadge from "./ProjectBadge";
+import SortableTaskList from "./SortableTaskList";
 import StoryPointsBadge from "./StoryPointsBadge";
+import TaskDndProvider from "./TaskDndProvider";
 import { TASK_ROW_BORDER_CLASS, TASK_ROW_HOVER_CLASS } from "./taskRowStyles";
 
 type TaskTableProps = {
@@ -49,6 +37,18 @@ type SortableTaskRowProps = {
   project: Project | null;
 };
 
+type TaskDragOverlayRowProps = {
+  task: Task;
+  isTaskTracking: (taskId: string) => boolean;
+  getTaskLiveMinutes: (taskId: string) => number;
+  showProject: boolean;
+  project: Project | null;
+};
+
+const DRAG_OVERLAY_STYLE: CSSProperties = {
+  width: "min(42rem, calc(100vw - 3rem))",
+};
+
 const SortableTaskRow = ({
   index,
   task,
@@ -67,15 +67,9 @@ const SortableTaskRow = ({
     listeners,
     setActivatorNodeRef,
     setNodeRef,
-    transform,
-    transition,
     isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+    style,
+  } = useSortableTask(task.id);
 
   const liveMinutes = getTaskLiveMinutes(task.id);
   const isTracking = isTaskTracking(task.id);
@@ -92,7 +86,7 @@ const SortableTaskRow = ({
       {...listeners}
       onClick={() => onOpenTaskDetails(task.id)}
       className={`group/task cursor-pointer ${TASK_ROW_BORDER_CLASS} ${TASK_ROW_HOVER_CLASS} transition-colors last:border-b-0 ${
-        isDragging ? "opacity-60" : ""
+        isDragging ? "opacity-0" : ""
       }`}
     >
       {showCompleteToggle ? (
@@ -198,6 +192,47 @@ const SortableTaskRow = ({
   );
 };
 
+const TaskDragOverlayRow = ({
+  task,
+  isTaskTracking,
+  getTaskLiveMinutes,
+  showProject,
+  project,
+}: TaskDragOverlayRowProps) => {
+  const liveMinutes = getTaskLiveMinutes(task.id);
+  const isTracking = isTaskTracking(task.id);
+  const hasTrackedTime = liveMinutes > 0;
+  const timerLabel = hasTrackedTime
+    ? formatMinutesAsHourMinuteClock(liveMinutes)
+    : "-";
+
+  return (
+    <div
+      style={DRAG_OVERLAY_STYLE}
+      className="rounded-lg border border-slate-200/70 bg-white px-3 py-3 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+    >
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3">
+        <span className="truncate text-sm font-semibold text-slate-900">
+          {task.title}
+        </span>
+        <StoryPointsBadge storyPoints={task.storyPoints} />
+        <span
+          className={`font-mono text-xs font-semibold tabular-nums ${
+            isTracking ? "text-slate-900" : "text-slate-600"
+          }`}
+        >
+          {timerLabel}
+        </span>
+      </div>
+      {showProject && project ? (
+        <div className="mt-2">
+          <ProjectBadge project={project} />
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const TaskTable = ({
   tasks,
   onReorder,
@@ -212,33 +247,27 @@ const TaskTable = ({
   resolveProject,
   className = "",
 }: TaskTableProps) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    onReorder(
-      String(active.id),
-      String(over.id),
-      tasks.map((task) => task.id),
-    );
-  };
+  const taskIds = tasks.map((task) => task.id);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
+    <TaskDndProvider
+      onDragEnd={(activeId, overId) => onReorder(activeId, overId, taskIds)}
+      renderDragOverlay={(activeId) => {
+        const task = tasks.find((entry) => entry.id === activeId);
+        if (!task) return null;
+        const project = resolveProject?.(task) ?? null;
+        return (
+          <TaskDragOverlayRow
+            task={task}
+            isTaskTracking={isTaskTracking}
+            getTaskLiveMinutes={getTaskLiveMinutes}
+            showProject={showProject}
+            project={project}
+          />
+        );
+      }}
     >
-      <SortableContext
-        items={tasks.map((task) => task.id)}
-        strategy={verticalListSortingStrategy}
-      >
+      <SortableTaskList taskIds={taskIds}>
         <table className={`w-full table-auto ${className}`}>
           <thead>
             <tr className="border-b border-slate-200/70 dark:border-slate-800/70">
@@ -290,8 +319,8 @@ const TaskTable = ({
             ))}
           </tbody>
         </table>
-      </SortableContext>
-    </DndContext>
+      </SortableTaskList>
+    </TaskDndProvider>
   );
 };
 

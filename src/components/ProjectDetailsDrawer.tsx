@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Project, Task } from "../models/types";
 import { UNASSIGNED_PROJECT_ID } from "../models/types";
+import DetailsDrawer from "./DetailsDrawer";
 import TaskTable from "./TaskTable";
 
 type ProjectDetailsDrawerProps = {
@@ -81,10 +82,11 @@ const ProjectDetailsDrawer = ({
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => (!open ? onClose() : null)}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[1px]" />
-        <Dialog.Content className="fixed top-0 right-0 z-50 flex h-full w-full max-w-xl flex-col border-l border-slate-200/70 bg-white shadow-xl outline-none dark:border-slate-800/70 dark:bg-slate-900">
+    <DetailsDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Project details"
+    >
           <div className="flex items-center justify-between border-b border-slate-200/70 px-5 py-4 dark:border-slate-800/70">
             <Dialog.Title className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Project details
@@ -201,9 +203,7 @@ const ProjectDetailsDrawer = ({
               ) : null}
             </div>
           ) : null}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    </DetailsDrawer>
   );
 };
 

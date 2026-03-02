@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
 import { Pause, Play, X } from 'lucide-react'
 import type { Project, Task } from '../models/types'
 import { UNASSIGNED_PROJECT_ID } from '../models/types'
+import DetailsDrawer from './DetailsDrawer'
 import CustomDropdown, { type DropdownOption } from './shared/CustomDropdown'
 import { getStoryPointsTextTone } from '../utils/storyPoints'
 import ProjectBadge from './ProjectBadge'
@@ -459,37 +459,23 @@ const TaskDetailsDrawer = ({
   onSave,
 }: TaskDetailsDrawerProps) => {
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => (open ? null : onClose())}>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          forceMount
-          className="drawer-overlay fixed inset-0 z-40 bg-slate-950/35"
-        />
-        <Dialog.Content
-          forceMount
-          className="drawer-content fixed top-0 right-0 z-50 h-screen w-full max-w-xl border-l border-slate-200/70 bg-white shadow-2xl dark:border-slate-800/70 dark:bg-slate-900"
-          aria-label="Task details"
-        >
-          <div className="flex h-full flex-col">
-            <TaskDetailsDrawerContent
-              key={task?.id ?? 'no-task-selected'}
-              task={task}
-              autoSelectTitle={autoSelectTitle}
-              projects={projects}
-              unassignedProject={unassignedProject}
-              onClose={onClose}
-              onDelete={onDelete}
-              onComplete={onComplete}
-              onPauseTracking={onPauseTracking}
-              onToggleTracking={onToggleTracking}
-              isTaskTracking={isTaskTracking}
-              getTaskLiveMinutes={getTaskLiveMinutes}
-              onSave={onSave}
-            />
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <DetailsDrawer isOpen={isOpen} onClose={onClose} ariaLabel="Task details">
+      <TaskDetailsDrawerContent
+        key={task?.id ?? 'no-task-selected'}
+        task={task}
+        autoSelectTitle={autoSelectTitle}
+        projects={projects}
+        unassignedProject={unassignedProject}
+        onClose={onClose}
+        onDelete={onDelete}
+        onComplete={onComplete}
+        onPauseTracking={onPauseTracking}
+        onToggleTracking={onToggleTracking}
+        isTaskTracking={isTaskTracking}
+        getTaskLiveMinutes={getTaskLiveMinutes}
+        onSave={onSave}
+      />
+    </DetailsDrawer>
   )
 }
 
