@@ -38,9 +38,12 @@ type SortableTaskRowProps = {
 };
 
 type TaskDragOverlayRowProps = {
+  index: number;
   task: Task;
   isTaskTracking: (taskId: string) => boolean;
   getTaskLiveMinutes: (taskId: string) => number;
+  showTrack: boolean;
+  showCompleteToggle: boolean;
   showProject: boolean;
   project: Project | null;
 };
@@ -193,9 +196,12 @@ const SortableTaskRow = ({
 };
 
 const TaskDragOverlayRow = ({
+  index,
   task,
   isTaskTracking,
   getTaskLiveMinutes,
+  showTrack,
+  showCompleteToggle,
   showProject,
   project,
 }: TaskDragOverlayRowProps) => {
@@ -209,26 +215,79 @@ const TaskDragOverlayRow = ({
   return (
     <div
       style={DRAG_OVERLAY_STYLE}
-      className="rounded-lg border border-slate-200/70 bg-white px-3 py-3 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-lg border border-slate-200/70 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
     >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3">
-        <span className="truncate text-sm font-semibold text-slate-900">
-          {task.title}
-        </span>
-        <StoryPointsBadge storyPoints={task.storyPoints} />
-        <span
-          className={`font-mono text-xs font-semibold tabular-nums ${
-            isTracking ? "text-slate-900" : "text-slate-600"
-          }`}
-        >
-          {timerLabel}
-        </span>
-      </div>
-      {showProject && project ? (
-        <div className="mt-2">
-          <ProjectBadge project={project} />
+      <div className="flex items-center">
+        {showCompleteToggle ? (
+          <div className="flex w-[60px] shrink-0 items-center justify-center px-3 py-3">
+            <div
+              className={`flex h-6 w-6 min-h-6 min-w-6 shrink-0 items-center justify-center rounded-lg border text-xs leading-none ${
+                task.completedAt
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-slate-300 text-transparent dark:border-slate-600"
+              }`}
+            >
+              ✓
+            </div>
+          </div>
+        ) : null}
+        <div className="flex w-[44px] shrink-0 items-center justify-center px-3 py-3">
+          <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {index}
+          </span>
         </div>
-      ) : null}
+        {showTrack ? (
+          <div className="flex w-[68px] shrink-0 items-center justify-center px-3 py-3">
+            <div
+              className={`relative inline-flex h-5 w-9 items-center rounded-full border ${
+                task.showInZen
+                  ? "border-emerald-500 bg-emerald-500/90"
+                  : "border-slate-300 bg-slate-200 dark:border-slate-700 dark:bg-slate-800"
+              }`}
+            >
+              <span
+                className={`block h-3.5 w-3.5 rounded-full bg-white transition ${
+                  task.showInZen ? "translate-x-4" : "translate-x-0.5"
+                }`}
+              />
+            </div>
+          </div>
+        ) : null}
+        <div className="min-w-0 flex-1 px-3 py-3">
+          <span
+            className={`block truncate text-sm font-medium ${
+              task.completedAt
+                ? "text-slate-400 line-through dark:text-slate-500"
+                : "text-slate-900 dark:text-slate-100"
+            }`}
+          >
+            {task.title}
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center justify-center px-3 py-3">
+          <StoryPointsBadge storyPoints={task.storyPoints} />
+        </div>
+        <div className="flex min-w-[62px] shrink-0 items-center justify-center px-3 py-3">
+          {hasTrackedTime ? (
+            <span
+              className={`font-mono text-xs font-semibold tabular-nums ${
+                isTracking
+                  ? "text-slate-900 dark:text-slate-100"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              {timerLabel}
+            </span>
+          ) : (
+            <StoryPointsBadge storyPoints={null} />
+          )}
+        </div>
+        {showProject ? (
+          <div className="flex shrink-0 items-center justify-center px-3 py-3">
+            {project ? <ProjectBadge project={project} /> : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };
@@ -258,9 +317,12 @@ const TaskTable = ({
         const project = resolveProject?.(task) ?? null;
         return (
           <TaskDragOverlayRow
+            index={tasks.findIndex((entry) => entry.id === activeId) + 1}
             task={task}
             isTaskTracking={isTaskTracking}
             getTaskLiveMinutes={getTaskLiveMinutes}
+            showTrack={showTrack}
+            showCompleteToggle={showCompleteToggle}
             showProject={showProject}
             project={project}
           />
