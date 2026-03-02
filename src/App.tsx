@@ -829,17 +829,6 @@ function App() {
               <div className="flex items-center gap-1 rounded-lg border border-slate-200/70 bg-slate-50 p-1 dark:border-slate-800/70 dark:bg-slate-900">
                 <button
                   type="button"
-                  onClick={() => handleChangeView("tasks")}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    activeView === "tasks"
-                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                  }`}
-                >
-                  Tasks
-                </button>
-                <button
-                  type="button"
                   onClick={() => handleChangeView("projects")}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                     activeView === "projects"
@@ -848,6 +837,17 @@ function App() {
                   }`}
                 >
                   Projects
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChangeView("tasks")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    activeView === "tasks"
+                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  }`}
+                >
+                  Tasks
                 </button>
                 <button
                   type="button"
