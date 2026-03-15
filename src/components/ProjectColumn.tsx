@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { useSortableTask } from "../hooks/useSortableTask";
 import type { Project, Task } from "../models/types";
 import SortableTaskList from "./SortableTaskList";
@@ -13,6 +14,7 @@ type ProjectColumnProps = {
   fillWidth?: boolean;
   activeCount: number;
   dropId: string;
+  sortableId: string;
   onToggleComplete: (taskId: string) => void;
   onOpenProjectDetails: (projectId: string | null) => void;
   onOpenTaskDetails: (taskId: string) => void;
@@ -71,6 +73,7 @@ const ProjectColumn = ({
   fillWidth = false,
   activeCount,
   dropId,
+  sortableId,
   onToggleComplete,
   onOpenProjectDetails,
   onOpenTaskDetails,
@@ -79,18 +82,53 @@ const ProjectColumn = ({
   suppressShellDropState = false,
 }: ProjectColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({ id: dropId });
+  const {
+    attributes: projectAttributes,
+    listeners: projectListeners,
+    setActivatorNodeRef: setProjectActivatorNodeRef,
+    setNodeRef: setProjectNodeRef,
+    transform: projectTransform,
+    transition: projectTransition,
+    isDragging: isProjectDragging,
+  } = useSortable({ id: sortableId });
   const shouldRenderDropIndicator = dropIndicatorIndex !== null;
   const isShellDropActive = isOver && !suppressShellDropState;
+  const collapseProjectPlaceholder = isProjectDragging && fillWidth;
+  const resolvedProjectTransform = isProjectDragging ? null : projectTransform;
+  const translateOnlyTransform = resolvedProjectTransform
+    ? `translate3d(${Math.round(resolvedProjectTransform.x)}px, ${Math.round(
+        resolvedProjectTransform.y,
+      )}px, 0)`
+    : undefined;
+  const projectStyle = {
+    transform: translateOnlyTransform,
+    transition: projectTransition,
+  };
 
   return (
     <div
+      ref={setProjectNodeRef}
+      style={projectStyle}
       className={`relative flex h-full min-h-0 items-stretch ${
-        fillWidth ? "w-full" : "w-96 shrink-0"
+        fillWidth ? "h-auto w-full self-start" : "w-96 shrink-0"
+      } ${
+        collapseProjectPlaceholder
+          ? "h-0 min-h-0 overflow-hidden opacity-0 pointer-events-none"
+          : isProjectDragging
+            ? "opacity-0"
+            : ""
       }`}
     >
-      <div className="group/column relative flex h-full min-h-0 max-h-full w-full flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900">
+      <div
+        className={`group/column relative flex min-h-0 max-h-full w-full flex-col gap-3 rounded-xl border border-slate-200/70 bg-white px-5 pt-5 pb-5 shadow-sm transition dark:border-slate-800/70 dark:bg-slate-900 ${
+          fillWidth ? "h-auto" : "h-full"
+        } ${collapseProjectPlaceholder ? "hidden" : ""}`}
+      >
         <div
-          className="flex cursor-pointer items-center justify-between"
+          ref={setProjectActivatorNodeRef}
+          {...projectAttributes}
+          {...projectListeners}
+          className="flex cursor-grab items-center justify-between active:cursor-grabbing"
           onClick={() => onOpenProjectDetails(isUnassigned ? null : project.id)}
         >
           <div className="flex min-w-0 items-center gap-2">
